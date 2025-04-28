@@ -9,5 +9,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "ky": "^1.8.1"
+  }
 }
