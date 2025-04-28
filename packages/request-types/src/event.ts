@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const EventCreateSchema = z.object({
+export const eventCreateSchema = z.object({
   content: z.string().min(1, { message: "Content is required." }),
   partyId: z
     .number({ message: "Party ID is required." })
@@ -8,4 +8,4 @@ export const EventCreateSchema = z.object({
     .positive({ message: "Party ID must be a positive integer." }),
 });
 
-export type EventCreate = z.infer<typeof EventCreateSchema>;
+export type EventCreate = z.infer<typeof eventCreateSchema>;

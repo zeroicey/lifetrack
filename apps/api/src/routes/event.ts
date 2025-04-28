@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { EventService } from "@/services/event";
 import Responder from "@/middlewares/response";
 import validater from "@/middlewares/validate";
-import { EventCreateSchema } from "@lifetrack/request-types";
+import { eventCreateSchema } from "@lifetrack/request-types";
 
 export const EventRouter = new Hono();
 
@@ -19,7 +19,7 @@ EventRouter.get("/events/:id", async (c) => {
   return Responder.success().setData(data).build(c);
 });
 
-EventRouter.post("/events", validater("json", EventCreateSchema), async (c) => {
+EventRouter.post("/events", validater("json", eventCreateSchema), async (c) => {
   const body = c.req.valid("json");
   const data = await eventService.createEvent(body);
   return Responder.success().setData(data).build(c);
