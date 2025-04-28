@@ -1,1 +1,1 @@
-export * as event from "./src/event";
+export * from "./src/event";

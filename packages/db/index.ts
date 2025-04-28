@@ -1,2 +1,2 @@
-export * as event from "./src/postgres/event";
-export * as user from "./src/postgres/user";
+export * from "./src/postgres/event";
+export * from "./src/postgres/user";

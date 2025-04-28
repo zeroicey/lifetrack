@@ -1,9 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db/postgres";
-import { event } from "@lifetrack/db";
+import { events } from "@lifetrack/db";
 import { EventCreate } from "@lifetrack/request-types";
-
-const { events } = event;
 
 export class EventService {
   public async getAllEvent() {

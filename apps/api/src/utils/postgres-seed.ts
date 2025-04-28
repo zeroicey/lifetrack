@@ -1,11 +1,7 @@
 import { db } from "../db/postgres";
-import { user } from "@lifetrack/db";
-import { event } from "@lifetrack/db";
+import { users, events } from "@lifetrack/db";
 import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
-
-const { users } = user;
-const { events } = event;
 
 // 生成假的 events 内容
 const generateEventsValues = () => {
