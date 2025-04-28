@@ -1,0 +1,11 @@
+{
+  "name": "lifetrack",
+  "scripts": {
+    "dev:api": "bun -F api dev",
+    "dev:web": "bun -F web dev"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
