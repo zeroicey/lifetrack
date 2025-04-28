@@ -1,7 +1,7 @@
 {
   "name": "lifetrack",
   "scripts": {
-    "dev:api": "bun apps/api/src/index.ts",
+    "dev:api": "bun run --hot apps/api/src/index.ts",
     "dev:web": "bun -F web dev",
     "start:api": "bun -F api dev",
     "start:web": "bun -F web start"

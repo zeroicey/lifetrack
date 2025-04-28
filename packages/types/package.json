@@ -1,6 +1,0 @@
-{
-  "name": "@lifetrack/types",
-  "version": "0.0.1",
-  "description": "Lifetrack types package",
-  "main": "index.ts"
-}

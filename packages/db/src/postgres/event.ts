@@ -14,7 +14,7 @@ export const events = pgTable("events", {
   partyId: integer("party_id")
     .notNull()
     .references((): AnyPgColumn => users.id),
-  happenedAt: timestamp("created_at", { precision: 3 }).notNull().defaultNow(),
+  happenedAt: timestamp("happened_at", { precision: 3 }).notNull().defaultNow(),
 });
 
 export const eventsRelations = relations(events, ({ one }) => ({
