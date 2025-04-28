@@ -1,0 +1,6 @@
+{
+  "name": "@lifetrack/db",
+  "version": "0.0.1",
+  "description": "Lifetrack database package",
+  "main": "index.ts"
+}
