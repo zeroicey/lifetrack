@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "../db/postgres";
-import { events } from "@lifetrack/db";
+import { db } from "@lifetrack/postgres-db";
+import { events } from "@lifetrack/postgres-db";
 import { EventCreate } from "@lifetrack/request-types";
 
 export class EventService {

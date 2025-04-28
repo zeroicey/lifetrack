@@ -1,5 +1,5 @@
 {
-  "name": "@lifetrack/db",
+  "name": "@lifetrack/postgres-db",
   "version": "0.0.1",
   "description": "Lifetrack database package",
   "scripts": {

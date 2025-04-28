@@ -1,5 +1,6 @@
-import { db } from "../db/postgres";
-import { users, events } from "@lifetrack/db";
+import { db } from "../driver";
+import { events } from "../schema/event";
+import { users } from "../schema/user";
 import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 

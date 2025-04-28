@@ -9,8 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@lifetrack/response-types": "workspace:*",
-    "@lifetrack/request-types": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.503.0",

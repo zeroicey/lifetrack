@@ -10,7 +10,7 @@
     "apps/api": {
       "name": "api",
       "dependencies": {
-        "@lifetrack/db": "workspace:*",
+        "@lifetrack/postgres-db": "workspace:*",
         "drizzle-orm": "^0.42.0",
         "drizzle-seed": "^0.3.1",
         "drizzle-zod": "^0.7.1",
@@ -29,8 +29,6 @@
       "name": "web",
       "version": "0.1.0",
       "dependencies": {
-        "@lifetrack/request-types": "workspace:*",
-        "@lifetrack/response-types": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^0.503.0",
@@ -52,8 +50,8 @@
         "typescript": "^5",
       },
     },
-    "packages/db": {
-      "name": "@lifetrack/db",
+    "packages/postgres-db": {
+      "name": "@lifetrack/postgres-db",
       "version": "0.0.1",
       "dependencies": {
         "drizzle-orm": "^0.42.0",
@@ -71,7 +69,6 @@
       "name": "@lifetrack/response-types",
       "version": "0.0.1",
       "dependencies": {
-        "@lifetrack/db": "workspace:*",
         "drizzle-zod": "^0.7.1",
         "zod": "^3.24.3",
       },
@@ -210,7 +207,7 @@
 
     "@img/sharp-win32-x64": ["@img/sharp-win32-x64@0.34.1", "https://registry.npmmirror.com/@img/sharp-win32-x64/-/sharp-win32-x64-0.34.1.tgz", { "os": "win32", "cpu": "x64" }, "sha512-hw1iIAHpNE8q3uMIRCgGOeDoz9KtFNarFLQclLxr/LK1VBkj8nby18RjFvr6aP7USRYAjTZW6yisnBWMX571Tw=="],
 
-    "@lifetrack/db": ["@lifetrack/db@workspace:packages/db"],
+    "@lifetrack/postgres-db": ["@lifetrack/postgres-db@workspace:packages/postgres-db"],
 
     "@lifetrack/request-types": ["@lifetrack/request-types@workspace:packages/request-types"],
 

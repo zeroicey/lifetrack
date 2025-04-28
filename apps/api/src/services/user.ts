@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "../db/postgres";
-import { users } from "@lifetrack/db";
+import { db } from "@lifetrack/postgres-db";
+import { users } from "@lifetrack/postgres-db";
 
 export class UserService {
   public async getAllUsers() {
