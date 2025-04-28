@@ -1,8 +1,10 @@
 {
   "name": "lifetrack",
   "scripts": {
-    "dev:api": "bun -F api dev",
-    "dev:web": "bun -F web dev"
+    "dev:api": "bun apps/api/src/index.ts",
+    "dev:web": "bun -F web dev",
+    "start:api": "bun -F api dev",
+    "start:web": "bun -F web start"
   },
   "workspaces": [
     "apps/*",
