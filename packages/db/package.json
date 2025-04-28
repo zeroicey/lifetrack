@@ -2,5 +2,9 @@
   "name": "@lifetrack/db",
   "version": "0.0.1",
   "description": "Lifetrack database package",
+  "dependencies": {
+    "drizzle-orm": "^0.42.0",
+    "pg": "^8.15.1"
+  },
   "main": "index.ts"
 }
