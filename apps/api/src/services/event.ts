@@ -1,11 +1,14 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@lifetrack/postgres-db";
 import { events } from "@lifetrack/postgres-db";
 import { EventCreate } from "@lifetrack/request-types";
 
 export class EventService {
   public async getAllEvent() {
-    const data = await db.select().from(events);
+    const data = await db
+      .select()
+      .from(events)
+      .orderBy(desc(events.happenedAt));
     return data;
   }
 

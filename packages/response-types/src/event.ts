@@ -1,4 +1,4 @@
-import { events } from "@lifetrack/db";
+import { events } from "@lifetrack/postgres-db";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 

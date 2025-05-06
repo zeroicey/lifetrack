@@ -1,23 +1,54 @@
 "use client";
-import { getAllEvents } from "@/api/event";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useCreateEventMutation, useEventQuery } from "@/hook/useEventQuery";
 import { EventSelect } from "@lifetrack/response-types";
-import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import React, { useState } from "react";
 
 export default function EventPage() {
-  const [events, setEvents] = useState<EventSelect[]>([]);
-  useEffect(() => {
-    getAllEvents().then((data) => {
-      setEvents(data || []);
-    });
-  }, []);
+  const [eventContent, setEventContent] = useState("");
+  const { data, isLoading } = useEventQuery();
+  const { mutate: createMutate } = useCreateEventMutation();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div>
-      {events.map((event) => (
-        <div key={event.id} className="border p-4 m-2 rounded-md shadow-md">
-          <h2>{event.content}</h2>
-          <p>{event.partyId}</p>
-        </div>
-      ))}
+      <div className="flex items-center flex-col p-2">
+        <h1 className="text-2xl font-bold text-center">Event List</h1>
+        <Input
+          type="text"
+          value={eventContent}
+          onChange={(e) => setEventContent(e.target.value)}
+        />
+        <Button
+          className="w-1/2"
+          variant="outline"
+          onClick={() => {
+            createMutate({
+              content: eventContent,
+              partyId: 1,
+            });
+            setEventContent("");
+          }}
+        >
+          Submit
+        </Button>
+      </div>
+      <div>
+        {data?.map((event: EventSelect) => (
+          <div key={event.id} className="border p-4 m-2 rounded-md shadow-md">
+            <div className="flex items-center justify-between">
+              <span>{event.partyId}</span>
+              <span>{format(event.happenedAt, "yyyy-MM-dd HH:mm:ss")}</span>
+            </div>
+            <div>{event.content}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

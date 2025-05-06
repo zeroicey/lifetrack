@@ -2,7 +2,7 @@ import http, { Response } from "@/lib/http";
 import { EventCreate } from "@lifetrack/request-types";
 import { EventSelect } from "@lifetrack/response-types";
 
-export const getAllEvents = async () => {
+export const getAllGroups = async () => {
   const res = await http.get<Response<EventSelect[]>>("event/events").json();
   return res.data;
 };

@@ -21,6 +21,7 @@ EventRouter.get("/events/:id", async (c) => {
 
 EventRouter.post("/events", validater("json", eventCreateSchema), async (c) => {
   const body = c.req.valid("json");
+  console.log(body);
   const data = await eventService.createEvent(body);
   return Responder.success().setData(data).build(c);
 });
