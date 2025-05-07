@@ -13,50 +13,55 @@ export default function TaskPage() {
     setCurrentGroup(id);
   };
   return (
-    <div className="flex h-screen w-screen items-center flex-col p-2">
-      <div className="flex items-center flex-col">
-        <Button className="w-1/2" variant="outline">
-          Submit
-        </Button>
-        <Input type="text" placeholder="Type here..." className="w-full" />
+    <div className="h-screen w-screen bg-gray-50 flex flex-col p-4">
+      {/* 顶部提交区域
+      <div className="flex items-center gap-3 mb-4">
+        <Button className="w-28">Submit</Button>
+        <Input placeholder="Type something..." className="w-full max-w-md" />
         <DateTimePicker24h />
-      </div>
-      <div className="flex border p-2 m-2 rounded-md w-full h-full">
-        <div className="border p-2 m-2 rounded-md overflow-y-auto">
-          {groups?.map((group) => {
-            if (currentGroup === group.id) {
+      </div> */}
+
+      {/* 主体区域 */}
+      <div className="flex flex-1 gap-4 overflow-hidden">
+        {/* 左侧分组栏 */}
+        <div className="w-32 bg-white rounded-xl shadow-sm p-2 flex flex-col justify-between gap-2">
+          <div className="overflow-y-auto">
+            {groups?.map((group) => {
+              const isActive = group.id === currentGroup;
               return (
                 <div
-                  className={`flex items-center justify-center gap-2 border p-2 bg-blue-500 text-white`}
                   key={group.id}
+                  onClick={() => handleGroupClick(group.id)}
+                  className={`cursor-pointer text-center text-sm p-2 mb-1 rounded-md transition
+              ${
+                isActive
+                  ? "bg-blue-500 text-white font-semibold"
+                  : "hover:bg-gray-100"
+              }`}
                 >
                   {group.name}
                 </div>
               );
-            }
-            return (
-              <div
-                className={"flex items-center justify-center gap-2 border p-2"}
-                key={group.id}
-                onClick={() => handleGroupClick(group.id)}
-              >
-                {group.name}
-              </div>
-            );
-          })}
+            })}
+          </div>
+          <div className="text-center">
+            <Button>New Group</Button>
+          </div>
         </div>
-        <div className="border p-2 m-2 rounded-md flex-grow overflow-y-auto">
-          {tasks?.map((task) => {
-            return (
-              <div
-                className="border p-2 m-2 rounded-md flex gap-2"
-                key={task.id}
-              >
-                <input type="checkbox" />
+
+        {/* 右侧任务区 */}
+        <div className="flex-1 bg-white rounded-xl shadow-sm overflow-y-auto p-4 space-y-3">
+          {tasks?.map((task) => (
+            <div
+              key={task.id}
+              className="flex items-start gap-3 bg-gray-100 p-3 rounded-lg hover:bg-gray-200 transition shadow-sm"
+            >
+              <input type="checkbox" className="mt-1" />
+              <p className="text-sm text-gray-800 break-words">
                 {task.content}
-              </div>
-            );
-          })}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

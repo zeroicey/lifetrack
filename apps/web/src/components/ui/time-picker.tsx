@@ -43,7 +43,7 @@ export function DateTimePicker24h() {
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal",
+            "w-[175px] justify-start text-left font-normal",
             !date && "text-muted-foreground"
           )}
         >
@@ -51,7 +51,7 @@ export function DateTimePicker24h() {
           {date ? (
             format(date, "MM/dd/yyyy hh:mm")
           ) : (
-            <span>MM/DD/YYYY hh:mm</span>
+            <span>MM/DD/YYYY HH:MM</span>
           )}
         </Button>
       </PopoverTrigger>
