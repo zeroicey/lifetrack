@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { TaskService } from "@/services/task";
 import Responder from "@/middlewares/response";
 import validater from "@/middlewares/validate";
-import { eventCreateSchema } from "@lifetrack/request-types";
+import { taskGroupCreateSchema } from "@lifetrack/request-types";
 
 export const TaskRouter = new Hono();
 
@@ -19,8 +19,13 @@ TaskRouter.get("/groups/:groupId/tasks", async (c) => {
   return Responder.success().setData(data).build(c);
 });
 
-TaskRouter.post("/groups", validater("json", eventCreateSchema), async (c) => {
-  const body = c.req.valid("json");
-  const data = await taskService.createGroup(body);
-  return Responder.success().setData(data).build(c);
-});
+TaskRouter.post(
+  "/groups",
+  validater("json", taskGroupCreateSchema),
+  async (c) => {
+    const body = c.req.valid("json");
+    console.log(body);
+    const data = await taskService.createGroup(body);
+    return Responder.success().setData(data).build(c);
+  }
+);

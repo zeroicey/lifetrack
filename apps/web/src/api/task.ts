@@ -1,5 +1,5 @@
 import http, { Response } from "@/lib/http";
-import { EventCreate } from "@lifetrack/request-types";
+import { TaskCreate } from "@lifetrack/request-types";
 import { TaskGroupSelect, TaskSelect } from "@lifetrack/response-types";
 
 export const getAllGroups = async () => {
@@ -14,9 +14,9 @@ export const getTasksByGroupId = async (groupId: number) => {
   return res.data || [];
 };
 
-export const createEvent = async (data: EventCreate) => {
+export const createGroup = async (data: TaskCreate) => {
   const res = await http
-    .post<Response<EventCreate>>("event/events", { json: data })
+    .post<Response<TaskCreate>>("task/groups", { json: data })
     .json();
   return res.data;
 };

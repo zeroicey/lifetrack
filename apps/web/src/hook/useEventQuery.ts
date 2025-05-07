@@ -3,6 +3,8 @@ import { EventCreate } from "@lifetrack/request-types";
 import { EventSelect } from "@lifetrack/response-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+const queryClient = useQueryClient();
+
 export const useEventQuery = () => {
   return useQuery({
     queryKey: ["list-event"],
@@ -11,8 +13,6 @@ export const useEventQuery = () => {
 };
 
 export const useCreateEventMutation = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (newEvent: EventCreate) => createEvent(newEvent),
     onMutate: async (newEvent) => {

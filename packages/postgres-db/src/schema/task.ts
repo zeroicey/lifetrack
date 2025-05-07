@@ -15,6 +15,7 @@ export const taskGroups = pgTable("task_groups", {
     .notNull()
     .references((): AnyPgColumn => users.id),
   createdAt: timestamp("created_at", { precision: 3 }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { precision: 3 }).notNull().defaultNow(),
 });
 
 export const tasks = pgTable("tasks", {

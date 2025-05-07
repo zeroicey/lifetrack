@@ -72,6 +72,7 @@ async function main() {
       taskGroupNames.map((name) => ({
         name,
         userId: faker.helpers.arrayElement(userIds), // 随机挂到一个 user 上
+        updatedAt: faker.date.past({ years: 1 }), // 随机过去一年内的时间
         createdAt: faker.date.past({ years: 1 }), // 随机过去一年内的时间
       }))
     )

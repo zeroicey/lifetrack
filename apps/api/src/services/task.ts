@@ -5,7 +5,10 @@ import { taskGroups } from "@lifetrack/postgres-db";
 
 export class TaskService {
   public async getAllGroups() {
-    const data = await db.select().from(taskGroups);
+    const data = await db
+      .select()
+      .from(taskGroups)
+      .orderBy(taskGroups.createdAt);
     return data;
   }
 
