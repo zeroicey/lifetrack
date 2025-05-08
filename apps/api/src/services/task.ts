@@ -1,4 +1,4 @@
-import { TaskCreate } from "@lifetrack/request-types";
+import { TaskCreate, TaskGroupCreate } from "@lifetrack/request-types";
 import { eq } from "drizzle-orm";
 import { db, tasks } from "@lifetrack/postgres-db";
 import { taskGroups } from "@lifetrack/postgres-db";
@@ -20,10 +20,18 @@ export class TaskService {
     return data;
   }
 
-  public async createGroup({ name, userId }: TaskCreate) {
+  public async createGroup({ name, userId }: TaskGroupCreate) {
     const data = await db
       .insert(taskGroups)
       .values({ name, userId })
+      .returning();
+    return data[0];
+  }
+
+  public async createTask({ content, groupId, deadline }: TaskCreate) {
+    const data = await db
+      .insert(tasks)
+      .values({ content, groupId, deadline })
       .returning();
     return data[0];
   }

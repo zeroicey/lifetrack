@@ -2,7 +2,10 @@ import { Hono } from "hono";
 import { TaskService } from "@/services/task";
 import Responder from "@/middlewares/response";
 import validater from "@/middlewares/validate";
-import { taskGroupCreateSchema } from "@lifetrack/request-types";
+import {
+  taskCreateSchema,
+  taskGroupCreateSchema,
+} from "@lifetrack/request-types";
 
 export const TaskRouter = new Hono();
 
@@ -29,3 +32,10 @@ TaskRouter.post(
     return Responder.success().setData(data).build(c);
   }
 );
+
+TaskRouter.post("/tasks", validater("json", taskCreateSchema), async (c) => {
+  console.log("create task");
+  const body = c.req.valid("json");
+  const data = await taskService.createTask(body);
+  return Responder.success().setData(data).build(c);
+});
