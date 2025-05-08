@@ -45,7 +45,7 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
               <div
                 key={group.id}
                 onClick={() => handleGroupClick(group.id)}
-                className="relative cursor-pointer text-center text-sm p-2 mb-1 rounded-md border"
+                className="relative cursor-pointer text-center text-sm p-2 mb-1 rounded-md border truncate"
               >
                 {group.name}
               </div>
@@ -55,7 +55,7 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
             <div
               key={group.id}
               onClick={() => handleGroupClick(group.id)}
-              className="relative cursor-pointer text-center text-sm p-2 mb-1 rounded-md transition bg-blue-500 text-white font-semibold"
+              className="relative cursor-pointer text-center text-sm p-2 mb-1 rounded-md transition bg-blue-500 text-white font-semibold truncate"
             >
               {group.name}
 

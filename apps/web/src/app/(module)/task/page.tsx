@@ -6,7 +6,7 @@ import TaskList from "@/components/task/task-list";
 export default function TaskPage() {
   const [currentGroup, setCurrentGroup] = React.useState(1);
   return (
-    <div className="h-screen w-screen bg-gray-50 flex flex-col p-4">
+    <div className="flex flex-col p-4 h-full w-full border">
       {/* 主体区域 */}
       <div className="flex flex-1 gap-4 overflow-hidden">
         {/* 左侧分组栏 */}
