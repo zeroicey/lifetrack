@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Ellipsis } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 interface Props {
   currentGroup: number;
@@ -29,7 +30,7 @@ interface Props {
 export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
   const [newGroupName, setNewGroupName] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { data: groups, isLoading } = useGroupQuery();
+  const { data: groups } = useGroupQuery();
   const { mutate: createGroup } = useGroupMutation();
 
   const handleGroupClick = (id: number) => {
@@ -37,56 +38,46 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
   };
 
   return (
-    <div className="w-32 p-2 flex flex-col justify-between gap-2 border">
-      <ScrollArea className="overflow-y-auto">
+    <div className="w-32 flex flex-col justify-between gap-2">
+      <div className="overflow-y-auto">
         {groups?.map((group) => {
-          const isActive = group.id === currentGroup;
-          if (!isActive) {
-            return (
-              <div
-                key={group.id}
-                onClick={() => handleGroupClick(group.id)}
-                className="relative cursor-pointer text-center text-sm p-1 mb-1 border truncate"
-              >
-                {group.name}
-              </div>
-            );
-          }
           return (
             <div
               key={group.id}
               onClick={() => handleGroupClick(group.id)}
-              className="relative cursor-pointer text-center text-sm p-1 mb-1 transition bg-blue-500 text-white font-semibold truncate"
+              className={cn(
+                "relative cursor-pointer text-center text-sm p-1 mb-1 border truncate",
+                currentGroup === group.id ? "bg-gray-200" : "hover:bg-gray-100"
+              )}
             >
               {group.name}
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Ellipsis className="absolute top-1 right-1" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      console.log("rename group", group.id);
-                    }}
-                  >
-                    Rename
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      console.log("delete group", group.id);
-                    }}
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           );
         })}
-      </ScrollArea>
+      </div>
 
-      <div className="text-center">
+      <div className="flex items-center gap-2 flex-col">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">Edit Group</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onSelect={() => {
+                console.log("rename group", currentGroup);
+              }}
+            >
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => {
+                console.log("delete group", currentGroup);
+              }}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">New Group</Button>

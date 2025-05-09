@@ -20,11 +20,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   currentGroup: number;
@@ -38,13 +35,13 @@ export default function TaskList({ currentGroup }: Props) {
   const { mutate: createTask } = useTaskMutation();
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">Loading...</div>
+      <div className="w-full flex items-center justify-center">Loading...</div>
     );
   }
   return (
-    <div className="relative flex-1 border">
+    <div className="relative w-full">
       {/* 滚动区域 */}
-      <ScrollArea className="p-4 space-y-3 h-full">
+      <div className="space-y-3 h-full overflow-y-auto">
         {tasks?.map((task) => (
           <div key={task.id} className="flex flex-col border p-2 gap-1">
             <div className="flex items-center justify-between border px-1">
@@ -79,7 +76,7 @@ export default function TaskList({ currentGroup }: Props) {
             </div>
           </div>
         ))}
-      </ScrollArea>
+      </div>
 
       {/* 加号按钮浮动在右下角，保持不动 */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

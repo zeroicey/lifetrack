@@ -16,14 +16,14 @@ export const getTasksByGroupId = async (groupId: number) => {
 
 export const createGroup = async (data: TaskGroupCreate) => {
   const res = await http
-    .post<Response<TaskGroupCreate>>("task/groups", { json: data })
+    .post<Response<TaskGroupSelect>>("task/groups", { json: data })
     .json();
   return res.data;
 };
 
 export const createTask = async (data: TaskCreate) => {
   const res = await http
-    .post<Response<TaskCreate>>(`task/tasks`, { json: data })
+    .post<Response<TaskSelect>>(`task/tasks`, { json: data })
     .json();
 
   return res.data;

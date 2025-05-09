@@ -3,6 +3,7 @@ import { UserRouter } from "@/routes/user";
 import { cors } from "hono/cors";
 import Responder from "@/middlewares/response";
 import { TaskRouter } from "./routes/task";
+import { MemoRouter } from "./routes/memo";
 
 const app = new Hono().basePath("api");
 
@@ -10,6 +11,7 @@ app.use(cors());
 
 app.route("user", UserRouter);
 app.route("task", TaskRouter);
+app.route("memo", MemoRouter);
 
 app.onError((err, c) => {
   return Responder.fail(err?.message).build(c);
