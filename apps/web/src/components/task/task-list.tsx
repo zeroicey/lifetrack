@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Ellipsis, EllipsisIcon, MoreHorizontal, Plus } from "lucide-react";
+import { Ellipsis, Plus } from "lucide-react";
 import { DateTimePicker24h } from "../ui/time-picker";
 import { format } from "date-fns";
 import {
@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   currentGroup: number;
@@ -43,7 +44,7 @@ export default function TaskList({ currentGroup }: Props) {
   return (
     <div className="relative flex-1 border">
       {/* 滚动区域 */}
-      <div className="overflow-y-auto p-4 space-y-3 h-full">
+      <ScrollArea className="p-4 space-y-3 h-full">
         {tasks?.map((task) => (
           <div key={task.id} className="flex flex-col border p-2 gap-1">
             <div className="flex items-center justify-between border px-1">
@@ -78,7 +79,7 @@ export default function TaskList({ currentGroup }: Props) {
             </div>
           </div>
         ))}
-      </div>
+      </ScrollArea>
 
       {/* 加号按钮浮动在右下角，保持不动 */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

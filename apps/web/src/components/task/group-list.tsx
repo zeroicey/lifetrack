@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Ellipsis } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   currentGroup: number;
@@ -37,7 +38,7 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
 
   return (
     <div className="w-32 p-2 flex flex-col justify-between gap-2 border">
-      <div className="overflow-y-auto">
+      <ScrollArea className="overflow-y-auto">
         {groups?.map((group) => {
           const isActive = group.id === currentGroup;
           if (!isActive) {
@@ -83,7 +84,7 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
             </div>
           );
         })}
-      </div>
+      </ScrollArea>
 
       <div className="text-center">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
