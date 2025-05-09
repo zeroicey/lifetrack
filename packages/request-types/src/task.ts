@@ -3,18 +3,20 @@ import { z } from "zod";
 export const taskGroupCreateSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }),
   userId: z
-    .number({ message: "User ID is required." })
-    .int({ message: "User ID must be an integer." })
-    .positive({ message: "User ID must be a positive integer." }),
+    .number({ message: "Group ID is required." })
+    .int({ message: "Group ID must be an integer." })
+    .positive({ message: "Group ID must be a positive integer." }),
 });
 
 export const taskCreateSchema = z.object({
   groupId: z
-    .number({ message: "User ID is required." })
-    .int({ message: "User ID must be an integer." })
-    .positive({ message: "User ID must be a positive integer." }),
+    .number({ message: "Group ID is required." })
+    .int({ message: "Group ID must be an integer." })
+    .positive({ message: "Group ID must be a positive integer." }),
   content: z.string().min(1, { message: "Content is required." }),
-  deadline: z.date({ message: "Deadline is required." }),
+  deadline: z.preprocess((val) => {
+    return new Date(val as string);
+  }, z.date()),
 });
 
 export type TaskGroupCreate = z.infer<typeof taskGroupCreateSchema>;

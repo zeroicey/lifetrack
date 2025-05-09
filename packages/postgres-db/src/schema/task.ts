@@ -5,6 +5,7 @@ import {
   pgTable,
   timestamp,
   AnyPgColumn,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { users } from "./user";
 
@@ -18,9 +19,12 @@ export const taskGroups = pgTable("task_groups", {
   updatedAt: timestamp("updated_at", { precision: 3 }).notNull().defaultNow(),
 });
 
+export const taskStateEnum = pgEnum("task_state", ["TODO", "DONE"]);
+
 export const tasks = pgTable("tasks", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   content: text("content").notNull(),
+  state: taskStateEnum("state").notNull().default("TODO"),
   groupId: integer("group_id")
     .notNull()
     .references((): AnyPgColumn => users.id),

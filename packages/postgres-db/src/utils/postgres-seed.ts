@@ -1,5 +1,4 @@
 import { db } from "../driver";
-import { events } from "../schema/event";
 import { taskGroups, tasks } from "../schema/task";
 import { users } from "../schema/user";
 import { faker } from "@faker-js/faker";
@@ -38,7 +37,7 @@ const generateTasksValues = () => {
 async function main() {
   // 1. 清空表，并重置自增id
   await db.execute(
-    sql`TRUNCATE TABLE events, users, tasks, task_groups RESTART IDENTITY CASCADE`
+    sql`TRUNCATE TABLE users, tasks, task_groups RESTART IDENTITY CASCADE`
   );
 
   // 2. 插入 users
@@ -54,17 +53,6 @@ async function main() {
     .returning({ id: users.id });
 
   const userIds = insertedUsers.map((u) => u.id);
-  // 3. 插入 events
-  const fakeContents = generateEventsValues();
-
-  await db.insert(events).values(
-    fakeContents.map((content) => ({
-      content,
-      partyId: faker.helpers.arrayElement(userIds), // 随机挂到一个 user 上
-      happenedAt: faker.date.recent({ days: 30 }), // 最近30天内
-    }))
-  );
-
   // 4. 插入 taskGroups
   const insertedTaskGroups = await db
     .insert(taskGroups)
@@ -86,6 +74,7 @@ async function main() {
       content,
       groupId: faker.helpers.arrayElement(taskGroupIds), // 随机挂到一个 user 上
       deadline: faker.date.recent({ days: 30 }), // 最近30天内
+      state: faker.helpers.arrayElement(["TODO", "DONE"]),
       createdAt: faker.date.past({ years: 1 }), // 随机过去一年内的时间
     }))
   );

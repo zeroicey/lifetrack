@@ -29,6 +29,7 @@ export class TaskService {
   }
 
   public async createTask({ content, groupId, deadline }: TaskCreate) {
+    console.log("create task", content, groupId, deadline);
     const data = await db
       .insert(tasks)
       .values({ content, groupId, deadline })

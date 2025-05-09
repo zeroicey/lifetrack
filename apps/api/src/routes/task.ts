@@ -36,6 +36,7 @@ TaskRouter.post(
 TaskRouter.post("/tasks", validater("json", taskCreateSchema), async (c) => {
   console.log("create task");
   const body = c.req.valid("json");
+  console.log(body);
   const data = await taskService.createTask(body);
   return Responder.success().setData(data).build(c);
 });
