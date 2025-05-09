@@ -28,6 +28,7 @@ export const useGroupMutation = () => {
     mutationFn: createGroup,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list-group"] });
+      toast.success("Create task group successfully!");
     },
   });
 };
@@ -37,8 +38,8 @@ export const useTaskMutation = () => {
   return useMutation({
     mutationFn: createTask,
     onSuccess: () => {
-      toast.success("创建任务成功");
       queryClient.invalidateQueries({ queryKey: ["list-task"] });
+      toast.success("Create task successfully!");
     },
   });
 };

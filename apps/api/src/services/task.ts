@@ -1,5 +1,5 @@
 import { TaskCreate, TaskGroupCreate } from "@lifetrack/request-types";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db, tasks } from "@lifetrack/postgres-db";
 import { taskGroups } from "@lifetrack/postgres-db";
 
@@ -8,7 +8,7 @@ export class TaskService {
     const data = await db
       .select()
       .from(taskGroups)
-      .orderBy(taskGroups.createdAt);
+      .orderBy(desc(taskGroups.createdAt));
     return data;
   }
 

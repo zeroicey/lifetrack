@@ -36,7 +36,7 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
   };
 
   return (
-    <div className="w-32 rounded-xl p-2 flex flex-col justify-between gap-2 border">
+    <div className="w-32 p-2 flex flex-col justify-between gap-2 border">
       <div className="overflow-y-auto">
         {groups?.map((group) => {
           const isActive = group.id === currentGroup;
@@ -45,7 +45,7 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
               <div
                 key={group.id}
                 onClick={() => handleGroupClick(group.id)}
-                className="relative cursor-pointer text-center text-sm p-2 mb-1 rounded-md border truncate"
+                className="relative cursor-pointer text-center text-sm p-1 mb-1 border truncate"
               >
                 {group.name}
               </div>
@@ -55,13 +55,13 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
             <div
               key={group.id}
               onClick={() => handleGroupClick(group.id)}
-              className="relative cursor-pointer text-center text-sm p-2 mb-1 rounded-md transition bg-blue-500 text-white font-semibold truncate"
+              className="relative cursor-pointer text-center text-sm p-1 mb-1 transition bg-blue-500 text-white font-semibold truncate"
             >
               {group.name}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Ellipsis className="absolute top-2 right-1 border" />
+                  <Ellipsis className="absolute top-1 right-1" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem

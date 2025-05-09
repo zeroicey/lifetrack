@@ -13,9 +13,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Ellipsis, EllipsisIcon, MoreHorizontal, Plus } from "lucide-react";
 import { DateTimePicker24h } from "../ui/time-picker";
 import { format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Props {
   currentGroup: number;
@@ -37,16 +45,36 @@ export default function TaskList({ currentGroup }: Props) {
       {/* 滚动区域 */}
       <div className="overflow-y-auto p-4 space-y-3 h-full">
         {tasks?.map((task) => (
-          <div key={task.id} className="flex flex-col gap-2 border">
-            <div className="flex items-center justify-between">
-              <span>{format(task.createdAt, "yyyy-MM-dd HH:mm:ss")}</span>
-              <span>{format(task.deadline, "yyyy-MM-dd HH:mm:ss")}</span>
+          <div key={task.id} className="flex flex-col border p-2 gap-1">
+            <div className="flex items-center justify-between border px-1">
+              <span className="text-gray-800 text-sm">
+                {format(task.createdAt, "yyyy-MM-dd HH:mm:ss")}
+              </span>
+              <span className="text-gray-800 text-sm">
+                {format(task.deadline, "yyyy-MM-dd HH:mm:ss")}
+              </span>
             </div>
-            <div className="flex gap-3 p-3 rounded-lg border items-center">
-              <Checkbox checked={task.state === "DONE"} />
-              <p className="text-sm text-gray-800 break-words">
-                {task.content}
-              </p>
+            <div className="flex items-center border p-1 gap-1">
+              <div className="flex gap-3 items-center border p-1 flex-grow">
+                <Checkbox
+                  checked={task.state === "DONE"}
+                  onClick={() => {
+                    console.log("change task state", task.id, task.state);
+                  }}
+                />
+                <p className="text-sm text-gray-800 break-words">
+                  {task.content}
+                </p>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Ellipsis className="cursor-pointer" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>Delete</DropdownMenuItem>
+                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         ))}
