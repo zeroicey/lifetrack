@@ -31,9 +31,9 @@ export default function TaskList({ currentGroup }: Props) {
   const [date, setDate] = React.useState<Date>(new Date());
   const [newTaskContent, setNewTaskContent] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { data: tasks, isLoading } = useTasksQuery(currentGroup);
+  const { data: tasks, isPending } = useTasksQuery(currentGroup);
   const { mutate: createTask } = useTaskMutation();
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="w-full flex items-center justify-center">
         <div role="status">
