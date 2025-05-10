@@ -7,7 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMemoInfiniteQuery } from "@/hook/useMemoQuery";
+import {
+  useMemoDeleteMutation,
+  useMemoInfiniteQuery,
+  useMemoUpdateMutation,
+} from "@/hook/useMemoQuery";
 import React from "react";
 
 interface Props {
@@ -19,6 +23,8 @@ export default function MemoList({ setIsExpanded }: Props) {
   const { data, isPending, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useMemoInfiniteQuery();
 
+  const { mutate: deleteMemo } = useMemoDeleteMutation();
+  const { mutate: updateMemo } = useMemoUpdateMutation();
   if (isPending) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -71,8 +77,9 @@ export default function MemoList({ setIsExpanded }: Props) {
                   <Ellipsis className="cursor-pointer" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Rename</DropdownMenuItem>
-                  <DropdownMenuItem>Delete</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => deleteMemo(memo.id)}>
+                    Delete
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

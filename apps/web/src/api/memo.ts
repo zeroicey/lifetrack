@@ -24,3 +24,21 @@ export const createMemo = async (data: MemoCreate) => {
     .json();
   return res.data;
 };
+
+export const deleteMemo = async (id: number) => {
+  const res = await http.delete<Response<null>>(`memo/memos/${id}`).json();
+  return res.message;
+};
+
+export const updateMemo = async ({
+  memoId,
+  data,
+}: {
+  memoId: number;
+  data: MemoCreate;
+}) => {
+  const res = await http
+    .put<Response<MemoSelect>>(`memo/memos/${memoId}`, { json: data })
+    .json();
+  return res.data;
+};
