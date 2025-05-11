@@ -3,28 +3,17 @@ import { cn } from "@/lib/utils";
 import { Paperclip, SendHorizonal, Tag } from "lucide-react";
 import React from "react";
 
-interface Props {
-  isExpanded: boolean;
-  setIsExpanded: (isExpanded: boolean) => void;
-  wrapperRef: React.RefObject<HTMLDivElement | null>;
-}
-
-export const InputArea = ({ isExpanded, setIsExpanded, wrapperRef }: Props) => {
+export const InputArea = () => {
   const { mutate: createMemo } = useMemoCreateMutation();
   const [inputValue, setInputValue] = React.useState("");
   return (
     <div
-      ref={wrapperRef}
       tabIndex={0}
-      className={cn(
-        "flex flex-col gap-0 border hover:border-green-500",
-        isExpanded ? "h-64" : "h-32"
-      )}
+      className="flex flex-col gap-0 border hover:border-green-500 h-50 rounded-md"
     >
       <textarea
         placeholder="What's on your mind now?"
         id="message"
-        onFocus={() => setIsExpanded(true)}
         className="w-full overflow-auto p-3 border-0 resize-none focus:outline-none text-sm h-full"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}

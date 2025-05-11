@@ -4,17 +4,11 @@ import MemoList from "@/components/memo/memo-list";
 import React from "react";
 
 export default function MemoPage() {
-  const [isExpanded, setIsExpanded] = React.useState(true);
-  const wrapperRef = React.useRef<HTMLDivElement>(null);
   return (
-    <div className="flex h-full w-full gap-4">
-      <div className="w-full flex flex-col gap-2">
-        <InputArea
-          isExpanded={isExpanded}
-          setIsExpanded={setIsExpanded}
-          wrapperRef={wrapperRef}
-        />
-        <MemoList setIsExpanded={setIsExpanded} />
+    <div className="flex h-full w-full gap-4 justify-center">
+      <div className="w-[500px] flex flex-col gap-2">
+        <InputArea />
+        <MemoList />
       </div>
     </div>
   );
