@@ -1,3 +1,5 @@
+"use client";
+import { loginAuth } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,9 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/store/auth";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
+  const [nameOrEmail, setNameOrEmail] = useState("");
+  const [password, setPassword] = useState("");
   return (
     <div className="w-full max-w-sm">
       <Card>
@@ -24,13 +31,42 @@ export default function LoginPage() {
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <Label htmlFor="nameOrEmail">Email / Username</Label>
-              <Input id="nameOrEmail" type="text" required />
+              <Input
+                id="nameOrEmail"
+                type="text"
+                value={nameOrEmail}
+                onChange={(e) => setNameOrEmail(e.target.value)}
+                required
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
-            <Button type="submit" className="w-full">
+            <Button
+              type="submit"
+              className="w-full"
+              onClick={async () => {
+                if (!nameOrEmail || !password) {
+                  toast.warning("Please fill in all fields");
+                  return;
+                }
+
+                const res = await loginAuth(nameOrEmail, password);
+                if (res.status) {
+                  useAuthStore.getState().setToken(res.data?.accessToken!);
+                  toast.success(res.message);
+                } else {
+                  toast.error(res.message);
+                }
+              }}
+            >
               Login
             </Button>
           </div>

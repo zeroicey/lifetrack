@@ -9,7 +9,12 @@ import { AuthRouter } from "./routes/auth";
 
 const app = new Hono().basePath("api");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3001",
+    credentials: true,
+  })
+);
 app.use(logger());
 
 app.route("auth", AuthRouter);

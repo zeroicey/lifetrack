@@ -4,6 +4,7 @@ import { UserService } from "@/services/user";
 import { signAccessToken, verifyAccessToken } from "@/utils/jwt";
 import { UserCreate, userCreateSchema } from "@lifetrack/request-types";
 import { Hono } from "hono";
+import { getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 
 export const AuthRouter = new Hono();
@@ -36,10 +37,12 @@ AuthRouter.post(
     const accessToken = await signAccessToken({ sub: user.username });
     const refreshToken = await signAccessToken({ sub: user.username });
 
-    c.header(
-      "Set-Cookie",
-      `refresh_token=${refreshToken}; HttpOnly; Path=/auth/refresh; SameSite=Strict`
-    );
+    setCookie(c, "refresh_token", refreshToken, {
+      httpOnly: true,
+      path: "/auth/refresh",
+      sameSite: "None",
+      secure: false,
+    });
     return Responder.success("Login successfully")
       .setData({ accessToken })
       .build(c);
@@ -57,8 +60,8 @@ AuthRouter.post("/logout", async (c) => {
 });
 
 AuthRouter.post("/refresh-token", async (c) => {
-  const cookie = c.req.header("Cookie") || "";
-  const refreshToken = cookie.match(/refresh_token=([^;]+)/)?.[1];
+  const refreshToken = getCookie(c, "refresh_token");
+  console.log("refreshToken", refreshToken);
 
   if (!refreshToken) return c.text("No refresh token", 401);
 
