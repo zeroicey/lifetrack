@@ -4,7 +4,6 @@ import { UserService } from "@/services/user";
 import { signAccessToken, verifyAccessToken } from "@/utils/jwt";
 import { UserCreate, userCreateSchema } from "@lifetrack/request-types";
 import { Hono } from "hono";
-import { getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 
 export const AuthRouter = new Hono();
@@ -37,14 +36,8 @@ AuthRouter.post(
     const accessToken = await signAccessToken({ sub: user.username });
     const refreshToken = await signAccessToken({ sub: user.username });
 
-    setCookie(c, "refresh_token", refreshToken, {
-      httpOnly: true,
-      path: "/auth/refresh",
-      sameSite: "None",
-      secure: false,
-    });
     return Responder.success("Login successfully")
-      .setData({ accessToken })
+      .setData({ access_token: accessToken, refresh_token: refreshToken, user })
       .build(c);
   }
 );
@@ -59,19 +52,22 @@ AuthRouter.post("/logout", async (c) => {
   return Responder.success("Logout success").build(c);
 });
 
-AuthRouter.post("/refresh-token", async (c) => {
-  const refreshToken = getCookie(c, "refresh_token");
-  console.log("refreshToken", refreshToken);
+AuthRouter.post(
+  "/refresh-token",
+  validater("json", z.object({ refresh_token: z.string() })),
+  async (c) => {
+    const { refresh_token } = c.req.valid("json");
 
-  if (!refreshToken) return c.text("No refresh token", 401);
-
-  try {
-    const { payload } = await verifyAccessToken(refreshToken);
-    const accessToken = await signAccessToken({ sub: payload.sub! });
-    return Responder.success("Login successfully")
-      .setData({ accessToken })
-      .build(c);
-  } catch {
-    return Responder.fail("Invalid refresh token").setStatusCode(401).build(c);
+    try {
+      const { payload } = await verifyAccessToken(refresh_token);
+      const accessToken = await signAccessToken({ sub: payload.sub! });
+      return Responder.success("Login successfully")
+        .setData({ access_token: accessToken })
+        .build(c);
+    } catch {
+      return Responder.fail("Invalid refresh token")
+        .setStatusCode(401)
+        .build(c);
+    }
   }
-});
+);

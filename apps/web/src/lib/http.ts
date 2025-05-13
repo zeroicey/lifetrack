@@ -11,12 +11,11 @@ export type Response<T> = {
 
 const http = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
-  credentials: "include", // 允许跨域请求携带 cookie
   timeout: 10000, // 10秒超时
   hooks: {
     beforeRequest: [
       (request) => {
-        const token = useAuthStore.getState().token;
+        const token = useAuthStore.getState().access_token;
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);
         }
@@ -25,14 +24,24 @@ const http = ky.create({
     afterResponse: [
       async (request, options, response) => {
         if (response.status === 401) {
-          const refreshRes = await ky
-            .post("/api/auth/refresh", { credentials: "include" })
+          const refreshRes: Response<{
+            access_token: string;
+            refresh_token: string;
+          }> = await ky
+            .post("http://localhost:5000/api/auth/refresh-token", {
+              json: {
+                refresh_token: useAuthStore.getState().refresh_token,
+              },
+            })
             .json();
-          if ((refreshRes as Response<{ token: string }>).data?.token) {
-            useAuthStore.setState({
-              token: (refreshRes as Response<{ token: string }>).data?.token,
-            });
-            return ky(request);
+          if (refreshRes.status) {
+            useAuthStore
+              .getState()
+              .setAccessToken(refreshRes.data?.access_token!);
+            useAuthStore
+              .getState()
+              .setRefreshToken(refreshRes.data?.refresh_token!);
+            return ky(request, options);
           }
         }
       },

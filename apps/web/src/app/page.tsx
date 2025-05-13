@@ -24,9 +24,14 @@ export default function Home() {
       <Button
         onClick={async () => {
           const res = await http
-            .post("auth/refresh-token", { credentials: "include" })
+            .post("auth/refresh-token", {
+              json: {
+                refresh_token: useAuthStore.getState().refresh_token,
+              },
+            })
             .json();
-          console.log(useAuthStore.getState().token);
+          console.log(useAuthStore.getState().refresh_token);
+          console.log(useAuthStore.getState().access_token);
           console.log(res);
         }}
       >
@@ -74,8 +79,14 @@ export default function Home() {
                 const res = await loginAuth(nameOrEmail, password);
                 console.log(res);
                 if (res.status) {
-                  console.log(res.data?.accessToken);
-                  useAuthStore.getState().setToken(res.data?.accessToken!);
+                  console.log(res.data?.access_token);
+                  console.log(res.data?.refresh_token);
+                  useAuthStore
+                    .getState()
+                    .setRefreshToken(res.data?.refresh_token!);
+                  useAuthStore
+                    .getState()
+                    .setAccessToken(res.data?.access_token!);
                   toast.success(res.message);
                 } else {
                   toast.error(res.message);
