@@ -27,7 +27,7 @@ export const tasks = pgTable("tasks", {
   state: taskStateEnum("state").notNull().default("TODO"),
   groupId: integer("group_id")
     .notNull()
-    .references((): AnyPgColumn => users.id),
+    .references((): AnyPgColumn => taskGroups.id),
   deadline: timestamp("deadline", { precision: 3 }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { precision: 3 }).notNull().defaultNow(),
 });

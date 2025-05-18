@@ -6,7 +6,9 @@ interface UserState {
   username: string | null;
   email: string | null;
   avatar: string | null;
+  token: string | null;
   setId: (id: number) => void;
+  setToken: (token: string) => void;
   setUsername: (username: string) => void;
   setEmail: (email: string) => void;
   setAvatar: (avatar: string) => void;
@@ -18,6 +20,8 @@ export const useUserStore = create<UserState>()(
       username: null,
       email: null,
       avatar: null,
+      token: null,
+      setToken: (token: string) => set(() => ({ token })),
       setId: (id: number) => set(() => ({ id })),
       setUsername: (username: string) => set(() => ({ username })),
       setEmail: (email: string) => set(() => ({ email })),

@@ -4,10 +4,11 @@ import { db, tasks } from "@lifetrack/postgres-db";
 import { taskGroups } from "@lifetrack/postgres-db";
 
 export class TaskService {
-  public async getAllGroups() {
+  public async getAllGroups(userId: number) {
     const data = await db
       .select()
       .from(taskGroups)
+      .where(eq(taskGroups.userId, userId))
       .orderBy(desc(taskGroups.createdAt));
     return data;
   }
@@ -29,7 +30,6 @@ export class TaskService {
   }
 
   public async createTask({ content, groupId, deadline }: TaskCreate) {
-    console.log("create task", content, groupId, deadline);
     const data = await db
       .insert(tasks)
       .values({ content, groupId, deadline })

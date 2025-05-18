@@ -129,7 +129,6 @@ export default function TaskList({ currentGroup }: Props) {
             </div>
             <Button
               onClick={() => {
-                console.log("create task", newTaskContent, date);
                 createTask({
                   groupId: currentGroup,
                   content: newTaskContent,

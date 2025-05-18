@@ -5,7 +5,7 @@ import { memoCreateSchema } from "@lifetrack/request-types";
 import { MemoService } from "@/services/memo";
 import { z } from "zod";
 
-export const MemoRouter = new Hono();
+export const MemoRouter = new Hono<Env>();
 
 const memoService = new MemoService();
 
@@ -21,8 +21,9 @@ const memoQuerySchema = z.object({
 });
 
 MemoRouter.get("/memos", validater("query", memoQuerySchema), async (c) => {
+  const userId = c.var.userId;
   const { cursor, limit } = c.req.valid("query");
-  const data = await memoService.getAllMemos(+cursor, limit);
+  const data = await memoService.getAllMemos(userId, +cursor, limit);
   return Responder.success().setData(data).build(c);
 });
 

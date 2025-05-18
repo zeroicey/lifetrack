@@ -7,12 +7,13 @@ import {
   taskGroupCreateSchema,
 } from "@lifetrack/request-types";
 
-export const TaskRouter = new Hono();
+export const TaskRouter = new Hono<Env>();
 
 const taskService = new TaskService();
 
 TaskRouter.get("/groups", async (c) => {
-  const data = await taskService.getAllGroups();
+  const userId = c.var.userId;
+  const data = await taskService.getAllGroups(userId);
   return Responder.success().setData(data).build(c);
 });
 

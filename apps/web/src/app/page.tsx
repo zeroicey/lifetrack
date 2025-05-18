@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import http from "@/lib/http";
-import { useAuthStore } from "@/store/auth";
+import { useUserStore } from "@/store/user";
 import { Label } from "@radix-ui/react-label";
 import Link from "next/link";
 import { useState } from "react";
@@ -21,23 +21,6 @@ export default function Home() {
   const [password, setPassword] = useState("");
   return (
     <div>
-      <Button
-        onClick={async () => {
-          const res = await http
-            .post("auth/refresh-token", {
-              json: {
-                refresh_token: useAuthStore.getState().refresh_token,
-              },
-            })
-            .json();
-          console.log(useAuthStore.getState().refresh_token);
-          console.log(useAuthStore.getState().access_token);
-          console.log(res);
-        }}
-      >
-        Hello World
-      </Button>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
@@ -79,14 +62,8 @@ export default function Home() {
                 const res = await loginAuth(nameOrEmail, password);
                 console.log(res);
                 if (res.status) {
-                  console.log(res.data?.access_token);
-                  console.log(res.data?.refresh_token);
-                  useAuthStore
-                    .getState()
-                    .setRefreshToken(res.data?.refresh_token!);
-                  useAuthStore
-                    .getState()
-                    .setAccessToken(res.data?.access_token!);
+                  console.log(res.data?.token);
+                  useUserStore.getState().setToken(res.data?.token!);
                   toast.success(res.message);
                 } else {
                   toast.error(res.message);

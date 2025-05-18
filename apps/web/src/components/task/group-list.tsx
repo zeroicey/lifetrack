@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/store/user";
 
 interface Props {
   currentGroup: number;
@@ -127,7 +128,10 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    createGroup({ name: newGroupName, userId: 1 });
+                    createGroup({
+                      name: newGroupName,
+                      userId: useUserStore.getState().id!,
+                    });
                     setDialogOpen(false);
                   }}
                 >

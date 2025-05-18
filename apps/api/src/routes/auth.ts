@@ -1,9 +1,10 @@
 import Responder from "@/middlewares/response";
 import validater from "@/middlewares/validate";
 import { UserService } from "@/services/user";
-import { signAccessToken, verifyAccessToken } from "@/utils/jwt";
+import { signToken } from "@/utils/jwt";
 import { UserCreate, userCreateSchema } from "@lifetrack/request-types";
 import { Hono } from "hono";
+import { sign } from "hono/jwt";
 import { z } from "zod";
 
 export const AuthRouter = new Hono();
@@ -33,11 +34,9 @@ AuthRouter.post(
       return Responder.fail("Invalid credentials").build(c);
     }
 
-    const accessToken = await signAccessToken({ sub: user.username });
-    const refreshToken = await signAccessToken({ sub: user.username });
-
+    const token = await signToken({ sub: user.id.toString() });
     return Responder.success("Login successfully")
-      .setData({ access_token: accessToken, refresh_token: refreshToken, user })
+      .setData({ token, user })
       .build(c);
   }
 );
@@ -51,23 +50,3 @@ AuthRouter.post("/register", validater("json", userCreateSchema), async (c) => {
 AuthRouter.post("/logout", async (c) => {
   return Responder.success("Logout success").build(c);
 });
-
-AuthRouter.post(
-  "/refresh-token",
-  validater("json", z.object({ refresh_token: z.string() })),
-  async (c) => {
-    const { refresh_token } = c.req.valid("json");
-
-    try {
-      const { payload } = await verifyAccessToken(refresh_token);
-      const accessToken = await signAccessToken({ sub: payload.sub! });
-      return Responder.success("Login successfully")
-        .setData({ access_token: accessToken })
-        .build(c);
-    } catch {
-      return Responder.fail("Invalid refresh token")
-        .setStatusCode(401)
-        .build(c);
-    }
-  }
-);

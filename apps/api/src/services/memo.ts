@@ -1,13 +1,21 @@
 import { MemoCreate } from "@lifetrack/request-types";
-import { desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 import { db, memos } from "@lifetrack/postgres-db";
 
 export class MemoService {
-  public async getAllMemos(cursor?: number, limit: number = 10) {
+  public async getAllMemos(
+    userId: number,
+    cursor?: number,
+    limit: number = 10
+  ) {
+    const whereCondition = [
+      eq(memos.userId, userId),
+      cursor ? lt(memos.createdAt, new Date(cursor)) : undefined,
+    ].filter(Boolean);
     const data = await db
       .select()
       .from(memos)
-      .where(cursor ? lt(memos.createdAt, new Date(cursor)) : undefined)
+      .where(and(...whereCondition))
       .orderBy(desc(memos.createdAt))
       .limit(limit + 1); // 多取一个判断是否还有下一页
 

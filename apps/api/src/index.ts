@@ -6,18 +6,17 @@ import Responder from "@/middlewares/response";
 import { TaskRouter } from "./routes/task";
 import { MemoRouter } from "./routes/memo";
 import { AuthRouter } from "./routes/auth";
+import { authMiddleware } from "./middlewares/auth";
 
-const app = new Hono().basePath("api");
+const app = new Hono<Env>().basePath("api");
 
-app.use(
-  cors({
-    origin: "http://localhost:3001",
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(logger());
 
 app.route("auth", AuthRouter);
+
+app.use(authMiddleware);
+
 app.route("user", UserRouter);
 app.route("task", TaskRouter);
 app.route("memo", MemoRouter);

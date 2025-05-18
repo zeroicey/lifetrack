@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuthStore } from "@/store/auth";
 import { useUserStore } from "@/store/user";
 import Link from "next/link";
 import { useState } from "react";
@@ -61,12 +60,7 @@ export default function LoginPage() {
 
                 const res = await loginAuth(nameOrEmail, password);
                 if (res.status) {
-                  useAuthStore
-                    .getState()
-                    .setAccessToken(res.data?.access_token!);
-                  useAuthStore
-                    .getState()
-                    .setRefreshToken(res.data?.refresh_token!);
+                  useUserStore.getState().setToken(res.data?.token!);
                   useUserStore.getState().setAvatar(res.data?.user.avatar!);
                   useUserStore.getState().setUsername(res.data?.user.username!);
                   useUserStore.getState().setEmail(res.data?.user.email!);

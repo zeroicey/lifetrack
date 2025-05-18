@@ -35,6 +35,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserStore } from "@/store/user";
+import { NavUser } from "./user";
 
 // Menu items with badges.
 const items = [
@@ -83,6 +85,7 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const { email, avatar, username } = useUserStore();
   return (
     <Sidebar>
       <SidebarContent>
@@ -107,29 +110,13 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <User2 /> zeroicey
-                  <ChevronUp className="ml-auto" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side="top"
-                className="w-[--radix-popper-anchor-width]"
-              >
-                <DropdownMenuItem asChild>
-                  <Link href="/account">Account</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">Settings</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <NavUser
+          user={{
+            name: username!,
+            email: email!,
+            avatar: avatar!,
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   );
