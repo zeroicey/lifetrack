@@ -22,6 +22,7 @@ app.route("task", TaskRouter);
 app.route("memo", MemoRouter);
 
 app.onError((err, c) => {
+  console.log(err);
   return Responder.fail(err?.message).build(c);
 });
 

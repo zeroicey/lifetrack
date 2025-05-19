@@ -7,12 +7,7 @@ import {
   Box,
   Repeat,
   File,
-  Sun,
-  Moon,
-  User2,
-  ChevronUp,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -20,7 +15,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -28,15 +22,8 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-import logo from "@/assets/logo.png";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useUserStore } from "@/store/user";
-import { NavUser } from "./user";
+import { UserCard } from "./user-card";
 
 // Menu items with badges.
 const items = [
@@ -110,7 +97,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser
+        <UserCard
           user={{
             name: username!,
             email: email!,

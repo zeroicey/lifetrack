@@ -25,8 +25,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useUserStore } from "@/store/user";
 
-export function NavUser({
+export function UserCard({
   user,
 }: {
   user: {
@@ -98,7 +99,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                useUserStore.getState().logout();
+                window.location.href = "/";
+              }}
+            >
               <LogOut />
               Log out
             </DropdownMenuItem>

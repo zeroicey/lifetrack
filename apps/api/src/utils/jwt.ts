@@ -1,4 +1,3 @@
-import Responder from "@/middlewares/response";
 import { jwtVerify, SignJWT } from "jose";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);

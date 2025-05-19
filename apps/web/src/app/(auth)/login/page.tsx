@@ -60,8 +60,14 @@ export default function LoginPage() {
 
                 const res = await loginAuth(nameOrEmail, password);
                 if (res.status) {
+                  console.log(res.data?.user);
                   useUserStore.getState().setToken(res.data?.token!);
-                  useUserStore.getState().setAvatar(res.data?.user.avatar!);
+                  useUserStore
+                    .getState()
+                    .setAvatar(
+                      res.data?.user.avatar ||
+                        `https://api.dicebear.com/7.x/pixel-art/svg?seed=${res.data?.user.username}`
+                    );
                   useUserStore.getState().setUsername(res.data?.user.username!);
                   useUserStore.getState().setEmail(res.data?.user.email!);
                   useUserStore.getState().setId(res.data?.user.id!);

@@ -4,7 +4,6 @@ import { UserService } from "@/services/user";
 import { signToken } from "@/utils/jwt";
 import { UserCreate, userCreateSchema } from "@lifetrack/request-types";
 import { Hono } from "hono";
-import { sign } from "hono/jwt";
 import { z } from "zod";
 
 export const AuthRouter = new Hono();
