@@ -22,12 +22,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserStore } from "@/store/user";
 
 interface Props {
   currentGroup: number;
 }
 
-export default function TaskList({ currentGroup }: Props) {
+export default function TaskList() {
+  const { currentGroup } = useUserStore();
   const [date, setDate] = React.useState<Date>(new Date());
   const [newTaskContent, setNewTaskContent] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);

@@ -21,20 +21,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
 
-interface Props {
-  currentGroup: number;
-  setCurrentGroup: (id: number) => void;
-}
-
-export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
+export default function GroupList() {
+  const { currentGroup, setCurrentGroup } = useUserStore();
   const [newGroupName, setNewGroupName] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { data: groups, isPending } = useGroupQuery();
   const { mutate: createGroup } = useGroupMutation();
-
-  const handleGroupClick = (id: number) => {
-    setCurrentGroup(id);
-  };
 
   if (isPending) {
     return (
@@ -69,7 +61,7 @@ export default function GroupList({ currentGroup, setCurrentGroup }: Props) {
           return (
             <div
               key={group.id}
-              onClick={() => handleGroupClick(group.id)}
+              onClick={() => setCurrentGroup(group.id)}
               className={cn(
                 "relative cursor-pointer text-center text-sm p-1 mb-1 border truncate",
                 currentGroup === group.id ? "bg-gray-200" : "hover:bg-gray-100"

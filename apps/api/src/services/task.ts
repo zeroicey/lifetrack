@@ -29,6 +29,10 @@ export class TaskService {
     return data[0];
   }
 
+  public async deleteGroup(groupId: number) {
+    await db.delete(taskGroups).where(eq(taskGroups.id, groupId));
+  }
+
   public async createTask({ content, groupId, deadline }: TaskCreate) {
     const data = await db
       .insert(tasks)

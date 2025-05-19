@@ -1,4 +1,7 @@
 "use client";
+
+import { useRouter } from "next/navigation";
+
 import { loginAuth } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,12 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUserStore } from "@/store/user";
 import Link from "next/link";
-import { useState } from "react";
+import { use, useState } from "react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
   const [nameOrEmail, setNameOrEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
   return (
     <div className="w-full max-w-sm">
       <Card>
@@ -57,21 +61,13 @@ export default function LoginPage() {
                   toast.warning("Please fill in all fields");
                   return;
                 }
-
                 const res = await loginAuth(nameOrEmail, password);
+                console.log(res.data?.user);
                 if (res.status) {
-                  console.log(res.data?.user);
+                  useUserStore.getState().setUser(res.data?.user!);
                   useUserStore.getState().setToken(res.data?.token!);
-                  useUserStore
-                    .getState()
-                    .setAvatar(
-                      res.data?.user.avatar ||
-                        `https://api.dicebear.com/7.x/pixel-art/svg?seed=${res.data?.user.username}`
-                    );
-                  useUserStore.getState().setUsername(res.data?.user.username!);
-                  useUserStore.getState().setEmail(res.data?.user.email!);
-                  useUserStore.getState().setId(res.data?.user.id!);
                   toast.success(res.message);
+                  router.push("/home");
                 } else {
                   toast.error(res.message);
                 }

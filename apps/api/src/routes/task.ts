@@ -34,6 +34,12 @@ TaskRouter.post(
   }
 );
 
+TaskRouter.delete("/groups/:groupId", async (c) => {
+  const groupId = c.req.param("groupId");
+  await taskService.deleteGroup(Number(groupId));
+  return Responder.success("Group deleted successfully").build(c);
+});
+
 TaskRouter.post("/tasks", validater("json", taskCreateSchema), async (c) => {
   console.log("create task");
   const body = c.req.valid("json");
