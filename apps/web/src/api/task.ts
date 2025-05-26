@@ -16,7 +16,6 @@ export const getAllGroups = async () => {
 };
 
 export const getTasksByGroupId = async (groupId: number) => {
-  console.log(groupId);
   if (groupId === -1) {
     return [];
   }
@@ -34,8 +33,9 @@ export const deleteGroup = async (groupId: number) => {
 };
 
 export const updateGroup = async ({ name, groupId }: TaskGroupUpdate) => {
+  console.log(name, groupId);
   const res = await http
-    .put<Response<TaskGroupSelect>>(`task/groups/${groupId}`, {
+    .put<Response<void>>(`task/groups/${groupId}`, {
       json: { name },
     })
     .json();
@@ -54,5 +54,10 @@ export const createTask = async (data: TaskCreate) => {
     .post<Response<TaskSelect>>(`task/tasks`, { json: data })
     .json();
 
+  return res.data;
+};
+
+export const deleteTask = async (taskId: number) => {
+  const res = await http.delete<Response<void>>(`task/tasks/${taskId}`).json();
   return res.data;
 };

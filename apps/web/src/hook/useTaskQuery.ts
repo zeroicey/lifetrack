@@ -2,6 +2,7 @@ import {
   createGroup,
   createTask,
   deleteGroup,
+  deleteTask,
   getAllGroups,
   getTasksByGroupId,
   updateGroup,
@@ -18,8 +19,19 @@ const queryGroupKey: QueryKey = ["list-group"];
 
 export const useGroupQuery = () => {
   return useQuery({
-    queryKey: ["list-group"],
+    queryKey: queryGroupKey,
     queryFn: () => getAllGroups(),
+  });
+};
+
+export const useTaskDeleteMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["list-task"] });
+      toast.success("Delete task successfully!");
+    },
   });
 };
 

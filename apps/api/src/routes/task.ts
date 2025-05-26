@@ -38,7 +38,7 @@ TaskRouter.delete(
 
 TaskRouter.put(
   "/groups/:groupId",
-  validater("json", nameSchema),
+  validater("json", z.object({ name: nameSchema })),
   validater("param", z.object({ groupId: groupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
@@ -89,7 +89,6 @@ TaskRouter.get(
   validater("param", z.object({ groupId: groupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
-    console.log(groupId);
     const data = await taskService.getTasksByGroupId(Number(groupId));
     return Responder.success().setData(data).build(c);
   }

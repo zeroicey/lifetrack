@@ -20,6 +20,7 @@ import {
   SidebarMenuItem,
   SidebarMenuBadge,
   SidebarFooter,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 
 import { useUserStore } from "@/store/user";
@@ -40,12 +41,6 @@ const items = [
     badge: 12,
   },
   {
-    title: "Calendar",
-    url: "/calendar",
-    icon: Calendar,
-    badge: 3,
-  },
-  {
     title: "Task",
     url: "/task",
     icon: CheckSquare,
@@ -63,12 +58,6 @@ const items = [
     icon: Repeat,
     badge: 7,
   },
-  {
-    title: "Article",
-    url: "/article",
-    icon: File,
-    badge: 24,
-  },
 ];
 
 export function AppSidebar() {
@@ -78,6 +67,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
+            <SidebarGroupLabel>Application</SidebarGroupLabel>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>

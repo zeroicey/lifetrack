@@ -2,7 +2,11 @@
 import { Input } from "@/components/ui/input";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useTaskMutation, useTasksQuery } from "@/hook/useTaskQuery";
+import {
+  useTaskDeleteMutation,
+  useTaskMutation,
+  useTasksQuery,
+} from "@/hook/useTaskQuery";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -24,10 +28,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUserStore } from "@/store/user";
 
-interface Props {
-  currentGroup: number;
-}
-
 export default function TaskList() {
   const { currentGroup } = useUserStore();
   const [date, setDate] = React.useState<Date>(new Date());
@@ -35,6 +35,7 @@ export default function TaskList() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { data: tasks, isPending } = useTasksQuery(currentGroup);
   const { mutate: createTask } = useTaskMutation();
+  const { mutate: deleteTask } = useTaskDeleteMutation();
   if (isPending) {
     return (
       <div className="w-full flex items-center justify-center">
@@ -91,7 +92,13 @@ export default function TaskList() {
                   <Ellipsis className="cursor-pointer" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>Delete</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      deleteTask(task.id);
+                    }}
+                  >
+                    Delete
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Edit</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

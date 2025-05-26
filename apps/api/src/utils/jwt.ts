@@ -9,7 +9,7 @@ type Payload = {
 export const signToken = async (payload: Payload) => {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("15m")
+    .setExpirationTime("30m")
     .sign(secret);
 };
 
