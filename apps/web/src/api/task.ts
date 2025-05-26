@@ -1,6 +1,10 @@
 import http, { Response } from "@/lib/http";
 import { useUserStore } from "@/store/user";
-import { TaskCreate, TaskGroupCreate } from "@lifetrack/request-types";
+import {
+  TaskCreate,
+  TaskGroupCreate,
+  TaskGroupUpdate,
+} from "@lifetrack/request-types";
 import { TaskGroupSelect, TaskSelect } from "@lifetrack/response-types";
 
 export const getAllGroups = async () => {
@@ -24,6 +28,15 @@ export const getTasksByGroupId = async (groupId: number) => {
 export const deleteGroup = async (groupId: number) => {
   const res = await http
     .delete<Response<void>>(`task/groups/${groupId}`)
+    .json();
+  return res.data;
+};
+
+export const updateGroup = async ({ name, groupId }: TaskGroupUpdate) => {
+  const res = await http
+    .put<Response<TaskGroupSelect>>(`task/groups/${groupId}`, {
+      json: { name },
+    })
     .json();
   return res.data;
 };

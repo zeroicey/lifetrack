@@ -3,9 +3,17 @@ import {
   createTask,
   getAllGroups,
   getTasksByGroupId,
+  updateGroup,
 } from "@/api/task";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  QueryKey,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
+
+const queryGroupKey: QueryKey = ["list-group"];
 
 export const useGroupQuery = () => {
   return useQuery({
@@ -22,13 +30,31 @@ export const useTasksQuery = (id: number) => {
   });
 };
 
-export const useGroupMutation = () => {
+export const useGroupCreateMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createGroup,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list-group"] });
       toast.success("Create task group successfully!");
+    },
+  });
+};
+
+export const useGroupUpdateMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateGroup,
+    onSuccess: () => {
+      toast.success("Update group successfully!");
+    },
+    onError: (error, variables, context) => {
+      toast.error("Update memo failed!");
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryGroupKey });
     },
   });
 };

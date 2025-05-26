@@ -1,4 +1,8 @@
-import { TaskCreate, TaskGroupCreate } from "@lifetrack/request-types";
+import {
+  TaskCreate,
+  TaskGroupCreate,
+  TaskUpdate,
+} from "@lifetrack/request-types";
 import { desc, eq } from "drizzle-orm";
 import { db, tasks } from "@lifetrack/postgres-db";
 import { taskGroups } from "@lifetrack/postgres-db";
@@ -33,11 +37,25 @@ export class TaskService {
     await db.delete(taskGroups).where(eq(taskGroups.id, groupId));
   }
 
-  public async createTask({ content, groupId, deadline }: TaskCreate) {
-    const data = await db
-      .insert(tasks)
-      .values({ content, groupId, deadline })
+  public async updateGroup(groupId: number, name: string) {
+    await db.update(taskGroups).set({ name }).where(eq(taskGroups.id, groupId));
+  }
+
+  public async createTask(data: TaskCreate) {
+    const res = await db.insert(tasks).values(data).returning();
+    return res[0];
+  }
+
+  public async deleteTask(taskId: number) {
+    await db.delete(tasks).where(eq(tasks.id, taskId));
+  }
+
+  public async updateTask(data: TaskUpdate, taskId: number) {
+    const res = await db
+      .update(tasks)
+      .set({ ...data })
+      .where(eq(tasks.id, taskId))
       .returning();
-    return data[0];
+    return res[0];
   }
 }

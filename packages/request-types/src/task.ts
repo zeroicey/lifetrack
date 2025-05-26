@@ -1,23 +1,27 @@
 import { z } from "zod";
+import { groupIdSchema } from "./task-group";
+import { userIdSchema } from "./user";
 
-export const taskGroupCreateSchema = z.object({
-  name: z.string().min(1, { message: "Name is required." }),
-  userId: z
-    .number({ message: "Group ID is required." })
-    .int({ message: "Group ID must be an integer." })
-    .positive({ message: "Group ID must be a positive integer." }),
-});
+export const taskIdSchema = z
+  .number({ message: "Task id is required." })
+  .int({ message: "Task id must be an integer." })
+  .positive({ message: "Task id must be a positive integer." });
 
 export const taskCreateSchema = z.object({
-  groupId: z
-    .number({ message: "Group ID is required." })
-    .int({ message: "Group ID must be an integer." })
-    .positive({ message: "Group ID must be a positive integer." }),
+  groupId: groupIdSchema,
   content: z.string().min(1, { message: "Content is required." }),
   deadline: z.preprocess((val) => {
     return new Date(val as string);
   }, z.date()),
 });
 
-export type TaskGroupCreate = z.infer<typeof taskGroupCreateSchema>;
+export const taskUpdateSchema = z.object({
+  userId: userIdSchema,
+  content: z.string().min(1, { message: "Content is required." }),
+  deadline: z.preprocess((val) => {
+    return new Date(val as string);
+  }, z.date()),
+});
+
 export type TaskCreate = z.infer<typeof taskCreateSchema>;
+export type TaskUpdate = z.infer<typeof taskUpdateSchema>;

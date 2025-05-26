@@ -7,6 +7,7 @@ import { TaskRouter } from "./routes/task";
 import { MemoRouter } from "./routes/memo";
 import { AuthRouter } from "./routes/auth";
 import { authMiddleware } from "./middlewares/auth";
+import { LinkRouter } from "./routes/link";
 
 const app = new Hono<Env>().basePath("api");
 
@@ -20,6 +21,7 @@ app.use(authMiddleware);
 app.route("user", UserRouter);
 app.route("task", TaskRouter);
 app.route("memo", MemoRouter);
+app.route("link", LinkRouter);
 
 app.onError((err, c) => {
   console.log(err);

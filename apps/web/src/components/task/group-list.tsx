@@ -2,7 +2,7 @@
 import { Input } from "@/components/ui/input";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useGroupMutation, useGroupQuery } from "@/hook/useTaskQuery";
+import { useGroupCreateMutation, useGroupQuery } from "@/hook/useTaskQuery";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ export default function GroupList() {
   const [newGroupName, setNewGroupName] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { data: groups, isPending } = useGroupQuery();
-  const { mutate: createGroup } = useGroupMutation();
+  const { mutate: createGroup } = useGroupCreateMutation();
 
   if (isPending) {
     return (

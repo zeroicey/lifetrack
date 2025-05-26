@@ -1,7 +1,6 @@
 "use client";
 import { InputArea } from "@/components/memo/input-area";
 import MemoList from "@/components/memo/memo-list";
-import React from "react";
 
 export default function MemoPage() {
   return (

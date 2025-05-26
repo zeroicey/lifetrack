@@ -52,8 +52,8 @@ const items = [
     badge: 8,
   },
   {
-    title: "Collect",
-    url: "/collect",
+    title: "Link",
+    url: "/link",
     icon: Box,
     badge: 15,
   },
