@@ -14,7 +14,7 @@ export const taskGroups = pgTable("task_groups", {
   name: text("name").notNull(),
   userId: integer("user_id")
     .notNull()
-    .references((): AnyPgColumn => users.id),
+    .references((): AnyPgColumn => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { precision: 3 }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { precision: 3 }).notNull().defaultNow(),
 });
@@ -27,7 +27,7 @@ export const tasks = pgTable("tasks", {
   state: taskStateEnum("state").notNull().default("TODO"),
   groupId: integer("group_id")
     .notNull()
-    .references((): AnyPgColumn => taskGroups.id),
+    .references((): AnyPgColumn => taskGroups.id, { onDelete: "cascade" }),
   deadline: timestamp("deadline", { precision: 3 }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { precision: 3 }).notNull().defaultNow(),
 });

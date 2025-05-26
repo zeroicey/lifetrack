@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { Hono } from "hono";
 import { TaskService } from "@/services/task";
 import Responder from "@/middlewares/response";
@@ -27,7 +28,7 @@ TaskRouter.post(
 
 TaskRouter.delete(
   "/groups/:groupId",
-  validater("param", groupIdSchema),
+  validater("param", z.object({ groupId: groupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
     await taskService.deleteGroup(Number(groupId));
@@ -61,7 +62,7 @@ TaskRouter.post("/tasks", validater("json", taskCreateSchema), async (c) => {
 
 TaskRouter.delete(
   "/tasks/:taskId",
-  validater("param", taskIdSchema),
+  validater("param", z.object({ taskId: taskIdSchema })),
   async (c) => {
     const { taskId } = c.req.valid("param");
     await taskService.deleteTask(Number(taskId));
@@ -71,7 +72,7 @@ TaskRouter.delete(
 
 TaskRouter.put(
   "/tasks/:taskId",
-  validater("param", taskIdSchema),
+  validater("param", z.object({ taskId: taskIdSchema })),
   validater("json", taskUpdateSchema),
   async (c) => {
     const taskId = c.req.valid("param");
@@ -85,9 +86,10 @@ TaskRouter.put(
 
 TaskRouter.get(
   "/groups/:groupId/tasks",
-  validater("param", groupIdSchema),
+  validater("param", z.object({ groupId: groupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
+    console.log(groupId);
     const data = await taskService.getTasksByGroupId(Number(groupId));
     return Responder.success().setData(data).build(c);
   }

@@ -16,6 +16,7 @@ export const getAllGroups = async () => {
 };
 
 export const getTasksByGroupId = async (groupId: number) => {
+  console.log(groupId);
   if (groupId === -1) {
     return [];
   }

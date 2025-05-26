@@ -1,6 +1,7 @@
 import {
   createGroup,
   createTask,
+  deleteGroup,
   getAllGroups,
   getTasksByGroupId,
   updateGroup,
@@ -55,6 +56,17 @@ export const useGroupUpdateMutation = () => {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryGroupKey });
+    },
+  });
+};
+
+export const useGroupDeleteMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteGroup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["list-group"] });
+      toast.success("Delete task group successfully!");
     },
   });
 };

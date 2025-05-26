@@ -2,7 +2,11 @@
 import { Input } from "@/components/ui/input";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useGroupCreateMutation, useGroupQuery } from "@/hook/useTaskQuery";
+import {
+  useGroupDeleteMutation,
+  useGroupCreateMutation,
+  useGroupQuery,
+} from "@/hook/useTaskQuery";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +31,7 @@ export default function GroupList() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { data: groups, isPending } = useGroupQuery();
   const { mutate: createGroup } = useGroupCreateMutation();
+  const { mutate: deleteGroup } = useGroupDeleteMutation();
 
   if (isPending) {
     return (
@@ -74,27 +79,8 @@ export default function GroupList() {
       </div>
 
       <div className="flex items-center gap-2 flex-col">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">Edit Group</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onSelect={() => {
-                console.log("rename group", currentGroup);
-              }}
-            >
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => {
-                console.log("delete group", currentGroup);
-              }}
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button variant="outline">Edit Group</Button>
+        <Button variant="outline">Delete Group</Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">New Group</Button>
