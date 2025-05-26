@@ -39,7 +39,7 @@ TaskRouter.delete(
 TaskRouter.put(
   "/groups/:groupId",
   validater("json", nameSchema),
-  validater("param", groupIdSchema),
+  validater("param", z.object({ groupId: groupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
     const { name } = c.req.valid("json");

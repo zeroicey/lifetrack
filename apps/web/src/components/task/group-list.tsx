@@ -4,6 +4,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   useGroupDeleteMutation,
+  useGroupUpdateMutation,
   useGroupCreateMutation,
   useGroupQuery,
 } from "@/hook/useTaskQuery";
@@ -16,21 +17,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
 
 export default function GroupList() {
   const { currentGroup, setCurrentGroup } = useUserStore();
-  const [newGroupName, setNewGroupName] = React.useState("");
-  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [createGroupName, setCreateGroupName] = React.useState("");
+  const [updateGroupName, setUpdateGroupName] = React.useState("");
+  const [dialogCreateOpen, setDialogCreateOpen] = React.useState(false);
+  const [dialogUpdateOpen, setDialogUpdateOpen] = React.useState(false);
   const { data: groups, isPending } = useGroupQuery();
   const { mutate: createGroup } = useGroupCreateMutation();
+  const { mutate: updateGroup } = useGroupUpdateMutation();
   const { mutate: deleteGroup } = useGroupDeleteMutation();
 
   if (isPending) {
@@ -79,9 +77,68 @@ export default function GroupList() {
       </div>
 
       <div className="flex items-center gap-2 flex-col">
-        <Button variant="outline">Edit Group</Button>
-        <Button variant="outline">Delete Group</Button>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogUpdateOpen} onOpenChange={setDialogUpdateOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const group = groups?.find((g) => g.id === currentGroup);
+                if (group) {
+                  setUpdateGroupName(group.name);
+                }
+              }}
+            >
+              Update Group
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Update group name</DialogTitle>
+              <DialogDescription>
+                Update the name of the group.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-5 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  value={updateGroupName}
+                  className="col-span-3"
+                  onChange={(e) => setUpdateGroupName(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    updateGroup({
+                      groupId: currentGroup,
+                      name: updateGroupName,
+                    });
+                    setDialogUpdateOpen(false);
+                  }}
+                >
+                  Update
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (currentGroup === -1) {
+              alert("Please select a group to delete.");
+              return;
+            }
+            deleteGroup(currentGroup);
+            setCurrentGroup(-1);
+          }}
+        >
+          Delete Group
+        </Button>
+        <Dialog open={dialogCreateOpen} onOpenChange={setDialogCreateOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">New Group</Button>
           </DialogTrigger>
@@ -99,18 +156,18 @@ export default function GroupList() {
                 </Label>
                 <Input
                   id="name"
-                  value={newGroupName}
+                  value={createGroupName}
                   className="col-span-3"
-                  onChange={(e) => setNewGroupName(e.target.value)}
+                  onChange={(e) => setCreateGroupName(e.target.value)}
                 />
                 <Button
                   variant="outline"
                   onClick={() => {
                     createGroup({
-                      name: newGroupName,
+                      name: createGroupName,
                       userId: useUserStore.getState().id!,
                     });
-                    setDialogOpen(false);
+                    setDialogCreateOpen(false);
                   }}
                 >
                   Create
