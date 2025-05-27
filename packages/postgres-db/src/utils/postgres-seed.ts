@@ -48,6 +48,8 @@ async function main() {
       Array.from({ length: 15 }).map(() => ({
         name: faker.person.fullName(),
         email: faker.internet.email(),
+        username: faker.internet.username(),
+        password: faker.internet.password(),
         createdAt: faker.date.past({ years: 1 }), // 随机过去一年内的时间
       }))
     )

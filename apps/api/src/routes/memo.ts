@@ -29,7 +29,8 @@ MemoRouter.get("/memos", validater("query", memoQuerySchema), async (c) => {
 
 MemoRouter.post("/memos", validater("json", memoCreateSchema), async (c) => {
   const body = c.req.valid("json");
-  const data = await memoService.createMemo(body);
+  const userId = c.var.userId;
+  const data = await memoService.createMemo(userId, body);
   return Responder.success("Memo created successfully.")
     .setData(data)
     .setStatusCode(201)

@@ -1,4 +1,4 @@
-import { MemoCreate } from "@lifetrack/request-types";
+import { MemoCreate, MemoUpdate } from "@lifetrack/request-types";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { db, memos } from "@lifetrack/postgres-db";
 
@@ -35,12 +35,12 @@ export class MemoService {
     await db.delete(memos).where(eq(memos.id, id));
   }
 
-  public async createMemo({ userId, content }: MemoCreate) {
+  public async createMemo(userId: number, { content }: MemoCreate) {
     const data = await db.insert(memos).values({ userId, content }).returning();
     return data[0];
   }
 
-  public async updateMemo(id: number, { content, userId }: MemoCreate) {
+  public async updateMemo(userId: number, { id, content }: MemoUpdate) {
     const data = await db
       .update(memos)
       .set({ content, userId })

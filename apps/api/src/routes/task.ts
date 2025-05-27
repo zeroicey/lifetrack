@@ -4,10 +4,10 @@ import { TaskService } from "@/services/task";
 import Responder from "@/middlewares/response";
 import validater from "@/middlewares/validate";
 import {
-  groupIdSchema,
-  nameSchema,
+  commonNameSchema,
   taskCreateSchema,
   taskGroupCreateSchema,
+  taskGroupIdSchema,
   taskIdSchema,
   taskUpdateSchema,
 } from "@lifetrack/request-types";
@@ -21,14 +21,15 @@ TaskRouter.post(
   validater("json", taskGroupCreateSchema),
   async (c) => {
     const body = c.req.valid("json");
-    const data = await taskService.createGroup(body);
+    const userId = c.var.userId;
+    const data = await taskService.createGroup(userId, body);
     return Responder.success().setData(data).build(c);
   }
 );
 
 TaskRouter.delete(
   "/groups/:groupId",
-  validater("param", z.object({ groupId: groupIdSchema })),
+  validater("param", z.object({ groupId: taskGroupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
     await taskService.deleteGroup(Number(groupId));
@@ -38,8 +39,8 @@ TaskRouter.delete(
 
 TaskRouter.put(
   "/groups/:groupId",
-  validater("json", z.object({ name: nameSchema })),
-  validater("param", z.object({ groupId: groupIdSchema })),
+  validater("json", z.object({ name: commonNameSchema })),
+  validater("param", z.object({ groupId: taskGroupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
     const { name } = c.req.valid("json");
@@ -86,7 +87,7 @@ TaskRouter.put(
 
 TaskRouter.get(
   "/groups/:groupId/tasks",
-  validater("param", z.object({ groupId: groupIdSchema })),
+  validater("param", z.object({ groupId: taskGroupIdSchema })),
   async (c) => {
     const { groupId } = c.req.valid("param");
     const data = await taskService.getTasksByGroupId(Number(groupId));

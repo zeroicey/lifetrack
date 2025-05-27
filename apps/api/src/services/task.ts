@@ -25,7 +25,7 @@ export class TaskService {
     return data;
   }
 
-  public async createGroup({ name, userId }: TaskGroupCreate) {
+  public async createGroup(userId: number, { name }: TaskGroupCreate) {
     const data = await db
       .insert(taskGroups)
       .values({ name, userId })
