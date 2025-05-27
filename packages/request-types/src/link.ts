@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { commonIdSchema, commonNameSchema } from "./common";
 
+export const linkIdSchema = commonIdSchema("Link id");
+
 export const linkCreateSchema = z.object({
   name: commonNameSchema,
   target: z
@@ -10,7 +12,6 @@ export const linkCreateSchema = z.object({
 });
 
 export const linkUpdateSchema = z.object({
-  id: commonIdSchema("Link id"),
   name: commonNameSchema,
   target: z
     .string()

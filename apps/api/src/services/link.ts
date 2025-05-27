@@ -23,24 +23,11 @@ export class LinkService {
     return data[0];
   }
 
-  public async updateLink({ id: linkId, name, target }: LinkUpdate) {
-    const valuesToUpdate: Partial<{
-      name: string;
-      target: string;
-      updatedAt: Date;
-    }> = {};
-    if (name) {
-      valuesToUpdate.name = name;
-    }
-    if (target) {
-      valuesToUpdate.target = target;
-    }
-    valuesToUpdate.updatedAt = new Date();
-
+  public async updateLink(id: number, { name, target }: LinkUpdate) {
     const data = await db
       .update(links)
-      .set(valuesToUpdate)
-      .where(eq(links.id, linkId))
+      .set({ name, target, updatedAt: new Date() })
+      .where(eq(links.id, id))
       .returning();
     return data[0];
   }

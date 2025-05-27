@@ -117,7 +117,6 @@ export default function MemoList() {
                           updateMemo({
                             memoId: memo.id,
                             data: {
-                              userId: memo.userId,
                               content: contentInput,
                             },
                           });
