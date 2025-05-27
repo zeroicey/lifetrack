@@ -1,7 +1,6 @@
 import { useMemoCreateMutation } from "@/hook/useMemoQuery";
 import { Paperclip, SendHorizonal, Tag } from "lucide-react";
 import React from "react";
-import { useUserStore } from "@/store/user";
 
 export const InputArea = () => {
   const { mutate: createMemo } = useMemoCreateMutation();
@@ -30,9 +29,9 @@ export const InputArea = () => {
             size={20}
             className="text-gray-500"
             onClick={() => {
+              if (!inputValue) return;
               createMemo({
                 content: inputValue,
-                userId: useUserStore.getState().id!,
               });
               setInputValue("");
             }}

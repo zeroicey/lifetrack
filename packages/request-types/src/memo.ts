@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { commonIdSchema } from "./common";
 
+export const memoIdSchema = commonIdSchema("Memo id");
+
 export const memoCreateSchema = z.object({
   content: z.string().min(1, { message: "Content is required." }),
 });

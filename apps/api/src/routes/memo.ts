@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import Responder from "@/middlewares/response";
 import validater from "@/middlewares/validate";
-import { memoCreateSchema } from "@lifetrack/request-types";
+import { memoCreateSchema, memoIdSchema } from "@lifetrack/request-types";
 import { MemoService } from "@/services/memo";
 import { z } from "zod";
 
@@ -39,7 +39,7 @@ MemoRouter.post("/memos", validater("json", memoCreateSchema), async (c) => {
 
 MemoRouter.delete(
   "/memos/:id",
-  validater("param", z.object({ id: z.string().transform((s) => +s) })),
+  validater("param", z.object({ id: memoIdSchema })),
   async (c) => {
     const { id } = c.req.valid("param");
     await memoService.deleteMemo(id);
@@ -51,7 +51,7 @@ MemoRouter.delete(
 
 MemoRouter.put(
   "/memos/:id",
-  validater("param", z.object({ id: z.string().transform((s) => +s) })),
+  validater("param", z.object({ id: memoIdSchema })),
   validater("json", memoCreateSchema),
   async (c) => {
     const { id } = c.req.valid("param");
