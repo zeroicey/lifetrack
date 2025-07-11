@@ -1,27 +1,60 @@
 package memo
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	response "github.com/zeroicey/lifetrack-api/internal/pkg"
+	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
-func MemoRouter() chi.Router {
-	r := chi.NewRouter()
-	r.Get("/memos", ListMemos)
-	r.Post("/", CreateMemo)
-	r.Get("/{id}", GetMemo)
-	r.Put("/{id}", UpdateMemo)
-	r.Delete("/{id}", DeleteMemo)
+type Handler struct {
+	S *Service
+}
 
+func NewHandler(s *Service) *Handler {
+	return &Handler{S: s}
+}
+
+func MemoRouter(s *Service) chi.Router {
+	h := NewHandler(s)
+	r := chi.NewRouter()
+	r.Get("/memos", h.ListMemos)
+	r.Post("/memos", h.CreateMemo)
 	return r
 }
 
-func ListMemos(w http.ResponseWriter, r *http.Request) {
-	response.Success(w, "List of memos") // 这里可以替换为实际的查询逻辑
+func (h *Handler) ListMemos(w http.ResponseWriter, r *http.Request) {
+	memos, err := h.S.ListMemos(r.Context())
+	if err != nil {
+		http.Error(w, "Failed to list memos", http.StatusInternalServerError)
+		return
+	}
+	// 这里可以将查询到的 memos 返回给客户端
+	fmt.Printf("memos: %v\n", memos)
 }
-func CreateMemo(w http.ResponseWriter, r *http.Request) { /* ... */ }
-func GetMemo(w http.ResponseWriter, r *http.Request)    { /* ... */ }
-func UpdateMemo(w http.ResponseWriter, r *http.Request) { /* ... */ }
-func DeleteMemo(w http.ResponseWriter, r *http.Request) { /* ... */ }
+
+func (h *Handler) CreateMemo(w http.ResponseWriter, r *http.Request) {
+	attachments, err := json.Marshal([]string{"attachment1.txt", "attachment2.jpg"})
+	if err != nil {
+		http.Error(w, "Failed to marshal attachments", http.StatusInternalServerError)
+		return
+	}
+	memo, err := h.S.CreateMemo(r.Context(), repository.CreateMemoParams{
+		Content:     "New Memo",
+		Attachments: attachments,
+	})
+	fmt.Printf("memo: %v\n", memo)
+}
+
+func (h *Handler) DeleteMemoByID(w http.ResponseWriter, r *http.Request) {
+
+	err := h.S.DeleteMemoByID(r.Context(), 1)
+	if err != nil {
+		http.Error(w, "Failed to delete memo", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

@@ -1,7 +1,29 @@
 package memo
 
-func List() ([]Memo, error)     { return nil, nil }
-func Create(m Memo) error       { return nil }
-func Get(id int) (*Memo, error) { return nil, nil }
-func Update(m Memo) error       { return nil }
-func Delete(id int) error       { return nil }
+import (
+	"context"
+
+	"github.com/zeroicey/lifetrack-api/internal/repository"
+)
+
+type Service struct {
+	Q *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
+}
+
+func NewService(q *repository.Queries) *Service {
+	return &Service{Q: q}
+}
+
+// 查询全部
+func (s *Service) ListMemos(ctx context.Context) ([]repository.Memo, error) {
+	return s.Q.ListMemosWithPagination(ctx)
+}
+
+// 创建新备忘录
+func (s *Service) CreateMemo(ctx context.Context, memo repository.CreateMemoParams) (repository.Memo, error) {
+	return s.Q.CreateMemo(ctx, memo)
+}
+
+func (s *Service) DeleteMemoByID(ctx context.Context, id int64) error {
+	return s.Q.DeleteMemoByID(ctx, id)
+}

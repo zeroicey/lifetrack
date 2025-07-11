@@ -10,6 +10,7 @@ var (
 	DBUser     string
 	DBPASSWORD string
 	DBName     string
+	DBURL      string
 )
 
 func LoadDB() {
@@ -24,4 +25,6 @@ func LoadDB() {
 	DBUser = viper.GetString("DB_USER")
 	DBPASSWORD = viper.GetString("DB_PASSWORD")
 	DBName = viper.GetString("DB_NAME")
+
+	DBURL = "postgres://" + DBUser + ":" + DBPASSWORD + "@" + DBHost + ":" + DBPort + "/" + DBName + "?sslmode=disable"
 }
