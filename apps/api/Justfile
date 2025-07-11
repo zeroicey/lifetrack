@@ -1,0 +1,26 @@
+set dotenv-load := true
+set shell := ["powershell.exe", "-c"]
+
+build:
+    echo "Building the LifeTrack API..."
+    go build -o ./target/lifetrack-api ./cmd/main.go
+    echo "Build completed."
+
+dev:
+    echo "Starting the LifeTrack API in development mode..."
+    air
+
+# Goose migrate up
+migrate-up:
+    @echo "Running migrations UP..."
+    goose -dir db/migrations postgres "postgres://{{env('DB_USER')}}:{{env('DB_PASSWORD')}}@{{env('DB_HOST')}}:{{env('DB_PORT')}}/{{env('DB_NAME')}}?sslmode=disable" up
+
+# Goose migrate down
+migrate-down:
+    @echo "Running migrations DOWN..."
+    goose -dir db/migrations postgres "postgres://{{env('DB_USER')}}:{{env('DB_PASSWORD')}}@{{env('DB_HOST')}}:{{env('DB_PORT')}}/{{env('DB_NAME')}}?sslmode=disable" down
+
+# Goose create migration
+# Usage: just migrate-create <name>
+migrate-create name:
+    goose -dir db/migrations create {{name}} sql
