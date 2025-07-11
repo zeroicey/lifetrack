@@ -24,3 +24,22 @@ migrate-down:
 # Usage: just migrate-create <name>
 migrate-create name:
     goose -dir db/migrations create {{name}} sql
+
+# Create and run postgres container
+pg-start:
+    @echo "Starting Postgres container..."
+    docker run -d \
+        --name lifetrack-db \
+        -e POSTGRES_USER="{{env('DB_USER')}}" \
+        -e POSTGRES_PASSWORD="{{env('DB_PASSWORD')}}" \
+        -e POSTGRES_DB="{{env('DB_NAME')}}" \
+        -p {{env('DB_PORT')}}:5432 \
+        -v lifetrack-pgdata:/var/lib/postgresql/data \
+        postgres:15-alpine
+
+# Stop and remove postgres container
+pg-stop:
+    @echo "Stopping Postgres container..."
+    -docker stop lifetrack-db
+    @echo "Removing Postgres container..."
+    -docker rm lifetrack-db
