@@ -1,36 +1,55 @@
-package response
+package pkg
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-type Result struct {
-	Code int    `json:"code"`
-	Msg  string `json:"msg"`
-	Data any    `json:"data,omitempty"`
+// Go 里没有 class，但 struct + 方法一样用
+type Responder struct {
+	status     bool
+	statusCode int
+	message    string
+	data       any
 }
 
-// 返回成功
-func Success(w http.ResponseWriter, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(Result{
-		Code: 0,
-		Msg:  "success",
-		Data: data,
-	})
-}
-
-// 返回失败
-func Error(w http.ResponseWriter, code int, err error) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
-	msg := ""
-	if err != nil {
-		msg = err.Error()
+// 构造函数
+func NewResponder(status bool, message string, statusCode int, data any) *Responder {
+	return &Responder{
+		status:     status,
+		message:    message,
+		statusCode: statusCode,
+		data:       data,
 	}
-	json.NewEncoder(w).Encode(Result{
-		Code: code,
-		Msg:  msg,
-	})
+}
+
+// 静态方法
+func Success(message string) *Responder {
+	return NewResponder(true, message, http.StatusOK, nil)
+}
+
+func Error(message string) *Responder {
+	return NewResponder(false, message, http.StatusBadRequest, nil)
+}
+
+// 链式方法
+func (r *Responder) SetData(data any) *Responder {
+	r.data = data
+	return r
+}
+func (r *Responder) SetStatusCode(code int) *Responder {
+	r.statusCode = code
+	return r
+}
+
+// 最终 build（写响应）
+func (r *Responder) Build(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(r.statusCode)
+	resp := map[string]any{
+		"status":  r.status,
+		"message": r.message,
+		"data":    r.data,
+	}
+	_ = json.NewEncoder(w).Encode(resp)
 }

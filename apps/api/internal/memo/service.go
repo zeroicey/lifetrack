@@ -15,8 +15,8 @@ func NewService(q *repository.Queries) *Service {
 }
 
 // 查询全部
-func (s *Service) ListMemos(ctx context.Context) ([]repository.Memo, error) {
-	return s.Q.ListMemosWithPagination(ctx)
+func (s *Service) ListMemos(ctx context.Context, quereis repository.ListMemosWithCursorParams) ([]repository.Memo, error) {
+	return s.Q.ListMemosWithCursor(ctx, quereis)
 }
 
 // 创建新备忘录

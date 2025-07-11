@@ -1,6 +1,9 @@
--- name: ListMemosWithPagination :many
+-- name: ListMemosWithCursor :many
 SELECT * FROM memos
-ORDER BY created_at DESC;
+WHERE ($1::timestamp IS NULL OR created_at < $1::timestamp)
+ORDER BY created_at DESC
+LIMIT $2;
+
 
 -- name: GetMemoByID :one
 SELECT * FROM memos

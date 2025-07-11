@@ -11,13 +11,13 @@ import (
 // 用于存储备忘录信息，包括文本内容和附件
 type Memo struct {
 	// 备忘录的唯一标识符
-	ID int64
+	ID int64 `json:"id"`
 	// 备忘录的主要文本内容
-	Content string
+	Content string `json:"content"`
 	// 附件信息，以 JSONB 格式存储，例如：[{"type": "image", "url": "..."}]
-	Attachments []byte
+	Attachments []byte `json:"attachments"`
 	// 记录创建时间
-	CreatedAt pgtype.Timestamp
+	CreatedAt pgtype.Timestamp `json:"created_at"`
 	// 记录最后更新时间
-	UpdatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }

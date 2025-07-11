@@ -7,6 +7,8 @@ package repository
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createMemo = `-- name: CreateMemo :one
@@ -19,8 +21,8 @@ RETURNING id, content, attachments, created_at, updated_at
 `
 
 type CreateMemoParams struct {
-	Content     string
-	Attachments []byte
+	Content     string `json:"content"`
+	Attachments []byte `json:"attachments"`
 }
 
 func (q *Queries) CreateMemo(ctx context.Context, arg CreateMemoParams) (Memo, error) {
@@ -64,13 +66,20 @@ func (q *Queries) GetMemoByID(ctx context.Context, id int64) (Memo, error) {
 	return i, err
 }
 
-const listMemosWithPagination = `-- name: ListMemosWithPagination :many
+const listMemosWithCursor = `-- name: ListMemosWithCursor :many
 SELECT id, content, attachments, created_at, updated_at FROM memos
+WHERE ($1::timestamp IS NULL OR created_at < $1::timestamp)
 ORDER BY created_at DESC
+LIMIT $2
 `
 
-func (q *Queries) ListMemosWithPagination(ctx context.Context) ([]Memo, error) {
-	rows, err := q.db.Query(ctx, listMemosWithPagination)
+type ListMemosWithCursorParams struct {
+	Column1 pgtype.Timestamp `json:"column_1"`
+	Limit   int32            `json:"limit"`
+}
+
+func (q *Queries) ListMemosWithCursor(ctx context.Context, arg ListMemosWithCursorParams) ([]Memo, error) {
+	rows, err := q.db.Query(ctx, listMemosWithCursor, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
