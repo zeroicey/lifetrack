@@ -10,15 +10,14 @@ func StringToPgTimestamp(s string) pgtype.Timestamp {
 	if s == "" {
 		return pgtype.Timestamp{Valid: false}
 	}
-	layout := "2006-01-02 15:04:05.999999 -07:00"
+	// 修正 layout，支持时区名
+	layout := "2006-01-02 15:04:05.000 -0700 MST"
 	t, err := time.Parse(layout, s)
 	if err != nil {
-		// 解析失败，按无 cursor 返回
 		return pgtype.Timestamp{Valid: false}
 	}
 	var pgts pgtype.Timestamp
 	if err := pgts.Scan(t); err != nil {
-		// 理论不会错，这里兜底
 		return pgtype.Timestamp{Valid: false}
 	}
 	pgts.Valid = true
