@@ -83,12 +83,12 @@ func (s *Service) CreateMemo(ctx context.Context, body memo.CreateMemoBody) (mem
 	}
 	// 校验 content
 	if body.Content == "" {
-		return memo.MemoResponse{}, errors.New("Content is required")
+		return memo.MemoResponse{}, errors.New("content is required")
 	}
 	// 校验 attachments
 	for _, attachment := range body.Attachments {
 		if attachment.Type == "" || attachment.URL == "" {
-			return memo.MemoResponse{}, errors.New("Invalid attachment")
+			return memo.MemoResponse{}, errors.New("invalid attachment")
 		}
 		if _, ok := memo.AttachmentTypes[attachment.Type]; !ok {
 			return memo.MemoResponse{}, errors.New("attachment.type only supports image/audio/video")
@@ -96,14 +96,14 @@ func (s *Service) CreateMemo(ctx context.Context, body memo.CreateMemoBody) (mem
 	}
 	attachmentsJSONB, err := pkg.MarshalJSONB(body.Attachments)
 	if err != nil {
-		return memo.MemoResponse{}, errors.New("Failed to process attachments")
+		return memo.MemoResponse{}, errors.New("failed to process attachments")
 	}
 	newMemo, err := s.Q.CreateMemo(ctx, repository.CreateMemoParams{
 		Content:     body.Content,
 		Attachments: attachmentsJSONB,
 	})
 	if err != nil {
-		return memo.MemoResponse{}, errors.New("Failed to create memo")
+		return memo.MemoResponse{}, errors.New("failed to create memo")
 	}
 	return memo.MemoResponse{
 		ID:          newMemo.ID,

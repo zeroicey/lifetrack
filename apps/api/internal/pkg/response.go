@@ -5,7 +5,6 @@ import (
 	"net/http"
 )
 
-// Go 里没有 class，但 struct + 方法一样用
 type Responder struct {
 	status     bool
 	statusCode int
@@ -13,7 +12,7 @@ type Responder struct {
 	data       any
 }
 
-// 构造函数
+// Constructor
 func NewResponder(status bool, message string, statusCode int, data any) *Responder {
 	return &Responder{
 		status:     status,
@@ -23,7 +22,7 @@ func NewResponder(status bool, message string, statusCode int, data any) *Respon
 	}
 }
 
-// 静态方法
+// Static methods
 func Success(message string) *Responder {
 	return NewResponder(true, message, http.StatusOK, nil)
 }
@@ -32,7 +31,7 @@ func Error(message string) *Responder {
 	return NewResponder(false, message, http.StatusBadRequest, nil)
 }
 
-// 链式方法
+// Chainable methods
 func (r *Responder) SetData(data any) *Responder {
 	r.data = data
 	return r
@@ -42,7 +41,7 @@ func (r *Responder) SetStatusCode(code int) *Responder {
 	return r
 }
 
-// 最终 build（写响应）
+// Build method
 func (r *Responder) Build(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(r.statusCode)

@@ -24,6 +24,7 @@ func MemoRouter(s *Service) chi.Router {
 	r.Get("/", h.ListMemos)
 	r.Post("/", h.CreateMemo)
 	r.Get("/{id}", h.GetMemoById)
+	r.Delete("/{id}", h.DeleteMemoByID)
 	return r
 }
 
@@ -109,5 +110,5 @@ func (h *Handler) DeleteMemoByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success("Memo deleted successfully").SetStatusCode(204).Build(w)
+	response.Success("Memo deleted successfully").SetStatusCode(200).Build(w)
 }
