@@ -23,16 +23,18 @@ func MemoRouter(s *Service) chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", h.ListMemos)
 	r.Post("/", h.CreateMemo)
+	r.Get("/{id}", h.GetMemoById)
 	return r
 }
 
 func (h *Handler) ListMemos(w http.ResponseWriter, r *http.Request) {
+	// cursorStr is int64, limitStr is int
 	cursorStr := r.URL.Query().Get("cursor")
 	limitStr := r.URL.Query().Get("limit")
 
 	var cursor int64
 	if cursorStr != "" {
-		cursor, _ = strconv.ParseInt(cursorStr, 10, 64) // 兜底默认0
+		cursor, _ = strconv.ParseInt(cursorStr, 10, 64) // default cursor is 0
 	}
 	limit := 10
 	if n, err := strconv.Atoi(limitStr); err == nil && n > 0 {
@@ -46,7 +48,7 @@ func (h *Handler) ListMemos(w http.ResponseWriter, r *http.Request) {
 	}
 	resp := map[string]any{
 		"items":      memos,
-		"nextCursor": nextCursor, // 仅 nextCursor 用时间戳 int64
+		"nextCursor": nextCursor, // Only nextCursor used int64 for pagination
 	}
 	response.Success("Memos listed successfully").SetData(resp).Build(w)
 }
@@ -58,7 +60,6 @@ func (h *Handler) CreateMemo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 直接交给 Service 层处理业务和参数
 	newMemo, err := h.S.CreateMemo(r.Context(), body)
 	if err != nil {
 		response.Error(err.Error()).Build(w)
@@ -68,13 +69,45 @@ func (h *Handler) CreateMemo(w http.ResponseWriter, r *http.Request) {
 	response.Success("Memo created successfully").SetData(newMemo).Build(w)
 }
 
-func (h *Handler) DeleteMemoByID(w http.ResponseWriter, r *http.Request) {
-
-	err := h.S.DeleteMemoByID(r.Context(), 1)
-	if err != nil {
-		http.Error(w, "Failed to delete memo", http.StatusInternalServerError)
+func (h *Handler) GetMemoById(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		response.Error("Invalid memo ID").Build(w)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	memo, err := h.S.Q.GetMemoByID(r.Context(), int64(id))
+	if err != nil {
+		response.Error("Failed to get memo").Build(w)
+		return
+	}
+
+	response.Success("Memo retrieved successfully").SetData(memo).Build(w)
+}
+
+func (h *Handler) DeleteMemoByID(w http.ResponseWriter, r *http.Request) {
+	// Get memo ID from URL parameter
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		response.Error("Invalid memo ID").Build(w)
+		return
+	}
+
+	// Check if memo exists
+	_, err = h.S.Q.GetMemoByID(r.Context(), int64(id))
+	if err != nil {
+		response.Error("Memo not found").Build(w)
+		return
+	}
+
+	// Delete memo
+	err = h.S.DeleteMemoByID(r.Context(), int64(id))
+	if err != nil {
+		response.Error("Failed to delete memo").Build(w)
+		return
+	}
+
+	response.Success("Memo deleted successfully").SetStatusCode(204).Build(w)
 }
