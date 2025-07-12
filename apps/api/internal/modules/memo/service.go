@@ -3,7 +3,6 @@ package memo
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -21,7 +20,6 @@ func NewService(q *repository.Queries) *Service {
 }
 
 func (s *Service) ListMemosPaginated(ctx context.Context, cursor int64, limit int) ([]memo.MemoResponse, *int64, error) {
-	fmt.Printf("cursor: %v\n", cursor)
 	if limit <= 0 {
 		limit = 10
 	}
@@ -37,8 +35,6 @@ func (s *Service) ListMemosPaginated(ctx context.Context, cursor int64, limit in
 	} else {
 		cursorTs = pgtype.Timestamp{Valid: false}
 	}
-
-	fmt.Printf("cursorTs: %v\n", cursorTs)
 
 	_memos, err := s.Q.ListMemosWithCursor(ctx, repository.ListMemosWithCursorParams{
 		Column1: cursorTs,

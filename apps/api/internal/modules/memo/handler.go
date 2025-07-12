@@ -21,8 +21,8 @@ func NewHandler(s *Service) *Handler {
 func MemoRouter(s *Service) chi.Router {
 	h := NewHandler(s)
 	r := chi.NewRouter()
-	r.Get("/memos", h.ListMemos)
-	r.Post("/memos", h.CreateMemo)
+	r.Get("/", h.ListMemos)
+	r.Post("/", h.CreateMemo)
 	return r
 }
 

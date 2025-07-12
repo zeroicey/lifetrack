@@ -9,9 +9,9 @@ import (
 )
 
 var Port string
+var APPMODE string
 
 func Load() {
-	// 先加载.env（全局只需加载一次）
 	if err := godotenv.Load(".env"); err != nil {
 		log.Println("[config] .env file not found, fallback to system env")
 	}
@@ -20,7 +20,9 @@ func Load() {
 
 	// 读取基本配置
 	viper.SetDefault("PORT", "8080")
+	viper.SetDefault("APPMODE", "dev")
 	Port = viper.GetString("PORT")
+	APPMODE = viper.GetString("APPMODE")
 
 	// 统一调用其它配置的 Load
 	LoadDB()
