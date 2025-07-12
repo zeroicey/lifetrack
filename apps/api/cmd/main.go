@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/zeroicey/lifetrack-api/internal"
 	"github.com/zeroicey/lifetrack-api/internal/config"
-	"github.com/zeroicey/lifetrack-api/internal/memo"
+	"github.com/zeroicey/lifetrack-api/internal/modules/memo"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 

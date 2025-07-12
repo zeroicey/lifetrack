@@ -2,7 +2,7 @@ package internal
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/zeroicey/lifetrack-api/internal/memo"
+	"github.com/zeroicey/lifetrack-api/internal/modules/memo"
 )
 
 func RegisterRoutes(r chi.Router, s *AppServices) {

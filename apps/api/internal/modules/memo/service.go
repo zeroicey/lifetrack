@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	memo "github.com/zeroicey/lifetrack-api/internal/memo/types"
+	memo "github.com/zeroicey/lifetrack-api/internal/modules/memo/types"
 	"github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )

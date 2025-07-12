@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	memo "github.com/zeroicey/lifetrack-api/internal/memo/types"
+	memo "github.com/zeroicey/lifetrack-api/internal/modules/memo/types"
 	response "github.com/zeroicey/lifetrack-api/internal/pkg"
 )
 

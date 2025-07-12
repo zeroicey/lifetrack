@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/zeroicey/lifetrack-api/internal/memo"
+	"github.com/zeroicey/lifetrack-api/internal/modules/memo"
 )
 
 type AppServices struct {
