@@ -12,6 +12,7 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/middleware"
 	"github.com/zeroicey/lifetrack-api/internal/modules/memo"
+	"github.com/zeroicey/lifetrack-api/internal/modules/taskGroup"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
@@ -42,7 +43,8 @@ func main() {
 	// Initialize repository and services
 	queries := repository.New(dbConn)
 	services := &app.AppServices{
-		Memo: memo.NewService(queries),
+		Memo:      memo.NewService(queries),
+		TaskGroup: taskGroup.NewService(queries),
 	}
 
 	// Register routes
