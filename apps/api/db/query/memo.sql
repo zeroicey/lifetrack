@@ -20,3 +20,8 @@ RETURNING *;
 -- name: DeleteMemoByID :exec
 DELETE FROM memos
 WHERE id = $1;
+
+-- name: MemoExists :one
+SELECT EXISTS(
+    SELECT 1 FROM memos WHERE id = $1
+) AS exists;

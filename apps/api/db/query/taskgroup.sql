@@ -24,3 +24,8 @@ RETURNING *;
 -- name: DeleteTaskGroup :exec
 DELETE FROM task_groups
 WHERE id = $1;
+
+-- name: TaskGroupExists :one
+SELECT EXISTS(
+    SELECT 1 FROM task_groups WHERE id = $1
+) AS exists;

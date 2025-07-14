@@ -78,9 +78,13 @@ func (h *Handler) GetMemoById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memo, err := h.S.Q.GetMemoByID(r.Context(), int64(id))
+	memo, err := h.S.GetMemoByID(r.Context(), int64(id))
 	if err != nil {
-		response.Error("Failed to get memo").Build(w)
+		if err.Error() == "memo not found" {
+			response.Error("Memo not found").SetStatusCode(http.StatusNotFound).Build(w)
+		} else {
+			response.Error("Failed to get memo").Build(w)
+		}
 		return
 	}
 
@@ -96,17 +100,13 @@ func (h *Handler) DeleteMemoByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if memo exists
-	_, err = h.S.Q.GetMemoByID(r.Context(), int64(id))
-	if err != nil {
-		response.Error("Memo not found").Build(w)
-		return
-	}
-
-	// Delete memo
 	err = h.S.DeleteMemoByID(r.Context(), int64(id))
 	if err != nil {
-		response.Error("Failed to delete memo").Build(w)
+		if err.Error() == "memo not found" {
+			response.Error("Memo not found").SetStatusCode(http.StatusNotFound).Build(w)
+		} else {
+			response.Error("Failed to delete memo").Build(w)
+		}
 		return
 	}
 

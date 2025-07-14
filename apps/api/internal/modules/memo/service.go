@@ -114,6 +114,39 @@ func (s *Service) CreateMemo(ctx context.Context, body memo.CreateMemoBody) (mem
 	}, nil
 }
 
+func (s *Service) GetMemoByID(ctx context.Context, id int64) (memo.MemoResponse, error) {
+	if err := s.checkMemoExists(ctx, id); err != nil {
+		return memo.MemoResponse{}, err
+	}
+	_memo, err := s.Q.GetMemoByID(ctx, id)
+	if err != nil {
+		return memo.MemoResponse{}, err
+	}
+
+	attachments, _ := pkg.UnmarshalJSONB[[]memo.Attachment](_memo.Attachments)
+	return memo.MemoResponse{
+		ID:          _memo.ID,
+		Content:     _memo.Content,
+		Attachments: attachments,
+		UpdatedAt:   _memo.UpdatedAt.Time.Format(time.RFC3339),
+		CreatedAt:   _memo.CreatedAt.Time.Format(time.RFC3339),
+	}, nil
+}
+
 func (s *Service) DeleteMemoByID(ctx context.Context, id int64) error {
+	if err := s.checkMemoExists(ctx, id); err != nil {
+		return err
+	}
 	return s.Q.DeleteMemoByID(ctx, id)
+}
+
+func (s *Service) checkMemoExists(ctx context.Context, id int64) error {
+	exists, err := s.Q.MemoExists(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return errors.New("memo not found")
+	}
+	return nil
 }
