@@ -43,3 +43,10 @@ pg-stop:
     -docker stop lifetrack-db
     @echo "Removing Postgres container..."
     -docker rm lifetrack-db
+
+# Stop and remove Postgres container and volume
+pg-clean:
+    @echo "Stopping and removing Postgres container and volume..."
+    -docker stop lifetrack-db
+    -docker rm lifetrack-db
+    -docker volume rm lifetrack-pgdata
