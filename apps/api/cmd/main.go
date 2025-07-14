@@ -11,8 +11,6 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/app"
 	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/middleware"
-	"github.com/zeroicey/lifetrack-api/internal/modules/memo"
-	"github.com/zeroicey/lifetrack-api/internal/modules/taskGroup"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
@@ -42,17 +40,13 @@ func main() {
 
 	// Initialize repository and services
 	queries := repository.New(dbConn)
-	services := &app.AppServices{
-		Memo:      memo.NewService(queries),
-		TaskGroup: taskGroup.NewService(queries),
-	}
+	services := app.NewAppServices(queries)
 
 	// Register routes
 	internal.RegisterRoutes(r, services)
 
-	logger.Sugar().Infof("Server started at :%s", config.Port)
-
 	// Start server
+	logger.Sugar().Infof("Server started at :%s", config.Port)
 	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port), r)
 	if err != nil {
 		logger.Sugar().Fatalf("Failed to start server: %v", err)
