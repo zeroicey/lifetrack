@@ -1,4 +1,4 @@
--- name: ListMemosWithCursor :many
+-- name: GetMemosPaginated :many
 SELECT * FROM memos
 WHERE ($1::timestamp IS NULL OR created_at < $1::timestamp)
 ORDER BY created_at DESC

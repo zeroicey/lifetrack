@@ -36,7 +36,7 @@ func (s *Service) ListMemosPaginated(ctx context.Context, cursor int64, limit in
 		cursorTs = pgtype.Timestamp{Valid: false}
 	}
 
-	_memos, err := s.Q.ListMemosWithCursor(ctx, repository.ListMemosWithCursorParams{
+	_memos, err := s.Q.GetMemosPaginated(ctx, repository.GetMemosPaginatedParams{
 		Column1: cursorTs,
 		Limit:   int32(limit + 1),
 	})

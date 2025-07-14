@@ -5,10 +5,56 @@
 package repository
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// 用于存储备忘录信息，包括文本内容和附件
+type TaskStatus string
+
+const (
+	TaskStatusTodo    TaskStatus = "todo"
+	TaskStatusDone    TaskStatus = "done"
+	TaskStatusAbandon TaskStatus = "abandon"
+)
+
+func (e *TaskStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TaskStatus(s)
+	case string:
+		*e = TaskStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TaskStatus: %T", src)
+	}
+	return nil
+}
+
+type NullTaskStatus struct {
+	TaskStatus TaskStatus `json:"task_status"`
+	Valid      bool       `json:"valid"` // Valid is true if TaskStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTaskStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.TaskStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TaskStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTaskStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TaskStatus), nil
+}
+
+// 用于存储即使信息，包括文本内容和附件
 type Memo struct {
 	// 备忘录的唯一标识符
 	ID int64 `json:"id"`
@@ -17,7 +63,33 @@ type Memo struct {
 	// 附件信息，以 JSONB 格式存储，例如：[{"type": "image", "url": "..."}]
 	Attachments []byte `json:"attachments"`
 	// 记录创建时间
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	// 记录最后更新时间
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Task struct {
+	ID          int64              `json:"id"`
+	GroupID     int64              `json:"group_id"`
+	Pos         string             `json:"pos"`
+	Name        string             `json:"name"`
+	Description pgtype.Text        `json:"description"`
+	Status      TaskStatus         `json:"status"`
+	DueDate     pgtype.Timestamptz `json:"due_date"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 日常务分组表，仅可保存年任务组(2025)，月任务组(2025-07)，周任务组(2025-W28)，日任务组(2025-07-14)
+type TaskGroup struct {
+	// 主键，自增ID
+	ID int64 `json:"id"`
+	// 任务分组名称
+	Name string `json:"name"`
+	// 任务分组描述
+	Description pgtype.Text `json:"description"`
+	// 创建时间
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 更新时间
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
