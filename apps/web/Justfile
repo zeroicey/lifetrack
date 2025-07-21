@@ -1,0 +1,9 @@
+set shell := ["powershell.exe", "-c"]
+
+build:
+    echo "Building the LifeTrack WEB..."
+    bun build
+
+dev:
+    echo "Starting the LifeTrack WEB in development mode..."
+    bun dev
