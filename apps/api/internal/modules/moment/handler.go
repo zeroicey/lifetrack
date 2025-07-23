@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	moment "github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
+	"github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
 	response "github.com/zeroicey/lifetrack-api/internal/pkg"
 )
 
@@ -44,71 +44,71 @@ func (h *Handler) ListMoments(w http.ResponseWriter, r *http.Request) {
 
 	moments, nextCursor, err := h.S.ListMomentsPaginated(r.Context(), cursor, limit)
 	if err != nil {
-		response.Error("Failed to list moments").Build(w)
+		response.Error("Failed to list moments").SetStatusCode(http.StatusInternalServerError).Build(w)
 		return
 	}
 	resp := map[string]any{
 		"items":      moments,
 		"nextCursor": nextCursor, // Only nextCursor used int64 for pagination
 	}
-	response.Success("Moments listed successfully").SetData(resp).Build(w)
+	response.Success("Moments listed successfully").SetStatusCode(http.StatusOK).SetData(resp).Build(w)
 }
 
 func (h *Handler) CreateMoment(w http.ResponseWriter, r *http.Request) {
-	var body moment.CreateMomentBody
+	var body types.CreateMomentBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		response.Error("Failed to decode request body").Build(w)
+		response.Error("Failed to decode request body").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
 
 	newMoment, err := h.S.CreateMoment(r.Context(), body)
 	if err != nil {
-		response.Error(err.Error()).Build(w)
+		response.Error(err.Error()).SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
 
-	response.Success("Moment created successfully").SetData(newMoment).Build(w)
+	response.Success("Moment created successfully").SetStatusCode(http.StatusCreated).SetData(newMoment).Build(w)
 }
 
 func (h *Handler) GetMomentById(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil || id <= 0 {
-		response.Error("Invalid moment ID").Build(w)
+		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
 
-	moment, err := h.S.GetMomentByID(r.Context(), int64(id))
+	moment, err := h.S.GetMomentByID(r.Context(), id)
 	if err != nil {
 		if err.Error() == "moment not found" {
 			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
-			response.Error("Failed to get moment").Build(w)
+			response.Error("Failed to get moment").SetStatusCode(http.StatusInternalServerError).Build(w)
 		}
 		return
 	}
 
-	response.Success("Moment retrieved successfully").SetData(moment).Build(w)
+	response.Success("Moment retrieved successfully").SetStatusCode(http.StatusOK).SetData(moment).Build(w)
 }
 
 func (h *Handler) DeleteMomentByID(w http.ResponseWriter, r *http.Request) {
 	// Get moment ID from URL parameter
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil || id <= 0 {
-		response.Error("Invalid moment ID").Build(w)
+		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
 
-	err = h.S.DeleteMomentByID(r.Context(), int64(id))
+	err = h.S.DeleteMomentByID(r.Context(), id)
 	if err != nil {
 		if err.Error() == "moment not found" {
 			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
-			response.Error("Failed to delete moment").Build(w)
+			response.Error("Failed to delete moment").SetStatusCode(http.StatusInternalServerError).Build(w)
 		}
 		return
 	}
 
-	response.Success("Moment deleted successfully").SetStatusCode(200).Build(w)
+	response.Success("Moment deleted successfully").SetStatusCode(http.StatusOK).Build(w)
 }

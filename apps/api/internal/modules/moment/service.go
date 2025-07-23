@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	moment "github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
+	"github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
 	"github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
@@ -19,7 +19,7 @@ func NewService(q *repository.Queries) *Service {
 	return &Service{Q: q}
 }
 
-func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit int) ([]moment.MomentResponse, *int64, error) {
+func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit int) ([]types.MomentResponse, *int64, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -61,10 +61,10 @@ func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit 
 	}
 
 	// 其它时间字段保持字符串格式
-	var moments []moment.MomentResponse
+	var moments []types.MomentResponse
 	for _, m := range items {
-		attachments, _ := pkg.UnmarshalJSONB[[]moment.Attachment](m.Attachments)
-		moments = append(moments, moment.MomentResponse{
+		attachments, _ := pkg.UnmarshalJSONB[[]types.Attachment](m.Attachments)
+		moments = append(moments, types.MomentResponse{
 			ID:          m.ID,
 			Content:     m.Content,
 			Attachments: attachments,
@@ -76,55 +76,55 @@ func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit 
 	return moments, nextCursor, nil
 }
 
-func (s *Service) CreateMoment(ctx context.Context, body moment.CreateMomentBody) (moment.MomentResponse, error) {
+func (s *Service) CreateMoment(ctx context.Context, body types.CreateMomentBody) (types.MomentResponse, error) {
 	// 兜底 attachments
 	if body.Attachments == nil {
-		body.Attachments = []moment.Attachment{}
+		body.Attachments = []types.Attachment{}
 	}
 	// 校验 content
 	if body.Content == "" {
-		return moment.MomentResponse{}, errors.New("content is required")
+		return types.MomentResponse{}, errors.New("content is required")
 	}
 	// 校验 attachments
 	for _, attachment := range body.Attachments {
 		if attachment.Type == "" || attachment.URL == "" {
-			return moment.MomentResponse{}, errors.New("invalid attachment")
+			return types.MomentResponse{}, errors.New("invalid attachment")
 		}
-		if _, ok := moment.AttachmentTypes[attachment.Type]; !ok {
-			return moment.MomentResponse{}, errors.New("attachment.type only supports image/audio/video")
+		if _, ok := types.AttachmentTypes[attachment.Type]; !ok {
+			return types.MomentResponse{}, errors.New("attachment.type only supports image/audio/video")
 		}
 	}
 	attachmentsJSONB, err := pkg.MarshalJSONB(body.Attachments)
 	if err != nil {
-		return moment.MomentResponse{}, errors.New("failed to process attachments")
+		return types.MomentResponse{}, errors.New("failed to process attachments")
 	}
 	newMoment, err := s.Q.CreateMoment(ctx, repository.CreateMomentParams{
 		Content:     body.Content,
 		Attachments: attachmentsJSONB,
 	})
 	if err != nil {
-		return moment.MomentResponse{}, errors.New("failed to create moment")
+		return types.MomentResponse{}, errors.New("failed to create moment")
 	}
-	return moment.MomentResponse{
+	return types.MomentResponse{
 		ID:          newMoment.ID,
 		Content:     newMoment.Content,
 		Attachments: body.Attachments,
-		UpdatedAt:   newMoment.UpdatedAt.Time.String(),
-		CreatedAt:   newMoment.CreatedAt.Time.String(),
+		UpdatedAt:   newMoment.UpdatedAt.Time.Format(time.RFC3339),
+		CreatedAt:   newMoment.CreatedAt.Time.Format(time.RFC3339),
 	}, nil
 }
 
-func (s *Service) GetMomentByID(ctx context.Context, id int64) (moment.MomentResponse, error) {
+func (s *Service) GetMomentByID(ctx context.Context, id int64) (types.MomentResponse, error) {
 	if err := s.checkMomentExists(ctx, id); err != nil {
-		return moment.MomentResponse{}, err
+		return types.MomentResponse{}, err
 	}
 	_moment, err := s.Q.GetMomentByID(ctx, id)
 	if err != nil {
-		return moment.MomentResponse{}, err
+		return types.MomentResponse{}, err
 	}
 
-	attachments, _ := pkg.UnmarshalJSONB[[]moment.Attachment](_moment.Attachments)
-	return moment.MomentResponse{
+	attachments, _ := pkg.UnmarshalJSONB[[]types.Attachment](_moment.Attachments)
+	return types.MomentResponse{
 		ID:          _moment.ID,
 		Content:     _moment.Content,
 		Attachments: attachments,

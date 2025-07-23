@@ -72,10 +72,10 @@ type Task struct {
 	ID          int64              `json:"id"`
 	GroupID     int64              `json:"group_id"`
 	Pos         string             `json:"pos"`
-	Name        string             `json:"name"`
+	Content     string             `json:"content"`
 	Description pgtype.Text        `json:"description"`
 	Status      TaskStatus         `json:"status"`
-	DueDate     pgtype.Timestamptz `json:"due_date"`
+	Deadline    pgtype.Timestamptz `json:"deadline"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }

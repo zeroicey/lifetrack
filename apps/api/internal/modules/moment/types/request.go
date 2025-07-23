@@ -1,4 +1,4 @@
-package moment
+package types
 
 type CreateMomentBody struct {
 	Content     string       `json:"content"`

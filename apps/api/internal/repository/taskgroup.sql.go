@@ -35,13 +35,13 @@ func (q *Queries) CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams
 	return i, err
 }
 
-const deleteTaskGroup = `-- name: DeleteTaskGroup :exec
+const deleteTaskGroupById = `-- name: DeleteTaskGroupById :exec
 DELETE FROM task_groups
 WHERE id = $1
 `
 
-func (q *Queries) DeleteTaskGroup(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteTaskGroup, id)
+func (q *Queries) DeleteTaskGroupById(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteTaskGroupById, id)
 	return err
 }
 
@@ -92,40 +92,6 @@ func (q *Queries) GetTaskGroupById(ctx context.Context, id int64) (TaskGroup, er
 	return i, err
 }
 
-const getTasksByGroupId = `-- name: GetTasksByGroupId :many
-SELECT id, group_id, pos, name, description, status, due_date, created_at, updated_at FROM tasks WHERE group_id = $1 ORDER BY pos
-`
-
-func (q *Queries) GetTasksByGroupId(ctx context.Context, groupID int64) ([]Task, error) {
-	rows, err := q.db.Query(ctx, getTasksByGroupId, groupID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Task
-	for rows.Next() {
-		var i Task
-		if err := rows.Scan(
-			&i.ID,
-			&i.GroupID,
-			&i.Pos,
-			&i.Name,
-			&i.Description,
-			&i.Status,
-			&i.DueDate,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const taskGroupExists = `-- name: TaskGroupExists :one
 SELECT EXISTS(
     SELECT 1 FROM task_groups WHERE id = $1
@@ -139,7 +105,7 @@ func (q *Queries) TaskGroupExists(ctx context.Context, id int64) (bool, error) {
 	return exists, err
 }
 
-const updateTaskGroup = `-- name: UpdateTaskGroup :one
+const updateTaskGroupById = `-- name: UpdateTaskGroupById :one
 UPDATE task_groups
 SET
     name = $1,
@@ -149,14 +115,14 @@ WHERE
 RETURNING id, name, description, created_at, updated_at
 `
 
-type UpdateTaskGroupParams struct {
+type UpdateTaskGroupByIdParams struct {
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
 	ID          int64       `json:"id"`
 }
 
-func (q *Queries) UpdateTaskGroup(ctx context.Context, arg UpdateTaskGroupParams) (TaskGroup, error) {
-	row := q.db.QueryRow(ctx, updateTaskGroup, arg.Name, arg.Description, arg.ID)
+func (q *Queries) UpdateTaskGroupById(ctx context.Context, arg UpdateTaskGroupByIdParams) (TaskGroup, error) {
+	row := q.db.QueryRow(ctx, updateTaskGroupById, arg.Name, arg.Description, arg.ID)
 	var i TaskGroup
 	err := row.Scan(
 		&i.ID,

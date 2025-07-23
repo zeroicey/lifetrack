@@ -1,4 +1,4 @@
-package moment
+package types
 
 type MomentResponse struct {
 	ID          int64        `json:"id"`

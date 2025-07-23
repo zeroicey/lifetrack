@@ -1,0 +1,554 @@
+openapi: 3.0.3
+info:
+  title: LifeTrack Task API
+  description: Task management API for LifeTrack application
+  version: 1.0.0
+  contact:
+    name: LifeTrack API Support
+    email: support@lifetrack.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://api.lifetrack.com/v1
+    description: Production server
+
+paths:
+  /tasks:
+    post:
+      summary: Create a new task
+      description: Creates a new task in the specified task group
+      operationId: createTask
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+            examples:
+              basic_task:
+                summary: Basic task example
+                value:
+                  group_id: 1
+                  pos: "1"
+                  content: "Complete project documentation"
+                  description: "Write comprehensive documentation for the project"
+                  deadline: "2024-12-31T23:59:59Z"
+              minimal_task:
+                summary: Minimal task example
+                value:
+                  group_id: 1
+                  pos: "2"
+                  content: "Review code"
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSuccessResponse'
+              examples:
+                created_task:
+                  summary: Successfully created task
+                  value:
+                    status: true
+                    message: "Task created successfully"
+                    data:
+                      id: 123
+                      group_id: 1
+                      pos: "1"
+                      content: "Complete project documentation"
+                      description: "Write comprehensive documentation for the project"
+                      status: "pending"
+                      deadline: "2024-12-31T23:59:59Z"
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-15T10:30:00Z"
+        '400':
+          description: Bad request - Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                decode_error:
+                  summary: Failed to decode request body
+                  value:
+                    status: false
+                    message: "Failed to decode request body"
+                    data: null
+        '404':
+          description: Task group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                group_not_found:
+                  summary: Task group not found
+                  value:
+                    status: false
+                    message: "Task group not found"
+                    data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  summary: Failed to create task
+                  value:
+                    status: false
+                    message: "Failed to create task"
+                    data: null
+
+  /tasks/{id}:
+    get:
+      summary: Get task by ID
+      description: Retrieves a specific task by its ID
+      operationId: getTaskById
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          example: 123
+      responses:
+        '200':
+          description: Task details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSuccessResponse'
+              examples:
+                task_details:
+                  summary: Task details
+                  value:
+                    status: true
+                    message: "Task details"
+                    data:
+                      id: 123
+                      group_id: 1
+                      pos: "1"
+                      content: "Complete project documentation"
+                      description: "Write comprehensive documentation for the project"
+                      status: "in_progress"
+                      deadline: "2024-12-31T23:59:59Z"
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-16T14:20:00Z"
+        '400':
+          description: Invalid task ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_id:
+                  summary: Invalid task ID
+                  value:
+                    status: false
+                    message: "Invalid task ID"
+                    data: null
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                task_not_found:
+                  summary: Task not found
+                  value:
+                    status: false
+                    message: "Task not found"
+                    data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  summary: Failed to get task details
+                  value:
+                    status: false
+                    message: "Failed to get task details"
+                    data: null
+
+    put:
+      summary: Update task
+      description: Updates an existing task by its ID
+      operationId: updateTask
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          example: 123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+            examples:
+              update_task:
+                summary: Update task example
+                value:
+                  pos: "2"
+                  content: "Complete project documentation and review"
+                  description: "Write comprehensive documentation and conduct peer review"
+                  deadline: "2024-12-30T23:59:59Z"
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSuccessResponse'
+              examples:
+                updated_task:
+                  summary: Successfully updated task
+                  value:
+                    status: true
+                    message: "Task updated successfully"
+                    data:
+                      id: 123
+                      group_id: 1
+                      pos: "2"
+                      content: "Complete project documentation and review"
+                      description: "Write comprehensive documentation and conduct peer review"
+                      status: "in_progress"
+                      deadline: "2024-12-30T23:59:59Z"
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-16T15:45:00Z"
+        '400':
+          description: Bad request - Invalid input data or task ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_id:
+                  summary: Invalid task ID
+                  value:
+                    status: false
+                    message: "Invalid task ID"
+                    data: null
+                decode_error:
+                  summary: Failed to decode request body
+                  value:
+                    status: false
+                    message: "Failed to decode request body"
+                    data: null
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                task_not_found:
+                  summary: Task not found
+                  value:
+                    status: false
+                    message: "Task not found"
+                    data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  summary: Failed to update task
+                  value:
+                    status: false
+                    message: "Failed to update task"
+                    data: null
+
+    delete:
+      summary: Delete task
+      description: Deletes a task by its ID
+      operationId: deleteTask
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          example: 123
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              examples:
+                deleted_task:
+                  summary: Successfully deleted task
+                  value:
+                    status: true
+                    message: "Task deleted successfully"
+                    data: null
+        '400':
+          description: Invalid task ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_id:
+                  summary: Invalid task ID
+                  value:
+                    status: false
+                    message: "Invalid task ID"
+                    data: null
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                task_not_found:
+                  summary: Task not found
+                  value:
+                    status: false
+                    message: "Task not found"
+                    data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  summary: Failed to delete task
+                  value:
+                    status: false
+                    message: "Failed to delete task"
+                    data: null
+
+components:
+  schemas:
+    CreateTaskRequest:
+      type: object
+      required:
+        - group_id
+        - pos
+        - content
+      properties:
+        group_id:
+          type: integer
+          format: int64
+          description: ID of the task group this task belongs to
+          minimum: 1
+          example: 1
+        pos:
+          type: string
+          description: Position of the task within the group (for ordering)
+          example: "1"
+        content:
+          type: string
+          description: Main content/title of the task
+          minLength: 1
+          maxLength: 500
+          example: "Complete project documentation"
+        description:
+          type: string
+          description: Optional detailed description of the task
+          maxLength: 2000
+          example: "Write comprehensive documentation for the project including API specs and user guides"
+        deadline:
+          type: string
+          format: date-time
+          description: Optional deadline for the task (RFC3339 format)
+          example: "2024-12-31T23:59:59Z"
+
+    UpdateTaskRequest:
+      type: object
+      required:
+        - pos
+        - content
+      properties:
+        pos:
+          type: string
+          description: Position of the task within the group (for ordering)
+          example: "2"
+        content:
+          type: string
+          description: Main content/title of the task
+          minLength: 1
+          maxLength: 500
+          example: "Complete project documentation and review"
+        description:
+          type: string
+          description: Optional detailed description of the task
+          maxLength: 2000
+          example: "Write comprehensive documentation and conduct peer review"
+        deadline:
+          type: string
+          format: date-time
+          description: Optional deadline for the task (RFC3339 format)
+          example: "2024-12-30T23:59:59Z"
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier for the task
+          example: 123
+        group_id:
+          type: integer
+          format: int64
+          description: ID of the task group this task belongs to
+          example: 1
+        pos:
+          type: string
+          description: Position of the task within the group
+          example: "1"
+        content:
+          type: string
+          description: Main content/title of the task
+          example: "Complete project documentation"
+        description:
+          type: string
+          description: Detailed description of the task
+          example: "Write comprehensive documentation for the project"
+        status:
+          type: string
+          description: Current status of the task
+          enum: ["pending", "in_progress", "completed", "cancelled"]
+          example: "pending"
+        deadline:
+          type: string
+          format: date-time
+          description: Deadline for the task (RFC3339 format)
+          example: "2024-12-31T23:59:59Z"
+        created_at:
+          type: string
+          format: date-time
+          description: Task creation timestamp (RFC3339 format)
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Task last update timestamp (RFC3339 format)
+          example: "2024-01-16T14:20:00Z"
+      required:
+        - id
+        - group_id
+        - pos
+        - content
+        - status
+        - created_at
+        - updated_at
+
+    TaskSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Human-readable message describing the result
+          example: "Task created successfully"
+        data:
+          $ref: '#/components/schemas/TaskResponse'
+      required:
+        - status
+        - message
+        - data
+
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Human-readable message describing the result
+          example: "Task deleted successfully"
+        data:
+          type: object
+          nullable: true
+          description: Response data (null for delete operations)
+          example: null
+      required:
+        - status
+        - message
+        - data
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: Indicates if the request was successful (always false for errors)
+          example: false
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Task not found"
+        data:
+          type: object
+          nullable: true
+          description: Additional error data (usually null)
+          example: null
+      required:
+        - status
+        - message
+        - data
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+# Global security (can be overridden per operation)
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Tasks
+    description: Task management operations
+    externalDocs:
+      description: Find out more about task management
+      url: https://docs.lifetrack.com/tasks
+
+externalDocs:
+  description: LifeTrack API Documentation
+  url: https://docs.lifetrack.com/api
