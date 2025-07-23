@@ -1,12 +1,11 @@
 import { createBrowserRouter } from "react-router";
-import IndexPage from "@/pages";
-import LoginPage from "@/pages/login";
-import GuidePage from "@/pages/guide";
 import MomentPage from "@/pages/module/moment";
 import MomentCreatePage from "@/pages/module/moment/create";
 import TaskPage from "@/pages/module/task";
 import HabitPage from "@/pages/module/habit";
-
+import IndexPage from "@/pages";
+import LoginPage from "@/pages/login";
+import GuidePage from "@/pages/guide";
 const router = createBrowserRouter([
     { path: "/", Component: IndexPage },
     { path: "login", Component: LoginPage },
