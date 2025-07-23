@@ -1,4 +1,4 @@
-package memo
+package moment
 
 type Attachment struct {
 	Type string `json:"type"`

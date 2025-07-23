@@ -20,7 +20,7 @@ func NewHandler(s *Service) *Handler {
 	return &Handler{S: s}
 }
 
-func TaskRouter(s *Service) chi.Router {
+func TaskGroupRouter(s *Service) chi.Router {
 	h := NewHandler(s)
 	r := chi.NewRouter()
 	r.Get("/", h.ListGroups)

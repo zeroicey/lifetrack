@@ -1,6 +1,6 @@
-package memo
+package moment
 
-type CreateMemoBody struct {
+type CreateMomentBody struct {
 	Content     string       `json:"content"`
 	Attachments []Attachment `json:"attachments"` // 可以为 null/空对象
 }

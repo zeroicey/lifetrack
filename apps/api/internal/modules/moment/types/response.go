@@ -1,6 +1,6 @@
-package memo
+package moment
 
-type MemoResponse struct {
+type MomentResponse struct {
 	ID          int64        `json:"id"`
 	Content     string       `json:"content"`
 	Attachments []Attachment `json:"attachments"`

@@ -55,7 +55,7 @@ func (ns NullTaskStatus) Value() (driver.Value, error) {
 }
 
 // 用于存储即使信息，包括文本内容和附件
-type Memo struct {
+type Moment struct {
 	// 备忘录的唯一标识符
 	ID int64 `json:"id"`
 	// 备忘录的主要文本内容
