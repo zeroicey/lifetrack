@@ -6,11 +6,13 @@ import HabitPage from "@/pages/module/habit";
 import IndexPage from "@/pages";
 import LoginPage from "@/pages/login";
 import GuidePage from "@/pages/guide";
+import ModuleLayout from "./components/layouts/module-layout";
 const router = createBrowserRouter([
     { path: "/", Component: IndexPage },
     { path: "login", Component: LoginPage },
     { path: "guide", Component: GuidePage },
     {
+        Component: ModuleLayout,
         children: [
             {
                 path: "moment",
