@@ -1,42 +1,44 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+"use client";
+import { Home, FileText, CheckSquare, Box, Repeat } from "lucide-react";
 
 import {
     Sidebar,
     SidebarContent,
     SidebarGroup,
     SidebarGroupContent,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarMenuBadge,
+    SidebarGroupLabel,
 } from "@/components/ui/sidebar";
+import { NavLink } from "react-router";
 
-// Menu items.
+// Menu items with badges.
 const items = [
     {
         title: "Home",
-        url: "#",
+        url: "/",
         icon: Home,
+        badge: 5,
     },
     {
-        title: "Inbox",
-        url: "#",
-        icon: Inbox,
+        title: "Moment",
+        url: "/moment",
+        icon: FileText,
+        badge: 12,
     },
     {
-        title: "Calendar",
-        url: "#",
-        icon: Calendar,
+        title: "Task",
+        url: "/task",
+        icon: CheckSquare,
+        badge: 8,
     },
     {
-        title: "Search",
-        url: "#",
-        icon: Search,
-    },
-    {
-        title: "Settings",
-        url: "#",
-        icon: Settings,
+        title: "Habit",
+        url: "/habit",
+        icon: Repeat,
+        badge: 7,
     },
 ];
 
@@ -45,16 +47,24 @@ export function AppSidebar() {
         <Sidebar>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Application</SidebarGroupLabel>
                     <SidebarGroupContent>
+                        <SidebarGroupLabel>Application</SidebarGroupLabel>
                         <SidebarMenu>
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                        <NavLink
+                                            to={item.url}
+                                            className="flex items-center gap-2"
+                                        >
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                            {item.title !== "Home" && (
+                                                <SidebarMenuBadge>
+                                                    {item.badge}
+                                                </SidebarMenuBadge>
+                                            )}
+                                        </NavLink>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}

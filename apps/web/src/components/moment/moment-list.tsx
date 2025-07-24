@@ -32,7 +32,7 @@ export default function MomentList() {
         );
     }
     return (
-        <div className="flex flex-col gap-4 overflow-auto no-scrollbar">
+        <div className="flex flex-col gap-3 overflow-auto no-scrollbar">
             {data?.pages.map((page) =>
                 page.items?.map((moment: Moment) => (
                     <MomentItem key={moment.id} moment={moment} />
