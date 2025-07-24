@@ -4,5 +4,6 @@ export default {
     "scope-empty": [2, "never"],
     "subject-empty": [2, "never"],
     "header-max-length": [2, "always", 500],
+    "body-max-line-length": [2, "always", 200],
   },
 };

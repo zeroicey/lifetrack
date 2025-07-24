@@ -32,16 +32,13 @@ export default function MomentList() {
         );
     }
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 overflow-auto no-scrollbar">
             {data?.pages.map((page) =>
                 page.items?.map((moment: Moment) => (
                     <MomentItem key={moment.id} moment={moment} />
                 ))
             )}
-            <div
-                className="text-center text-gray-500 text-sm"
-                hidden={!hasNextPage}
-            >
+            <div className="text-center text-gray-500 text-sm">
                 <Button
                     variant={"outline"}
                     disabled={!hasNextPage || isFetchingNextPage}
