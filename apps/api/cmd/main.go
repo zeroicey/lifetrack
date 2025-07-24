@@ -28,7 +28,10 @@ func main() {
 	// Initialize router
 	r := chi.NewRouter()
 
+	// Initialize middleware logger
 	r.Use(middleware.Logger(logger))
+
+	r.Use(middleware.Cors())
 
 	// Initialize database connection
 	ctx := context.Background()
