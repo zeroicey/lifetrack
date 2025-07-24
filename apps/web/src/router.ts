@@ -7,27 +7,34 @@ import IndexPage from "@/pages";
 import LoginPage from "@/pages/login";
 import GuidePage from "@/pages/guide";
 import ModuleLayout from "./components/layouts/module-layout";
+import RootLayout from "./components/layouts/root-layout";
 const router = createBrowserRouter([
-    { path: "/", Component: IndexPage },
-    { path: "login", Component: LoginPage },
-    { path: "guide", Component: GuidePage },
     {
-        Component: ModuleLayout,
+        path: "/",
+        Component: RootLayout,
         children: [
+            { index: true, Component: IndexPage },
+            { path: "login", Component: LoginPage },
+            { path: "guide", Component: GuidePage },
             {
-                path: "moment",
+                Component: ModuleLayout,
                 children: [
-                    { index: true, Component: MomentPage },
-                    { path: "create", Component: MomentCreatePage },
+                    {
+                        path: "moment",
+                        children: [
+                            { index: true, Component: MomentPage },
+                            { path: "create", Component: MomentCreatePage },
+                        ],
+                    },
+                    {
+                        path: "task",
+                        children: [{ index: true, Component: TaskPage }],
+                    },
+                    {
+                        path: "habit",
+                        children: [{ index: true, Component: HabitPage }],
+                    },
                 ],
-            },
-            {
-                path: "task",
-                children: [{ index: true, Component: TaskPage }],
-            },
-            {
-                path: "habit",
-                children: [{ index: true, Component: HabitPage }],
             },
         ],
     },
