@@ -22,7 +22,9 @@ export default function MomentItem({ moment }: Props) {
                     />
                 </div>
             </div>
-            <p>{moment.content}</p>
+            <p className="font-mono whitespace-pre-wrap break-words">
+                {moment.content}
+            </p>
         </div>
     );
 }

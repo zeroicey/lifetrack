@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { useMomentCreateMutation } from "@/hooks/use-moment-query";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 
 export default function MomentCreatePage() {
     const [textareaValue, setTextareaValue] = useState<string>();
+    const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const { mutate } = useMomentCreateMutation();
     useEffect(() => {
         const textarea = textareaRef.current;
         if (textarea) {
@@ -40,8 +44,23 @@ export default function MomentCreatePage() {
                 </div>
 
                 <div className="w-full flex justify-around gap-5 border-t p-4">
-                    <Button variant="default">Create</Button>
-                    <Button variant="secondary">Cancel</Button>
+                    <Button
+                        variant="default"
+                        onClick={() => {
+                            mutate({ content: textareaValue });
+                        }}
+                    >
+                        Create
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            setTextareaValue("");
+                            navigate("/moment");
+                        }}
+                    >
+                        Cancel
+                    </Button>
                 </div>
             </div>
         </div>

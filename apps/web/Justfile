@@ -6,4 +6,4 @@ build:
 
 dev:
     echo "Starting the LifeTrack WEB in development mode..."
-    bun dev
+    bun dev --host

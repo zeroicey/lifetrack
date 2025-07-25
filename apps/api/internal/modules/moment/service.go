@@ -81,9 +81,9 @@ func (s *Service) CreateMoment(ctx context.Context, body types.CreateMomentBody)
 	if body.Attachments == nil {
 		body.Attachments = []types.Attachment{}
 	}
-	// 校验 content
-	if body.Content == "" {
-		return types.MomentResponse{}, errors.New("content is required")
+	// 校验 content 和 attachments 至少有一个
+	if body.Content == "" && len(body.Attachments) == 0 {
+		return types.MomentResponse{}, errors.New("content or attachments is required")
 	}
 	// 校验 attachments
 	for _, attachment := range body.Attachments {

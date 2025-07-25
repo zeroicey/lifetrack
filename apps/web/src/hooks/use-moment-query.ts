@@ -1,5 +1,13 @@
-import { apiGetMoments } from "@/api/moment";
-import { useInfiniteQuery, type QueryKey } from "@tanstack/react-query";
+import { apiCreateMoment, apiGetMoments } from "@/api/moment";
+import type { Moment } from "@/types/moment";
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQueryClient,
+    type InfiniteData,
+    type QueryKey,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const queryKey: QueryKey = ["list-moments"];
 
@@ -9,5 +17,70 @@ export const useMomentInfiniteQuery = () => {
         queryFn: ({ pageParam }) => apiGetMoments({ cursor: pageParam }),
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         initialPageParam: 0,
+    });
+};
+
+export const useMomentCreateMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: apiCreateMoment,
+        onSuccess: () => {
+            toast.success("Create moment successfully!");
+        },
+        onMutate: async (newMoment) => {
+            console.log(newMoment);
+            await queryClient.cancelQueries({ queryKey });
+            const previousMoments = queryClient.getQueryData<
+                InfiniteData<
+                    {
+                        items: Moment[];
+                        nextCursor: number | null;
+                    },
+                    number | undefined
+                >
+            >(queryKey);
+
+            const optimisticMoment: Moment = {
+                content: newMoment.content || "",
+                id: Math.random(), // 使用随机数作为临时 ID
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                attachments: newMoment.attachments || [],
+            };
+
+            queryClient.setQueryData<
+                InfiniteData<
+                    {
+                        items: Moment[];
+                        nextCursor: number | null;
+                    },
+                    number | undefined
+                >
+            >(queryKey, (oldData) => {
+                const firstPage = oldData?.pages[0];
+                if (firstPage) {
+                    return {
+                        ...oldData,
+                        pages: [
+                            {
+                                ...firstPage,
+                                items: [optimisticMoment, ...firstPage.items],
+                            },
+                            ...oldData.pages.slice(1),
+                        ],
+                    };
+                }
+            });
+
+            return { previousMoments };
+        },
+        onError: (error, variables, context) => {
+            queryClient.setQueryData(queryKey, context?.previousMoments);
+            toast.error("Create moment failed!");
+        },
+
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
     });
 };

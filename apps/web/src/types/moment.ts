@@ -11,3 +11,8 @@ export type Attachment = {
     pos: number;
     url: string;
 };
+
+export type MomentCreate = {
+    content?: string;
+    attachments?: Attachment[];
+};
