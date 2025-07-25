@@ -8,6 +8,7 @@ import LoginPage from "@/pages/login";
 import GuidePage from "@/pages/guide";
 import ModuleLayout from "./components/layouts/module-layout";
 import RootLayout from "./components/layouts/root-layout";
+import HomePage from "./pages/module/home";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
             {
                 Component: ModuleLayout,
                 children: [
+                    {
+                        path: "home",
+                        children: [{ index: true, Component: HomePage }],
+                    },
                     {
                         path: "moment",
                         children: [

@@ -74,7 +74,7 @@ export const useMomentCreateMutation = () => {
 
             return { previousMoments };
         },
-        onError: (error, variables, context) => {
+        onError: (_error, _variables, context) => {
             queryClient.setQueryData(queryKey, context?.previousMoments);
             toast.error("Create moment failed!");
         },

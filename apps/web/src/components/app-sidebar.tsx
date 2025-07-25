@@ -1,5 +1,5 @@
 "use client";
-import { Home, FileText, CheckSquare, Box, Repeat } from "lucide-react";
+import { Home, FileText, CheckSquare, Repeat } from "lucide-react";
 
 import {
     Sidebar,
@@ -26,10 +26,10 @@ type MenuItem = {
 const items: MenuItem[] = [
     {
         title: "Home",
-        url: "/",
+        url: "/home",
         icon: Home,
         badge: 5,
-        isEnd: true,
+        isEnd: false,
     },
     {
         title: "Moment",
@@ -60,7 +60,14 @@ export function AppSidebar() {
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupContent>
-                        <SidebarGroupLabel>Application</SidebarGroupLabel>
+                        <SidebarGroupLabel className="flex items-center gap-2">
+                            <img
+                                src="/logo.png"
+                                alt="Lifetrack"
+                                className="w-6 h-6"
+                            />
+                            Lifetrack
+                        </SidebarGroupLabel>
                         <SidebarMenu>
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
