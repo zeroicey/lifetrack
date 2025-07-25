@@ -1,10 +1,12 @@
 import {
+    apiCreateTask,
     apiCreateTaskGroup,
     apiDeleteTaskGroup,
     apiGetTaskGroups,
     apiGetTaskGroupWithTasks,
     apiUpdateTaskGroup,
 } from "@/api/task";
+import { useSettingStore } from "@/stores/setting";
 import {
     type QueryKey,
     useMutation,
@@ -23,11 +25,23 @@ export const useGroupQuery = () => {
     });
 };
 
-export const useTasksQuery = (group_id: number) => {
+export const useTasksQuery = () => {
+    const { currentTaskGroupId } = useSettingStore();
     return useQuery({
-        queryKey: ["list-tasks", group_id],
-        queryFn: () => apiGetTaskGroupWithTasks(group_id),
-        enabled: !!group_id,
+        queryKey: ["list-tasks", currentTaskGroupId],
+        queryFn: () => apiGetTaskGroupWithTasks(currentTaskGroupId),
+        enabled: currentTaskGroupId !== -1,
+    });
+};
+
+export const useTaskCreateMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: apiCreateTask,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["list-tasks"] });
+            toast.success("Create task successfully!");
+        },
     });
 };
 

@@ -28,7 +28,6 @@ export const useMomentCreateMutation = () => {
             toast.success("Create moment successfully!");
         },
         onMutate: async (newMoment) => {
-            console.log(newMoment);
             await queryClient.cancelQueries({ queryKey });
             const previousMoments = queryClient.getQueryData<
                 InfiniteData<

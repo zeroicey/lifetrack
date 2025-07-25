@@ -32,3 +32,11 @@ export type TaskGroupUpdate = {
     name: string;
     description: string;
 };
+
+export type TaskCreate = {
+    group_id: number;
+    pos: string;
+    content: string;
+    description?: string;
+    deadline?: string;
+};
