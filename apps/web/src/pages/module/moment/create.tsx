@@ -11,6 +11,10 @@ export default function MomentCreatePage() {
             textarea.style.height = `${Math.max(textarea.scrollHeight, 100)}px`; // 设置为内容高度
         }
     }, [textareaValue]);
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        textarea?.focus();
+    }, []);
     return (
         <div className="overflow-auto h-full w-full flex justify-center">
             <div className="w-[350px] h-full flex flex-col">

@@ -14,31 +14,43 @@ import {
 } from "@/components/ui/sidebar";
 import { NavLink } from "react-router";
 
+type MenuItem = {
+    title: string;
+    url: string;
+    icon: React.ComponentType;
+    badge?: number;
+    isEnd: boolean;
+};
+
 // Menu items with badges.
-const items = [
+const items: MenuItem[] = [
     {
         title: "Home",
         url: "/",
         icon: Home,
         badge: 5,
+        isEnd: true,
     },
     {
         title: "Moment",
         url: "/moment",
         icon: FileText,
         badge: 12,
+        isEnd: false,
     },
     {
         title: "Task",
         url: "/task",
         icon: CheckSquare,
         badge: 8,
+        isEnd: false,
     },
     {
         title: "Habit",
         url: "/habit",
         icon: Repeat,
         badge: 7,
+        isEnd: false,
     },
 ];
 
@@ -52,20 +64,23 @@ export function AppSidebar() {
                         <SidebarMenu>
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <NavLink
-                                            to={item.url}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                            {item.title !== "Home" && (
+                                    <NavLink
+                                        to={item.url}
+                                        className="flex items-center gap-2"
+                                        end={item.isEnd}
+                                    >
+                                        {({ isActive }) => (
+                                            <SidebarMenuButton
+                                                isActive={isActive}
+                                            >
+                                                <item.icon />
+                                                <span>{item.title}</span>
                                                 <SidebarMenuBadge>
                                                     {item.badge}
                                                 </SidebarMenuBadge>
-                                            )}
-                                        </NavLink>
-                                    </SidebarMenuButton>
+                                            </SidebarMenuButton>
+                                        )}
+                                    </NavLink>
                                 </SidebarMenuItem>
                             ))}
                         </SidebarMenu>
