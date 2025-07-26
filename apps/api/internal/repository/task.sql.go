@@ -132,7 +132,8 @@ SET
     pos = $2,
     content = $3,
     description = $4,
-    deadline = $5
+    deadline = $5,
+    status = $6
 WHERE
     id = $1
 RETURNING id, group_id, pos, content, description, status, deadline, created_at, updated_at
@@ -144,6 +145,7 @@ type UpdateTaskByIdParams struct {
 	Content     string             `json:"content"`
 	Description pgtype.Text        `json:"description"`
 	Deadline    pgtype.Timestamptz `json:"deadline"`
+	Status      TaskStatus         `json:"status"`
 }
 
 func (q *Queries) UpdateTaskById(ctx context.Context, arg UpdateTaskByIdParams) (Task, error) {
@@ -153,6 +155,7 @@ func (q *Queries) UpdateTaskById(ctx context.Context, arg UpdateTaskByIdParams) 
 		arg.Content,
 		arg.Description,
 		arg.Deadline,
+		arg.Status,
 	)
 	var i Task
 	err := row.Scan(

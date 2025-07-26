@@ -5,7 +5,7 @@ import QueryProvider from "@/providers/QueryProvider";
 export default function RootLayout() {
     return (
         <QueryProvider>
-            <Toaster position={"top-center"} />
+            <Toaster position={"bottom-center"} />
             <Outlet />
         </QueryProvider>
     );

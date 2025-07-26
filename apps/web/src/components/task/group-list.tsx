@@ -33,7 +33,7 @@ export default function TaskGroupList() {
     }
 
     return (
-        <div className="overflow-y-auto w-full no-scrollbar p-2">
+        <div className="overflow-y-auto w-full no-scrollbar p-2 h-full">
             {groups?.map((group) => (
                 <TaskGroupItem
                     group={group}

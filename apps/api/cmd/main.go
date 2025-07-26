@@ -50,7 +50,7 @@ func main() {
 
 	// Start server
 	logger.Sugar().Infof("Server started at :%s", config.Port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port), r)
+	err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", config.Port), r)
 	if err != nil {
 		logger.Sugar().Fatalf("Failed to start server: %v", err)
 	}

@@ -15,7 +15,8 @@ SET
     pos = $2,
     content = $3,
     description = $4,
-    deadline = $5
+    deadline = $5,
+    status = $6
 WHERE
     id = $1
 RETURNING *;

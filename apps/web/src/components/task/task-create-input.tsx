@@ -42,12 +42,12 @@ export default function TaskCreateInput() {
                 onChange={(e) => setTaskContent(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="输入新任务..."
-                className="flex-1 rounded-none focus-visible:ring-0 border-t py-1.5 px-3"
+                className="flex-1 rounded-none focus-visible:ring-0 border-t py-1.5 px-3 outline-none"
             />
             <Button
                 onClick={handleSubmit}
                 disabled={!taskContent.trim()}
-                className="rounded-none"
+                className="rounded-none h-full"
             >
                 <Plus className="h-4 w-4" />
             </Button>

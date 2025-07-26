@@ -1,5 +1,6 @@
 import type { Response } from "@/lib/http";
 import http from "@/lib/http";
+import { useSettingStore } from "@/stores/setting";
 import type {
     Task,
     TaskCreate,
@@ -7,6 +8,7 @@ import type {
     TaskGroupCreate,
     TaskGroupUpdate,
     TaskGroupWithTasks,
+    TaskUpdate,
 } from "@/types/task";
 
 export const apiGetTaskGroupWithTasks = async (id: number) => {
@@ -18,6 +20,22 @@ export const apiGetTaskGroupWithTasks = async (id: number) => {
 
 export const apiGetTaskGroups = async () => {
     const res = await http.get<Response<TaskGroup[]>>("task-groups").json();
+    if (
+        res.data &&
+        res.data.length > 0 &&
+        useSettingStore.getState().currentTaskGroupId === -1
+    ) {
+        useSettingStore.getState().setCurrentTaskGroupId(res.data[0].id);
+    }
+    return res.data;
+};
+
+export const apiUpdateTask = async (task: TaskUpdate) => {
+    const res = await http
+        .put<Response<Task>>(`tasks/${task.id}`, {
+            json: task,
+        })
+        .json();
     return res.data;
 };
 

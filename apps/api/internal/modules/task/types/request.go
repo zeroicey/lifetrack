@@ -15,4 +15,5 @@ type UpdateTaskBody struct {
 	Content     string             `json:"content"`
 	Description pgtype.Text        `json:"description"`
 	Deadline    pgtype.Timestamptz `json:"deadline"`
+	Status      string             `json:"status"`
 }

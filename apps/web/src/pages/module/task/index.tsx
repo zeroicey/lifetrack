@@ -7,7 +7,7 @@ export default function TaskPage() {
     return (
         <div className="overflow-auto h-full w-full flex justify-center">
             <div className="w-full flex gap-2 p-2">
-                <div className="flex items-center min-w-[150px] border flex-col h-full">
+                <div className="items-center min-w-[150px] border flex-col h-full sm:flex hidden">
                     <TaskGroupList />
                     <GroupCreateDialog />
                 </div>

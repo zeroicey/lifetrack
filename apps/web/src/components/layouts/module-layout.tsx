@@ -11,7 +11,7 @@ export default function ModuleLayout() {
 
                 <div className="flex flex-col flex-1 overflow-hidden ">
                     <Navbar />
-                    <div className="flex-1 overflow-auto p-1">
+                    <div className="flex-1 overflow-auto px-1 py-4">
                         <Outlet />
                     </div>
                 </div>

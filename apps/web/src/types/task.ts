@@ -40,3 +40,12 @@ export type TaskCreate = {
     description?: string;
     deadline?: string;
 };
+
+export type TaskUpdate = {
+    id: number;
+    pos: string;
+    status?: string;
+    content?: string;
+    description?: string;
+    deadline?: string;
+};

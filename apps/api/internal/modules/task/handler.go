@@ -98,6 +98,7 @@ func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		Content:     body.Content,
 		Description: body.Description,
 		Deadline:    body.Deadline,
+		Status:      repository.TaskStatus(body.Status),
 	})
 
 	if err != nil {
