@@ -35,7 +35,9 @@ export const useTasksQuery = () => {
     });
 };
 
-export const useTaskUpdateMutation = () => {
+export const useTaskUpdateMutation = (
+    options: { invalidate: boolean } = { invalidate: true }
+) => {
     const queryClient = useQueryClient();
     const { currentTaskGroupId } = useSettingStore();
     const taskQueryKey = ["list-tasks", currentTaskGroupId];
@@ -46,6 +48,12 @@ export const useTaskUpdateMutation = () => {
             toast.success("Update task successfully!");
         },
         onSettled: () => {
+            if (options.invalidate) {
+                queryClient.invalidateQueries({ queryKey: taskQueryKey });
+            }
+        },
+        onError: () => {
+            toast.error("Update task failed!");
             queryClient.invalidateQueries({ queryKey: taskQueryKey });
         },
     });

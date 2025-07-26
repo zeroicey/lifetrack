@@ -3,6 +3,8 @@ import {
     closestCorners,
     DndContext,
     type DragEndEvent,
+    type DragStartEvent,
+    DragOverlay,
     KeyboardSensor,
     MouseSensor,
     TouchSensor,
@@ -14,6 +16,7 @@ import {
     restrictToWindowEdges,
 } from "@dnd-kit/modifiers";
 import {
+    arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
@@ -23,6 +26,8 @@ import TaskItem from "./task-item";
 import { generateKeyBetween } from "fractional-indexing";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSettingStore } from "@/stores/setting";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function TaskList() {
     const queryClient = useQueryClient();
@@ -30,7 +35,8 @@ export default function TaskList() {
     const taskQueryKey = ["list-tasks", currentTaskGroupId];
 
     const { data: tasks = [], isLoading, error } = useTasksQuery();
-    const { mutate: updateTask } = useTaskUpdateMutation();
+    const { mutate: updateTask } = useTaskUpdateMutation({ invalidate: false });
+    const [activeTask, setActiveTask] = useState<Task | null>(null);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -49,47 +55,48 @@ export default function TaskList() {
         })
     );
 
+    const handleDragStart = (event: DragStartEvent) => {
+        const { active } = event;
+        const task = tasks.find((t) => t.id === active.id);
+        if (task) {
+            setActiveTask(task);
+        }
+    };
+
     const handleDragEnd = (event: DragEndEvent) => {
+        setActiveTask(null);
+
         const { active, over } = event;
         if (!active || !over || active.id === over.id) return;
 
-        const activeIndex = tasks.findIndex((t) => t.id === active.id);
-        const overIndex = tasks.findIndex((t) => t.id === over.id);
-        if (activeIndex === -1 || overIndex === -1) return;
+        const oldIndex = tasks.findIndex((t) => t.id === active.id);
+        const newIndex = tasks.findIndex((t) => t.id === over.id);
 
-        const isMovingDown = activeIndex < overIndex;
-        let newPos: string;
+        if (oldIndex === -1 || newIndex === -1) return;
 
-        if (isMovingDown) {
-            if (overIndex === tasks.length - 1) {
-                newPos = generateKeyBetween(tasks[overIndex].pos, null);
-            } else {
-                newPos = generateKeyBetween(
-                    tasks[overIndex].pos,
-                    tasks[overIndex + 1].pos
-                );
-            }
-        } else {
-            if (overIndex === 0) {
-                newPos = generateKeyBetween(null, tasks[0].pos);
-            } else {
-                newPos = generateKeyBetween(
-                    tasks[overIndex - 1].pos,
-                    tasks[overIndex].pos
-                );
-            }
+        // 1. Optimistically update the UI with the new order
+        const reorderedTasks = arrayMove(tasks, oldIndex, newIndex);
+        queryClient.setQueryData<Task[]>(taskQueryKey, reorderedTasks);
+
+        // 2. Calculate the new position for the moved task
+        try {
+            const movedTask = reorderedTasks[newIndex];
+            const prevTask = reorderedTasks[newIndex - 1];
+            const nextTask = reorderedTasks[newIndex + 1];
+
+            const newPos = generateKeyBetween(
+                prevTask?.pos ?? null,
+                nextTask?.pos ?? null
+            );
+            const updatedTask = { ...movedTask, pos: newPos };
+            updateTask(updatedTask);
+        } catch (e) {
+            console.error(e);
+            toast.error("Update task failed!");
+            queryClient.invalidateQueries({ queryKey: taskQueryKey });
         }
 
-        const activeTask = tasks[activeIndex];
-        const updatedTask = { ...activeTask, pos: newPos };
-
-        const updatedList = tasks
-            .map((t) => (t.id === activeTask.id ? updatedTask : t))
-            .sort((a, b) => a.pos.localeCompare(b.pos));
-
-        queryClient.setQueryData<Task[]>(taskQueryKey, updatedList);
-
-        updateTask(updatedTask);
+        // 3. Call the mutation to update the backend
     };
 
     const renderStatusMessage = (message: string, isError = false) => (
@@ -109,6 +116,7 @@ export default function TaskList() {
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}
+                onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
                 modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
             >
@@ -120,6 +128,11 @@ export default function TaskList() {
                         <TaskItem key={task.id} task={task} />
                     ))}
                 </SortableContext>
+                <DragOverlay>
+                    {activeTask ? (
+                        <TaskItem task={activeTask} isOverlay />
+                    ) : null}
+                </DragOverlay>
             </DndContext>
         </div>
     );

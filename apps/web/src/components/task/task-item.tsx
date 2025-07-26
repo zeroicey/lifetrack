@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 interface Props {
     task: Task;
+    isOverlay?: boolean;
 }
 
-export default function TaskItem({ task }: Props) {
+export default function TaskItem({ task, isOverlay = false }: Props) {
     const {
         attributes,
         listeners,
@@ -40,21 +41,24 @@ export default function TaskItem({ task }: Props) {
             ref={setNodeRef}
             style={style}
             className={cn(
-                "flex items-center gap-3 px-3 py-2 mb-2 bg-white border-y border-gray-200 first:border-t-0 last:border-b-0",
-                "hover:bg-gray-50",
-                isDragging &&
-                    "bg-white border-blue-300 shadow-lg z-50 relative",
-                task.status === "done" && "opacity-70 bg-gray-50/50"
+                "flex items-center gap-3 mb-2 px-5 py-4 list-none transition-shadow duration-200",
+                "bg-white",
+                "shadow-sm hover:shadow-md",
+                "outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2",
+
+                // Style for the original item being dragged (placeholder)
+                isDragging && "opacity-50 bg-slate-100",
+
+                // Style for the item in the DragOverlay
+                isOverlay && "shadow-xl",
+
+                // Style for completed tasks
+                task.status === "done" &&
+                    !isDragging &&
+                    !isOverlay &&
+                    "bg-gray-100"
             )}
         >
-            <div
-                {...attributes}
-                {...listeners}
-                className="flex items-center justify-center w-4 h-4 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
-            >
-                <GripVertical size={12} />
-            </div>
-
             <Checkbox
                 checked={task.status === "done"}
                 className="flex-shrink-0 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
@@ -63,12 +67,21 @@ export default function TaskItem({ task }: Props) {
 
             <span
                 className={cn(
-                    "flex-1 text-sm font-medium text-gray-700 leading-relaxed select-none",
-                    task.status === "done" && "line-through text-gray-400"
+                    "flex-1 select-none",
+                    "text-gray-800 font-normal text-base", // from .Item text styles
+                    task.status === "done" && "line-through text-gray-400" // from .disabled and original
                 )}
             >
                 {task.content}
             </span>
+
+            <div
+                {...attributes}
+                {...listeners}
+                className="flex items-center justify-center w-4 h-4 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+            >
+                <GripVertical size={12} />
+            </div>
         </div>
     );
 }
