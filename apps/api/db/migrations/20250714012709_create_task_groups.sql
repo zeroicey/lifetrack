@@ -6,7 +6,8 @@ CREATE TABLE
         name TEXT NOT NULL,
         description TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
+        UNIQUE (name)
     );
 
 -- 表注释

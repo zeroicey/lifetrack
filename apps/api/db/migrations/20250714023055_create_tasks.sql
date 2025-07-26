@@ -12,7 +12,8 @@ CREATE TABLE
         status task_status NOT NULL DEFAULT 'todo',
         deadline TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (), 
+        UNIQUE (group_id, pos)
     );
 
 CREATE INDEX idx_tasks_group_pos ON tasks (group_id, pos);

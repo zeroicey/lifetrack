@@ -18,7 +18,7 @@ export default function TaskCreateInput() {
             if (_tasks.length === 0) {
                 pos = generateKeyBetween(null, null);
             } else {
-                pos = generateKeyBetween(null, _tasks[0].pos);
+                pos = generateKeyBetween(_tasks[_tasks.length - 1].pos, null);
             }
             createTask({
                 content: taskContent.trim(),
