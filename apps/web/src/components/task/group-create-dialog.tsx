@@ -23,13 +23,13 @@ export default function GroupCreateDialog() {
             <DialogTrigger asChild>
                 <div className="inline-flex items-center w-full gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 cursor-pointer hover:bg-gray-100 hover:text-gray-800 transition-colors">
                     <Plus className="w-4 h-4" />
-                    New Group
+                    Custom group
                 </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-semibold">
-                        Create New Group
+                        Create Custom group
                     </DialogTitle>
                     <DialogDescription className="text-gray-600">
                         Create a new task group to organize your tasks.

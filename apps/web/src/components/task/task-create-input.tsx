@@ -41,7 +41,7 @@ export default function TaskCreateInput() {
                 value={taskContent}
                 onChange={(e) => setTaskContent(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="输入新任务..."
+                placeholder="Type a task..."
                 className="flex-1 rounded-none focus-visible:ring-0 border-t py-1.5 px-3 outline-none"
             />
             <Button

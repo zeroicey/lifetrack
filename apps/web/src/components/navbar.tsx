@@ -9,8 +9,10 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useNavbarStore } from "@/stores/navbar";
 
 export default function Navbar() {
+    const rightContent = useNavbarStore((state) => state.rightContent);
     const location = useLocation();
 
     // 处理路径生成面包屑
@@ -61,15 +63,15 @@ export default function Navbar() {
     };
 
     return (
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-                orientation="vertical"
-                className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <Breadcrumb>
-                <BreadcrumbList>{generateBreadcrumbs()}</BreadcrumbList>
-            </Breadcrumb>
+        <header className="flex h-12 items-center justify-between border-b px-4">
+            <div className="flex items-center gap-2">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <Breadcrumb>
+                    <BreadcrumbList>{generateBreadcrumbs()}</BreadcrumbList>
+                </Breadcrumb>
+            </div>
+            {rightContent && <div className="ml-auto">{rightContent}</div>}
         </header>
     );
 }
