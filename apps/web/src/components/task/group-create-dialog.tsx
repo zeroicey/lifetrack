@@ -15,11 +15,13 @@ import { Button } from "@/components/ui/button";
 interface GroupCreateDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onGroupCreated?: () => void;
 }
 
 export default function GroupCreateDialog({
     open,
     onOpenChange,
+    onGroupCreated,
 }: GroupCreateDialogProps) {
     const { mutate: createGroup } = useTaskGroupCreateMutation();
     const [nameValue, setNameValue] = useState("");
@@ -38,6 +40,7 @@ export default function GroupCreateDialog({
                 description: descriptionValue.trim(),
             });
             handleClose();
+            onGroupCreated?.();
         }
     };
 
