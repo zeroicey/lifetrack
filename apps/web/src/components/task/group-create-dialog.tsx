@@ -9,7 +9,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { useGroupCreateMutation } from "@/hooks/use-task-query";
+import { useTaskGroupCreateMutation } from "@/hooks/use-task-group-query";
 import { Button } from "@/components/ui/button";
 
 interface GroupCreateDialogProps {
@@ -17,8 +17,11 @@ interface GroupCreateDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function GroupCreateDialog({ open, onOpenChange }: GroupCreateDialogProps) {
-    const { mutate: createGroup } = useGroupCreateMutation();
+export default function GroupCreateDialog({
+    open,
+    onOpenChange,
+}: GroupCreateDialogProps) {
+    const { mutate: createGroup } = useTaskGroupCreateMutation();
     const [nameValue, setNameValue] = useState("");
     const [descriptionValue, setDescriptionValue] = useState("");
 
@@ -83,10 +86,7 @@ export default function GroupCreateDialog({ open, onOpenChange }: GroupCreateDia
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button
-                            variant="outline"
-                            onClick={handleClose}
-                        >
+                        <Button variant="outline" onClick={handleClose}>
                             Cancel
                         </Button>
                         <Button

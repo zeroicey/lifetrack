@@ -1,10 +1,10 @@
-import { useGroupQuery } from "@/hooks/use-task-query";
 import { useSettingStore } from "@/stores/setting";
 import TaskGroupItem from "./group-item";
+import { useTaskGroupQuery } from "@/hooks/use-task-group-query";
 
 export default function TaskGroupList() {
     const { currentTaskGroupId, setCurrentTaskGroup } = useSettingStore();
-    const { data: groups, isPending } = useGroupQuery();
+    const { data: groups, isPending } = useTaskGroupQuery();
 
     if (isPending) {
         return (

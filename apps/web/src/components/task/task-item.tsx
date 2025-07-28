@@ -2,8 +2,11 @@ import type { Task } from "@/types/task";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useTaskUpdateMutation } from "@/hooks/use-task-query";
-import { GripVertical } from "lucide-react";
+import {
+    useTaskDeleteMutation,
+    useTaskUpdateMutation,
+} from "@/hooks/use-task-query";
+import { CalendarDays, GripVertical, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -22,6 +25,7 @@ export default function TaskItem({ task, isOverlay = false }: Props) {
     } = useSortable({ id: task.id });
 
     const { mutate: updateTask } = useTaskUpdateMutation();
+    const { mutate: deleteTask } = useTaskDeleteMutation();
 
     const style = {
         transition,
@@ -75,6 +79,12 @@ export default function TaskItem({ task, isOverlay = false }: Props) {
                 {task.content}
             </span>
 
+            <CalendarDays size={12} className="cursor-pointer" />
+            <Trash2
+                size={12}
+                className="cursor-pointer"
+                onClick={() => deleteTask(task.id)}
+            />
             <div
                 {...attributes}
                 {...listeners}

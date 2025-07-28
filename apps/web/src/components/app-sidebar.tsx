@@ -1,5 +1,5 @@
 "use client";
-import { Home, FileText, CheckSquare, Repeat } from "lucide-react";
+import { Home, FileText, CheckSquare, Repeat, Calendar } from "lucide-react";
 
 import {
     Sidebar,
@@ -52,6 +52,13 @@ const items: MenuItem[] = [
         badge: 7,
         isEnd: false,
     },
+    {
+        title: "Event",
+        url: "/event",
+        icon: Calendar,
+        badge: 7,
+        isEnd: false,
+    },
 ];
 
 export function AppSidebar() {
@@ -68,7 +75,7 @@ export function AppSidebar() {
                             />
                             Lifetrack
                         </SidebarGroupLabel>
-                        <SidebarMenu>
+                        <SidebarMenu className="space-y-1">
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <NavLink

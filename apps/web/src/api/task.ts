@@ -79,3 +79,8 @@ export const apiDeleteTaskGroup = async (id: number) => {
         .json();
     return res.data;
 };
+
+export const apiDeleteTask = async (id: number) => {
+    const res = await http.delete<Response<Task>>(`tasks/${id}`).json();
+    return res.data;
+};

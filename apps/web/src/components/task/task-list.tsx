@@ -1,4 +1,4 @@
-import { useTasksQuery, useTaskUpdateMutation } from "@/hooks/use-task-query";
+import { useTaskQuery, useTaskUpdateMutation } from "@/hooks/use-task-query";
 import {
     closestCorners,
     DndContext,
@@ -34,7 +34,7 @@ export default function TaskList() {
     const { currentTaskGroupId } = useSettingStore();
     const taskQueryKey = ["list-tasks", currentTaskGroupId];
 
-    const { data: tasks = [], isLoading, error } = useTasksQuery();
+    const { data: tasks = [], isLoading, error } = useTaskQuery();
     const { mutate: updateTask } = useTaskUpdateMutation({ invalidate: false });
     const [activeTask, setActiveTask] = useState<Task | null>(null);
 
