@@ -5,8 +5,9 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { format } from "date-fns";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface DailyCollapsibleProps {
     isOpen: boolean;
@@ -17,7 +18,14 @@ export default function DailyCollapsible({
     isOpen,
     onOpenChange,
 }: DailyCollapsibleProps) {
+    const [dropdown] =
+        useState<React.ComponentProps<typeof Calendar>["captionLayout"]>(
+            "dropdown"
+        );
     const [date, setDate] = useState<Date | undefined>(new Date());
+    useEffect(() => {
+        console.log(format(date || new Date(), "yyyy-MM-dd"));
+    }, [date]);
 
     return (
         <Collapsible
@@ -38,12 +46,14 @@ export default function DailyCollapsible({
                     )}
                 </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 px-2 pb-2">
+            <CollapsibleContent className="px-2 pb-2 flex justify-center items-center mt-2">
                 <Calendar
                     mode="single"
+                    defaultMonth={date}
                     selected={date}
                     onSelect={setDate}
-                    className="rounded-lg border"
+                    captionLayout={dropdown}
+                    className="rounded-lg border shadow-sm"
                 />
             </CollapsibleContent>
         </Collapsible>

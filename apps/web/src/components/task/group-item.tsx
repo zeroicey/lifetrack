@@ -3,19 +3,19 @@ import type { TaskGroup } from "@/types/task";
 
 interface Props {
     group: TaskGroup;
-    setCurrentTaskGroupId: (id: number) => void;
+    setCurrentTaskGroup: (taskGroup: TaskGroup) => void;
     currentTaskGroupId: number;
 }
 
 export default function TaskGroupItem({
     group,
-    setCurrentTaskGroupId,
+    setCurrentTaskGroup,
     currentTaskGroupId,
 }: Props) {
     return (
         <div
             key={group.id}
-            onClick={() => setCurrentTaskGroupId(group.id)}
+            onClick={() => setCurrentTaskGroup(group)}
             className={cn(
                 "relative cursor-pointer text-center text-sm p-1 mb-1 border truncate",
                 currentTaskGroupId === group.id

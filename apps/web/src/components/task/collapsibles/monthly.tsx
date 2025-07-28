@@ -11,7 +11,10 @@ interface MonthlyCollapsibleProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function MonthlyCollapsible({ isOpen, onOpenChange }: MonthlyCollapsibleProps) {
+export default function MonthlyCollapsible({
+    isOpen,
+    onOpenChange,
+}: MonthlyCollapsibleProps) {
     return (
         <Collapsible
             open={isOpen}
@@ -31,19 +34,11 @@ export default function MonthlyCollapsible({ isOpen, onOpenChange }: MonthlyColl
                     )}
                 </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 px-2 pb-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                >
+            <CollapsibleContent className="space-y-2 px-2 pb-2 mt-2">
+                <Button variant="outline" size="sm" className="w-full">
                     本月目标
                 </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                >
+                <Button variant="outline" size="sm" className="w-full">
                     月度回顾
                 </Button>
             </CollapsibleContent>

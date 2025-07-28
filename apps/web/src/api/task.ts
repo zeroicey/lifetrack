@@ -25,7 +25,7 @@ export const apiGetTaskGroups = async () => {
         res.data.length > 0 &&
         useSettingStore.getState().currentTaskGroupId === -1
     ) {
-        useSettingStore.getState().setCurrentTaskGroupId(res.data[0].id);
+        useSettingStore.getState().setCurrentTaskGroup(res.data[0]);
     }
     return res.data;
 };

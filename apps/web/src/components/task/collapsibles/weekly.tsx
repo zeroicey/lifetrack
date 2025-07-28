@@ -11,7 +11,10 @@ interface WeeklyCollapsibleProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function WeeklyCollapsible({ isOpen, onOpenChange }: WeeklyCollapsibleProps) {
+export default function WeeklyCollapsible({
+    isOpen,
+    onOpenChange,
+}: WeeklyCollapsibleProps) {
     return (
         <Collapsible
             open={isOpen}
@@ -31,19 +34,11 @@ export default function WeeklyCollapsible({ isOpen, onOpenChange }: WeeklyCollap
                     )}
                 </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 px-2 pb-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                >
+            <CollapsibleContent className="space-y-2 px-2 pb-2 mt-2">
+                <Button variant="outline" size="sm" className="w-full">
                     本周任务
                 </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                >
+                <Button variant="outline" size="sm" className="w-full">
                     周计划
                 </Button>
             </CollapsibleContent>

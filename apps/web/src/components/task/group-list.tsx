@@ -3,7 +3,7 @@ import { useSettingStore } from "@/stores/setting";
 import TaskGroupItem from "./group-item";
 
 export default function TaskGroupList() {
-    const { currentTaskGroupId, setCurrentTaskGroupId } = useSettingStore();
+    const { currentTaskGroupId, setCurrentTaskGroup } = useSettingStore();
     const { data: groups, isPending } = useGroupQuery();
 
     if (isPending) {
@@ -37,7 +37,7 @@ export default function TaskGroupList() {
             {groups?.map((group) => (
                 <TaskGroupItem
                     group={group}
-                    setCurrentTaskGroupId={setCurrentTaskGroupId}
+                    setCurrentTaskGroup={setCurrentTaskGroup}
                     currentTaskGroupId={currentTaskGroupId}
                     key={group.id}
                 />

@@ -13,7 +13,10 @@ interface CustomCollapsibleProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function CustomCollapsible({ isOpen, onOpenChange }: CustomCollapsibleProps) {
+export default function CustomCollapsible({
+    isOpen,
+    onOpenChange,
+}: CustomCollapsibleProps) {
     return (
         <Collapsible
             open={isOpen}
@@ -33,7 +36,7 @@ export default function CustomCollapsible({ isOpen, onOpenChange }: CustomCollap
                     )}
                 </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 px-2 pb-2">
+            <CollapsibleContent className="space-y-2 px-2 pb-2 mt-2">
                 <TaskGroupList />
                 <GroupCreateDialog />
             </CollapsibleContent>

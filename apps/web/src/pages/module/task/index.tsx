@@ -10,10 +10,11 @@ import { useIsPhone } from "@/hooks/use-mobile";
 import { useNavbarStore } from "@/stores/navbar";
 import { useSettingStore } from "@/stores/setting";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 
 export default function TaskPage() {
     const { setRightContent, clearRightContent } = useNavbarStore();
-    const { currentTaskGroupId } = useSettingStore();
+    const { currentTaskGroup } = useSettingStore();
     const isMobile = useIsPhone();
     const [isDailyOpen, setIsDailyOpen] = useState(true);
     const [isWeeklyOpen, setIsWeeklyOpen] = useState(false);
@@ -22,20 +23,20 @@ export default function TaskPage() {
     const [isCustomOpen, setIsCustomOpen] = useState(false);
 
     useEffect(() => {
-        if (isMobile) {
-            setRightContent(
+        setRightContent(
+            <Link to={"task/groups"}>
                 <Button variant="ghost" className="text-gray-500 text-sm">
-                    {currentTaskGroupId}
+                    {currentTaskGroup.name}
                 </Button>
-            );
-        }
+            </Link>
+        );
         return () => clearRightContent();
-    }, [clearRightContent, setRightContent, isMobile, currentTaskGroupId]);
+    }, [clearRightContent, setRightContent, isMobile, currentTaskGroup]);
 
     return (
-        <div className="overflow-auto h-full w-full flex justify-center">
+        <div className="h-full w-full flex justify-center">
             <div className="w-full flex gap-2 p-2">
-                <div className="items-center min-w-[150px] border flex-col h-full sm:flex hidden w-[350px] overflow-auto no-scrollbar">
+                <div className="items-center min-w-[270px] border flex-col h-full sm:flex hidden overflow-auto no-scrollbar">
                     <DailyCollapsible
                         isOpen={isDailyOpen}
                         onOpenChange={setIsDailyOpen}

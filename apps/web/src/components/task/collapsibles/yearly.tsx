@@ -11,7 +11,10 @@ interface YearlyCollapsibleProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function YearlyCollapsible({ isOpen, onOpenChange }: YearlyCollapsibleProps) {
+export default function YearlyCollapsible({
+    isOpen,
+    onOpenChange,
+}: YearlyCollapsibleProps) {
     return (
         <Collapsible
             open={isOpen}
@@ -31,19 +34,11 @@ export default function YearlyCollapsible({ isOpen, onOpenChange }: YearlyCollap
                     )}
                 </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 px-2 pb-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                >
+            <CollapsibleContent className="space-y-2 px-2 pb-2 mt-2">
+                <Button variant="outline" size="sm" className="w-full">
                     年度目标
                 </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                >
+                <Button variant="outline" size="sm" className="w-full">
                     年度总结
                 </Button>
             </CollapsibleContent>
