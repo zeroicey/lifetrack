@@ -1,5 +1,4 @@
 import GroupCreateDialog from "@/components/task/group-create-dialog";
-import TaskGroupList from "@/components/task/group-list";
 import { Button } from "@/components/ui/button";
 import {
     Collapsible,
@@ -8,6 +7,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
+import CustomTaskGroupList from "../custom-group-list";
 
 interface CustomCollapsibleProps {
     isOpen: boolean;
@@ -41,9 +41,9 @@ export default function CustomCollapsible({
                         <div className="flex items-center gap-1">
                             <div
                                 className={`h-6 w-6 p-0 transition-opacity cursor-pointer hover:bg-accent rounded flex items-center justify-center ${
-                                    isOpen 
-                                        ? 'opacity-100' 
-                                        : 'opacity-0 group-hover:opacity-100'
+                                    isOpen
+                                        ? "opacity-100"
+                                        : "opacity-0 group-hover:opacity-100"
                                 }`}
                                 onClick={handleAddClick}
                             >
@@ -58,13 +58,10 @@ export default function CustomCollapsible({
                     </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 px-2 pb-2 mt-2">
-                    <TaskGroupList />
+                    <CustomTaskGroupList />
                 </CollapsibleContent>
             </Collapsible>
-            <GroupCreateDialog 
-                open={dialogOpen} 
-                onOpenChange={setDialogOpen} 
-            />
+            <GroupCreateDialog open={dialogOpen} onOpenChange={setDialogOpen} />
         </>
     );
 }

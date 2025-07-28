@@ -66,7 +66,7 @@ export const apiUpdateTaskGroup = async ({
     description,
 }: TaskGroupUpdate) => {
     const res = await http
-        .patch<Response<TaskGroup>>(`task-groups/${id}`, {
+        .put<Response<TaskGroup>>(`task-groups/${id}`, {
             json: { name, description },
         })
         .json();

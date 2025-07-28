@@ -2,7 +2,7 @@ import { useSettingStore } from "@/stores/setting";
 import TaskGroupItem from "./group-item";
 import { useTaskGroupQuery } from "@/hooks/use-task-group-query";
 
-export default function TaskGroupList() {
+export default function CustomTaskGroupList() {
     const { currentTaskGroupId, setCurrentTaskGroup } = useSettingStore();
     const { data: groups, isPending } = useTaskGroupQuery();
 
@@ -33,7 +33,7 @@ export default function TaskGroupList() {
     }
 
     return (
-        <div className="overflow-y-auto w-full no-scrollbar p-2 h-full">
+        <div className="w-full flex flex-col gap-1">
             {groups?.map((group) => (
                 <TaskGroupItem
                     group={group}
