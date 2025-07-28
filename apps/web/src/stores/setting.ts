@@ -7,6 +7,7 @@ interface SettingState {
     currentTaskGroup: TaskGroup;
     setCurrentTaskGroup: (currentTaskGroup: TaskGroup) => void;
     setCurrentTaskGroupId: (currentTaskGroupId: number) => void;
+    clearCurrentTaskGroup: () => void;
 }
 export const useSettingStore = create<SettingState>()(
     persist(
@@ -26,6 +27,17 @@ export const useSettingStore = create<SettingState>()(
                 })),
             setCurrentTaskGroupId: (currentTaskGroupId: number) =>
                 set(() => ({ currentTaskGroupId })),
+            clearCurrentTaskGroup: () =>
+                set(() => ({
+                    currentTaskGroupId: -1,
+                    currentTaskGroup: {
+                        id: -1,
+                        name: "",
+                        description: "",
+                        created_at: "",
+                        updated_at: "",
+                    },
+                })),
         }),
         {
             name: "setting-storage", // 存储在 localStorage 中的键名

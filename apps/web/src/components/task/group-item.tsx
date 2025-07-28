@@ -1,7 +1,4 @@
-import {
-    useTaskGroupDeleteMutation,
-    useTaskGroupUpdateMutation,
-} from "@/hooks/use-task-group-query";
+import { useTaskGroupUpdateMutation } from "@/hooks/use-task-group-query";
 import { cn } from "@/lib/utils";
 import type { TaskGroup } from "@/types/task";
 import { SquarePen, Trash2 } from "lucide-react";
@@ -32,21 +29,24 @@ interface Props {
     group: TaskGroup;
     setCurrentTaskGroup: (taskGroup: TaskGroup) => void;
     currentTaskGroupId: number;
+    confirmDelete: () => void;
 }
 
 export default function TaskGroupItem({
     group,
     setCurrentTaskGroup,
     currentTaskGroupId,
+    confirmDelete,
 }: Props) {
     const { mutate: updateTaskGroup } = useTaskGroupUpdateMutation();
-    const { mutate: deleteTaskGroup } = useTaskGroupDeleteMutation();
-    
+
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [editName, setEditName] = useState(group.name);
-    const [editDescription, setEditDescription] = useState(group.description || "");
-    
+    const [editDescription, setEditDescription] = useState(
+        group.description || ""
+    );
+
     const handleEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
         setEditName(group.name);
@@ -59,16 +59,11 @@ export default function TaskGroupItem({
         setShowDeleteDialog(true);
     };
 
-    const confirmDelete = () => {
-        deleteTaskGroup(group.id);
-        setShowDeleteDialog(false);
-    };
-
     const confirmEdit = () => {
         updateTaskGroup({
             id: group.id,
             name: editName.trim(),
-            description: editDescription.trim()
+            description: editDescription.trim(),
         });
         setShowEditDialog(false);
     };
@@ -86,7 +81,9 @@ export default function TaskGroupItem({
                         : "bg-card hover:bg-accent/50 border-border"
                 )}
             >
-                <span className="font-medium truncate flex-1">{group.name}</span>
+                <span className="font-medium truncate flex-1">
+                    {group.name}
+                </span>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={handleEdit}
@@ -106,17 +103,31 @@ export default function TaskGroupItem({
             </div>
 
             {/* Delete confirmation dialog */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Delete Group</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Confirm Delete Group
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete group "{group.name}"? This action cannot be undone and all tasks in this group will also be deleted.
+                            Are you sure you want to delete group "{group.name}
+                            "? This action cannot be undone and all tasks in
+                            this group will also be deleted.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete}>Confirm Delete</AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={() => {
+                                confirmDelete();
+                                setShowDeleteDialog(false);
+                            }}
+                        >
+                            Confirm Delete
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -141,21 +152,28 @@ export default function TaskGroupItem({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="description">Group Description</Label>
+                            <Label htmlFor="description">
+                                Group Description
+                            </Label>
                             <Textarea
                                 id="description"
                                 value={editDescription}
-                                onChange={(e) => setEditDescription(e.target.value)}
+                                onChange={(e) =>
+                                    setEditDescription(e.target.value)
+                                }
                                 placeholder="Enter group description (optional)"
                                 rows={3}
                             />
                         </div>
                         <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowEditDialog(false)}
+                            >
                                 Cancel
                             </Button>
-                            <Button 
-                                onClick={confirmEdit} 
+                            <Button
+                                onClick={confirmEdit}
                                 disabled={!editName.trim()}
                             >
                                 Save

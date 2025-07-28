@@ -106,6 +106,8 @@ export default function TaskList() {
             </div>
         </div>
     );
+    if (currentTaskGroupId === -1)
+        return renderStatusMessage("No task group created yet");
     if (isLoading) return renderStatusMessage("Loading tasks...");
     if (error) return renderStatusMessage("Error loading tasks", true);
     if (!tasks || tasks.length === 0)
