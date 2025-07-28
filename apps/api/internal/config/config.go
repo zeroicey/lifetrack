@@ -27,4 +27,5 @@ func Load() {
 	// 统一调用其它配置的 Load
 	LoadDB()
 	LoadJWT()
+	LoadStorage()
 }
