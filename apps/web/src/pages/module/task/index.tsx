@@ -1,5 +1,4 @@
 import GroupCreateDialog from "@/components/task/group-create-dialog";
-import GroupCreateRoutineDialog from "@/components/task/group-create-routine-dialog";
 import TaskGroupList from "@/components/task/group-list";
 import TaskCreateInput from "@/components/task/task-create-input";
 import TaskList from "@/components/task/task-list";
@@ -29,7 +28,6 @@ export default function TaskPage() {
             <div className="w-full flex gap-2 p-2">
                 <div className="items-center min-w-[150px] border flex-col h-full sm:flex hidden gap-2">
                     <TaskGroupList />
-                    <GroupCreateRoutineDialog />
                     <GroupCreateDialog />
                 </div>
                 <div className="flex border w-full flex-col">
