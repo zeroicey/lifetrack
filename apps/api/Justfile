@@ -26,7 +26,7 @@ migrate-create name:
     goose -dir db/migrations create {{name}} sql
 
 # Create and run postgres container
-pg-start:
+pg-create:
     @echo "Starting Postgres container..."
     docker run -d \
         --name lifetrack-db \
@@ -37,16 +37,28 @@ pg-start:
         -v lifetrack-pgdata:/var/lib/postgresql/data \
         postgres:15-alpine
 
-# Stop and remove postgres container
-pg-stop:
-    @echo "Stopping Postgres container..."
-    -docker stop lifetrack-db
-    @echo "Removing Postgres container..."
-    -docker rm lifetrack-db
+    @echo "Postgres container started."
+    just migrate-up
 
 # Stop and remove Postgres container and volume
-pg-clean:
+pg-delete:
     @echo "Stopping and removing Postgres container and volume..."
     -docker stop lifetrack-db
     -docker rm lifetrack-db
     -docker volume rm lifetrack-pgdata
+
+# Recreate Postgres container
+pg-recreate:
+    @echo "Recreating Postgres container..."
+    just pg-delete
+    just pg-create
+
+# Execute command in Postgres container
+pg-exec command:
+    @echo "Executing '{{command}}' in the Postgres container..."
+    docker exec -it lifetrack-db {{command}}
+
+
+# Enter PSQL client
+pg-psql:
+    just pg-exec "psql -U {{env('DB_USER')}} -d {{env('DB_NAME')}}"
