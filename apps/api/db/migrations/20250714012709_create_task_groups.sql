@@ -8,11 +8,26 @@ CREATE TABLE
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT,
-        type task_group_type NOT NULL, -- 任务分组类型
+        type task_group_type NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
         UNIQUE (name)
     );
+
+-- 创建更新时间触发器函数（如果不存在）
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- 为 task_groups 表创建触发器
+CREATE TRIGGER update_task_groups_updated_at 
+    BEFORE UPDATE ON task_groups 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 
 -- 表注释
 COMMENT ON TABLE task_groups IS '任务分组表，仅可保存年任务组(2025)，月任务组(2025-07)，周任务组(2025-W28)，日任务组(2025-07-14)';
@@ -31,10 +46,10 @@ COMMENT ON COLUMN task_groups.created_at IS '创建时间';
 COMMENT ON COLUMN task_groups.updated_at IS '更新时间';
 
 -- +goose StatementEnd
+
 -- +goose Down
 -- +goose StatementBegin
+DROP TRIGGER IF EXISTS update_task_groups_updated_at ON task_groups;
 DROP TABLE IF EXISTS task_groups;
-
 DROP TYPE IF EXISTS task_group_type;
-
 -- +goose StatementEnd
