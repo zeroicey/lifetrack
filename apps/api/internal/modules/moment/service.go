@@ -7,13 +7,15 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
-	"github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
 type Service struct {
 	Q *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
 }
+
+// ErrMomentNotFound 是当备忘录不存在时返回的哨兵错误
+var ErrMomentNotFound = errors.New("moment not found")
 
 func NewService(q *repository.Queries) *Service {
 	return &Service{Q: q}
@@ -63,13 +65,11 @@ func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit 
 	// 其它时间字段保持字符串格式
 	var moments []types.MomentResponse
 	for _, m := range items {
-		attachments, _ := pkg.UnmarshalJSONB[[]types.Attachment](m.Attachments)
 		moments = append(moments, types.MomentResponse{
-			ID:          m.ID,
-			Content:     m.Content,
-			Attachments: attachments,
-			UpdatedAt:   m.UpdatedAt.Time.Format(time.RFC3339),
-			CreatedAt:   m.CreatedAt.Time.Format(time.RFC3339),
+			ID:        m.ID,
+			Content:   m.Content,
+			UpdatedAt: m.UpdatedAt.Time.Format(time.RFC3339),
+			CreatedAt: m.CreatedAt.Time.Format(time.RFC3339),
 		})
 	}
 
@@ -77,40 +77,19 @@ func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit 
 }
 
 func (s *Service) CreateMoment(ctx context.Context, body types.CreateMomentBody) (types.MomentResponse, error) {
-	// 兜底 attachments
-	if body.Attachments == nil {
-		body.Attachments = []types.Attachment{}
+	// 校验：仅要求 content 非空
+	if body.Content == "" {
+		return types.MomentResponse{}, errors.New("content is required")
 	}
-	// 校验 content 和 attachments 至少有一个
-	if body.Content == "" && len(body.Attachments) == 0 {
-		return types.MomentResponse{}, errors.New("content or attachments is required")
-	}
-	// 校验 attachments
-	for _, attachment := range body.Attachments {
-		if attachment.Type == "" || attachment.URL == "" {
-			return types.MomentResponse{}, errors.New("invalid attachment")
-		}
-		if _, ok := types.AttachmentTypes[attachment.Type]; !ok {
-			return types.MomentResponse{}, errors.New("attachment.type only supports image/audio/video")
-		}
-	}
-	attachmentsJSONB, err := pkg.MarshalJSONB(body.Attachments)
-	if err != nil {
-		return types.MomentResponse{}, errors.New("failed to process attachments")
-	}
-	newMoment, err := s.Q.CreateMoment(ctx, repository.CreateMomentParams{
-		Content:     body.Content,
-		Attachments: attachmentsJSONB,
-	})
+	newMoment, err := s.Q.CreateMoment(ctx, body.Content)
 	if err != nil {
 		return types.MomentResponse{}, errors.New("failed to create moment")
 	}
 	return types.MomentResponse{
-		ID:          newMoment.ID,
-		Content:     newMoment.Content,
-		Attachments: body.Attachments,
-		UpdatedAt:   newMoment.UpdatedAt.Time.Format(time.RFC3339),
-		CreatedAt:   newMoment.CreatedAt.Time.Format(time.RFC3339),
+		ID:        newMoment.ID,
+		Content:   newMoment.Content,
+		UpdatedAt: newMoment.UpdatedAt.Time.Format(time.RFC3339),
+		CreatedAt: newMoment.CreatedAt.Time.Format(time.RFC3339),
 	}, nil
 }
 
@@ -122,14 +101,11 @@ func (s *Service) GetMomentByID(ctx context.Context, id int64) (types.MomentResp
 	if err != nil {
 		return types.MomentResponse{}, err
 	}
-
-	attachments, _ := pkg.UnmarshalJSONB[[]types.Attachment](_moment.Attachments)
 	return types.MomentResponse{
-		ID:          _moment.ID,
-		Content:     _moment.Content,
-		Attachments: attachments,
-		UpdatedAt:   _moment.UpdatedAt.Time.Format(time.RFC3339),
-		CreatedAt:   _moment.CreatedAt.Time.Format(time.RFC3339),
+		ID:        _moment.ID,
+		Content:   _moment.Content,
+		UpdatedAt: _moment.UpdatedAt.Time.Format(time.RFC3339),
+		CreatedAt: _moment.CreatedAt.Time.Format(time.RFC3339),
 	}, nil
 }
 
@@ -146,7 +122,7 @@ func (s *Service) checkMomentExists(ctx context.Context, id int64) error {
 		return err
 	}
 	if !exists {
-		return errors.New("moment not found")
+		return ErrMomentNotFound
 	}
 	return nil
 }

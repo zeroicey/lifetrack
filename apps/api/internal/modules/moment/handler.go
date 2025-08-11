@@ -2,6 +2,7 @@ package moment
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -80,7 +81,7 @@ func (h *Handler) GetMomentById(w http.ResponseWriter, r *http.Request) {
 
 	moment, err := h.S.GetMomentByID(r.Context(), id)
 	if err != nil {
-		if err.Error() == "moment not found" {
+		if errors.Is(err, ErrMomentNotFound) {
 			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to get moment").SetStatusCode(http.StatusInternalServerError).Build(w)
@@ -102,7 +103,7 @@ func (h *Handler) DeleteMomentByID(w http.ResponseWriter, r *http.Request) {
 
 	err = h.S.DeleteMomentByID(r.Context(), id)
 	if err != nil {
-		if err.Error() == "moment not found" {
+		if errors.Is(err, ErrMomentNotFound) {
 			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to delete moment").SetStatusCode(http.StatusInternalServerError).Build(w)

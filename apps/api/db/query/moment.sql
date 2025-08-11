@@ -10,11 +10,9 @@ SELECT * FROM moments
 WHERE id = $1 LIMIT 1;
 
 -- name: CreateMoment :one
-INSERT INTO moments (
-    content, attachments
-) VALUES (
-    $1, $2
-)
+INSERT INTO moments
+(content)
+VALUES ($1)
 RETURNING *;
 
 -- name: DeleteMomentByID :exec

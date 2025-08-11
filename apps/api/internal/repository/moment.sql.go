@@ -12,26 +12,18 @@ import (
 )
 
 const createMoment = `-- name: CreateMoment :one
-INSERT INTO moments (
-    content, attachments
-) VALUES (
-    $1, $2
-)
-RETURNING id, content, attachments, created_at, updated_at
+INSERT INTO moments
+(content)
+VALUES ($1)
+RETURNING id, content, created_at, updated_at
 `
 
-type CreateMomentParams struct {
-	Content     string `json:"content"`
-	Attachments []byte `json:"attachments"`
-}
-
-func (q *Queries) CreateMoment(ctx context.Context, arg CreateMomentParams) (Moment, error) {
-	row := q.db.QueryRow(ctx, createMoment, arg.Content, arg.Attachments)
+func (q *Queries) CreateMoment(ctx context.Context, content string) (Moment, error) {
+	row := q.db.QueryRow(ctx, createMoment, content)
 	var i Moment
 	err := row.Scan(
 		&i.ID,
 		&i.Content,
-		&i.Attachments,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -49,7 +41,7 @@ func (q *Queries) DeleteMomentByID(ctx context.Context, id int64) error {
 }
 
 const getMomentByID = `-- name: GetMomentByID :one
-SELECT id, content, attachments, created_at, updated_at FROM moments
+SELECT id, content, created_at, updated_at FROM moments
 WHERE id = $1 LIMIT 1
 `
 
@@ -59,7 +51,6 @@ func (q *Queries) GetMomentByID(ctx context.Context, id int64) (Moment, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Content,
-		&i.Attachments,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -67,7 +58,7 @@ func (q *Queries) GetMomentByID(ctx context.Context, id int64) (Moment, error) {
 }
 
 const getMomentsPaginated = `-- name: GetMomentsPaginated :many
-SELECT id, content, attachments, created_at, updated_at FROM moments
+SELECT id, content, created_at, updated_at FROM moments
 WHERE ($1::timestamp IS NULL OR created_at < $1::timestamp)
 ORDER BY created_at DESC
 LIMIT $2
@@ -90,7 +81,6 @@ func (q *Queries) GetMomentsPaginated(ctx context.Context, arg GetMomentsPaginat
 		if err := rows.Scan(
 			&i.ID,
 			&i.Content,
-			&i.Attachments,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

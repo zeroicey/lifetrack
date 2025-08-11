@@ -11,6 +11,51 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type TaskGroupType string
+
+const (
+	TaskGroupTypeDay    TaskGroupType = "day"
+	TaskGroupTypeWeek   TaskGroupType = "week"
+	TaskGroupTypeMonth  TaskGroupType = "month"
+	TaskGroupTypeYear   TaskGroupType = "year"
+	TaskGroupTypeCustom TaskGroupType = "custom"
+)
+
+func (e *TaskGroupType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TaskGroupType(s)
+	case string:
+		*e = TaskGroupType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TaskGroupType: %T", src)
+	}
+	return nil
+}
+
+type NullTaskGroupType struct {
+	TaskGroupType TaskGroupType `json:"task_group_type"`
+	Valid         bool          `json:"valid"` // Valid is true if TaskGroupType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTaskGroupType) Scan(value interface{}) error {
+	if value == nil {
+		ns.TaskGroupType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TaskGroupType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTaskGroupType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TaskGroupType), nil
+}
+
 type TaskStatus string
 
 const (
@@ -60,27 +105,35 @@ type Moment struct {
 	ID int64 `json:"id"`
 	// 备忘录的主要文本内容
 	Content string `json:"content"`
-	// 附件信息，以 JSONB 格式存储，例如：[{"type": "image", "url": "..."}]
-	Attachments []byte `json:"attachments"`
 	// 记录创建时间
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	// 记录最后更新时间
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+// 任务表，存储具体的任务信息
 type Task struct {
-	ID          int64              `json:"id"`
-	GroupID     int64              `json:"group_id"`
-	Pos         string             `json:"pos"`
-	Content     string             `json:"content"`
-	Description pgtype.Text        `json:"description"`
-	Status      TaskStatus         `json:"status"`
-	Deadline    pgtype.Timestamptz `json:"deadline"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	// 主键，自增ID
+	ID int64 `json:"id"`
+	// 所属任务组ID，外键关联task_groups表
+	GroupID int64 `json:"group_id"`
+	// 任务在组内的位置标识
+	Pos string `json:"pos"`
+	// 任务内容
+	Content string `json:"content"`
+	// 任务描述
+	Description pgtype.Text `json:"description"`
+	// 任务状态：todo(待办), done(完成), abandon(放弃)
+	Status TaskStatus `json:"status"`
+	// 任务截止时间
+	Deadline pgtype.Timestamptz `json:"deadline"`
+	// 创建时间
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 更新时间
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
-// 日常务分组表，仅可保存年任务组(2025)，月任务组(2025-07)，周任务组(2025-W28)，日任务组(2025-07-14)
+// 任务分组表，仅可保存年任务组(2025)，月任务组(2025-07)，周任务组(2025-W28)，日任务组(2025-07-14)
 type TaskGroup struct {
 	// 主键，自增ID
 	ID int64 `json:"id"`
@@ -88,6 +141,8 @@ type TaskGroup struct {
 	Name string `json:"name"`
 	// 任务分组描述
 	Description pgtype.Text `json:"description"`
+	// 任务分组类型：day(日), week(周), month(月), year(年), custom(自定义)
+	Type TaskGroupType `json:"type"`
 	// 创建时间
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	// 更新时间

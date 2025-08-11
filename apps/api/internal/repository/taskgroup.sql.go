@@ -14,7 +14,7 @@ import (
 const createTaskGroup = `-- name: CreateTaskGroup :one
 INSERT INTO task_groups (name, description)
 VALUES ($1, $2)
-RETURNING id, name, description, created_at, updated_at
+RETURNING id, name, description, type, created_at, updated_at
 `
 
 type CreateTaskGroupParams struct {
@@ -29,6 +29,7 @@ func (q *Queries) CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.Type,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -46,7 +47,7 @@ func (q *Queries) DeleteTaskGroupById(ctx context.Context, id int64) error {
 }
 
 const getAllTaskGroups = `-- name: GetAllTaskGroups :many
-SELECT id, name, description, created_at, updated_at FROM task_groups ORDER BY name ASC
+SELECT id, name, description, type, created_at, updated_at FROM task_groups ORDER BY name ASC
 `
 
 func (q *Queries) GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error) {
@@ -62,6 +63,7 @@ func (q *Queries) GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error) {
 			&i.ID,
 			&i.Name,
 			&i.Description,
+			&i.Type,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -76,7 +78,7 @@ func (q *Queries) GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error) {
 }
 
 const getTaskGroupById = `-- name: GetTaskGroupById :one
-SELECT id, name, description, created_at, updated_at FROM task_groups WHERE id = $1
+SELECT id, name, description, type, created_at, updated_at FROM task_groups WHERE id = $1
 `
 
 func (q *Queries) GetTaskGroupById(ctx context.Context, id int64) (TaskGroup, error) {
@@ -86,6 +88,7 @@ func (q *Queries) GetTaskGroupById(ctx context.Context, id int64) (TaskGroup, er
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.Type,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -112,7 +115,7 @@ SET
     description = $2
 WHERE
     id = $3
-RETURNING id, name, description, created_at, updated_at
+RETURNING id, name, description, type, created_at, updated_at
 `
 
 type UpdateTaskGroupByIdParams struct {
@@ -128,6 +131,7 @@ func (q *Queries) UpdateTaskGroupById(ctx context.Context, arg UpdateTaskGroupBy
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.Type,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
