@@ -22,16 +22,7 @@ func StorageRouter(s *Service) chi.Router {
 	h := NewHandler(s)
 	r := chi.NewRouter()
 	r.Post("/presigned-upload", h.GetPresignedUploadURL)
-	r.Post("/presigned-download", h.GetPresignedDownloadURL)
-	r.Get("/download/{key}", h.GetDownloadURL)
-	r.Delete("/{key}", h.DeleteFile)
 	r.Get("/info/{key}", h.GetFileInfo)
-
-	// 新增：临时访问URL相关端点
-	r.Post("/temporary-access", h.GetTemporaryAccessURL)
-	r.Post("/batch-temporary-access", h.GetBatchTemporaryAccessURLs)
-	r.Get("/temp/{key}", h.GetTemporaryAccessURLByKey)
-
 	return r
 }
 

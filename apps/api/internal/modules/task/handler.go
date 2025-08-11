@@ -27,6 +27,7 @@ func TaskRouter(s *Service) chi.Router {
 	r.Get("/{id}", h.GetTaskById)
 	r.Put("/{id}", h.UpdateTask)
 	r.Delete("/{id}", h.DeleteTask)
+
 	return r
 }
 

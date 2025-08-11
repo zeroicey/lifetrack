@@ -23,7 +23,7 @@ func LoadStorage() {
 	viper.SetDefault("STORAGE_ENDPOINT", "localhost:9000")
 	viper.SetDefault("STORAGE_ACCESS_KEY", "minioadmin")
 	viper.SetDefault("STORAGE_SECRET_KEY", "minioadmin")
-	viper.SetDefault("STORAGE_BUCKET_NAME", "lifetrack-files")
+	viper.SetDefault("STORAGE_BUCKET_NAME", "lifetrack")
 	viper.SetDefault("STORAGE_REGION", "us-east-1")
 	viper.SetDefault("STORAGE_USE_SSL", false)
 	viper.SetDefault("STORAGE_PRESIGNED_EXPIRY", 3600) // 1小时
