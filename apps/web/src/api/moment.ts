@@ -19,14 +19,16 @@ export const apiGetMoments = async ({ cursor }: { cursor?: number }) => {
     };
 };
 
-export const apiCreateMoment = async ({
-    content,
-    attachments,
-}: MomentCreate) => {
+export const apiCreateMoment = async ({ content }: MomentCreate) => {
     const res = await http
         .post<Response<Moment>>("moments", {
-            json: { content, attachments },
+            json: { content },
         })
         .json();
+    return res.data;
+};
+
+export const apiDeleteMoment = async (id: number) => {
+    const res = await http.delete<Response<null>>(`moments/${id}`).json();
     return res.data;
 };

@@ -18,7 +18,7 @@ function getContainerClass(imageCount: number): string {
 }
 
 export default function MomentCreatePage() {
-    const [textareaValue, setTextareaValue] = useState<string>();
+    const [textareaValue, setTextareaValue] = useState<string>(""); // 初始化为空字符串
     const [images, setImages] = useState<string[]>([]);
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -97,6 +97,9 @@ export default function MomentCreatePage() {
                     <Button
                         variant="default"
                         onClick={() => {
+                            if (textareaValue?.trim() === "") {
+                                return;
+                            }
                             mutate({ content: textareaValue });
                         }}
                     >
