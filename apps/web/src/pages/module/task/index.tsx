@@ -29,6 +29,22 @@ export default function TaskPage() {
         <div className="h-full w-full flex justify-center">
             <div className="w-full flex gap-2 p-2">
                 <div className="items-center min-w-[270px] border flex-col h-full sm:flex hidden overflow-auto no-scrollbar">
+                    <div className="p-2 w-full">
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button variant="outline" size="sm">
+                                Today
+                            </Button>
+                            <Button variant="outline" size="sm">
+                                This Week
+                            </Button>
+                            <Button variant="outline" size="sm">
+                                This Month
+                            </Button>
+                            <Button variant="outline" size="sm">
+                                This Year
+                            </Button>
+                        </div>
+                    </div>
                     <CustomCollapsible
                         isOpen={isCustomOpen}
                         onOpenChange={setIsCustomOpen}

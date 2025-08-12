@@ -6,6 +6,7 @@ import type {
     TaskCreate,
     TaskGroup,
     TaskGroupCreate,
+    TaskGroupType,
     TaskGroupUpdate,
     TaskGroupWithTasks,
     TaskUpdate,
@@ -20,6 +21,20 @@ export const apiGetTaskGroupWithTasks = async (id: number) => {
 
 export const apiGetTaskGroups = async () => {
     const res = await http.get<Response<TaskGroup[]>>("task-groups").json();
+    if (
+        res.data &&
+        res.data.length > 0 &&
+        useSettingStore.getState().currentTaskGroupId === -1
+    ) {
+        useSettingStore.getState().setCurrentTaskGroup(res.data[0]);
+    }
+    return res.data;
+};
+
+export const apiGetTaskGroupsByType = async (type: TaskGroupType) => {
+    const res = await http
+        .get<Response<TaskGroup[]>>(`task-groups/type/${type}`)
+        .json();
     if (
         res.data &&
         res.data.length > 0 &&

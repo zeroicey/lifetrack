@@ -6,9 +6,6 @@ export default function TaskList() {
     const { currentTaskGroupId } = useSettingStore();
 
     const { data: tasks = [], isLoading, error } = useTaskQuery();
-    // DnD removed; no local state required.
-
-    // Drag-and-drop removed; list is static now.
 
     const renderStatusMessage = (message: string, isError = false) => (
         <div className="flex items-center justify-center p-8 w-full h-full">
