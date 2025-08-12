@@ -2,6 +2,7 @@ package task
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -40,14 +41,13 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	newTask, err := h.S.CreateTask(r.Context(), repository.CreateTaskParams{
 		GroupID:     body.GroupID,
-		Pos:         body.Pos,
 		Content:     body.Content,
 		Description: body.Description,
 		Deadline:    body.Deadline,
 	})
 
 	if err != nil {
-		if err.Error() == "task group not found" {
+		if errors.Is(err, ErrTaskGroupNotFound) {
 			response.Error("Task group not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to create task").SetStatusCode(http.StatusInternalServerError).Build(w)
@@ -68,7 +68,7 @@ func (h *Handler) GetTaskById(w http.ResponseWriter, r *http.Request) {
 
 	task, err := h.S.GetTaskById(r.Context(), id)
 	if err != nil {
-		if err.Error() == "task not found" {
+		if errors.Is(err, ErrTaskNotFound) {
 			response.Error("Task not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to get task details").SetStatusCode(http.StatusInternalServerError).Build(w)
@@ -95,7 +95,6 @@ func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	updatedTask, err := h.S.UpdateTask(r.Context(), repository.UpdateTaskByIdParams{
 		ID:          id,
-		Pos:         body.Pos,
 		Content:     body.Content,
 		Description: body.Description,
 		Deadline:    body.Deadline,
@@ -103,7 +102,7 @@ func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		if err.Error() == "task not found" {
+		if errors.Is(err, ErrTaskNotFound) {
 			response.Error("Task not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to update task").SetStatusCode(http.StatusInternalServerError).Build(w)
@@ -124,7 +123,7 @@ func (h *Handler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 
 	err = h.S.DeleteTask(r.Context(), id)
 	if err != nil {
-		if err.Error() == "task not found" {
+		if errors.Is(err, ErrTaskNotFound) {
 			response.Error("Task not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to delete task").Build(w)

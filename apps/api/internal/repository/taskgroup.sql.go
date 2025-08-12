@@ -12,18 +12,19 @@ import (
 )
 
 const createTaskGroup = `-- name: CreateTaskGroup :one
-INSERT INTO task_groups (name, description)
-VALUES ($1, $2)
+INSERT INTO task_groups (name, description, type)
+VALUES ($1, $2, $3)
 RETURNING id, name, description, type, created_at, updated_at
 `
 
 type CreateTaskGroupParams struct {
-	Name        string      `json:"name"`
-	Description pgtype.Text `json:"description"`
+	Name        string        `json:"name"`
+	Description pgtype.Text   `json:"description"`
+	Type        TaskGroupType `json:"type"`
 }
 
 func (q *Queries) CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams) (TaskGroup, error) {
-	row := q.db.QueryRow(ctx, createTaskGroup, arg.Name, arg.Description)
+	row := q.db.QueryRow(ctx, createTaskGroup, arg.Name, arg.Description, arg.Type)
 	var i TaskGroup
 	err := row.Scan(
 		&i.ID,
@@ -47,7 +48,7 @@ func (q *Queries) DeleteTaskGroupById(ctx context.Context, id int64) error {
 }
 
 const getAllTaskGroups = `-- name: GetAllTaskGroups :many
-SELECT id, name, description, type, created_at, updated_at FROM task_groups ORDER BY name ASC
+SELECT id, name, description, type, created_at, updated_at FROM task_groups ORDER BY updated_at DESC
 `
 
 func (q *Queries) GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error) {
@@ -95,6 +96,55 @@ func (q *Queries) GetTaskGroupById(ctx context.Context, id int64) (TaskGroup, er
 	return i, err
 }
 
+const getTaskGroupByName = `-- name: GetTaskGroupByName :one
+SELECT id, name, description, type, created_at, updated_at FROM task_groups WHERE name = $1
+`
+
+func (q *Queries) GetTaskGroupByName(ctx context.Context, name string) (TaskGroup, error) {
+	row := q.db.QueryRow(ctx, getTaskGroupByName, name)
+	var i TaskGroup
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Type,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getTaskGroupsByType = `-- name: GetTaskGroupsByType :many
+SELECT id, name, description, type, created_at, updated_at FROM task_groups WHERE type = $1 ORDER BY updated_at DESC
+`
+
+func (q *Queries) GetTaskGroupsByType(ctx context.Context, type_ TaskGroupType) ([]TaskGroup, error) {
+	rows, err := q.db.Query(ctx, getTaskGroupsByType, type_)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TaskGroup
+	for rows.Next() {
+		var i TaskGroup
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Type,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const taskGroupExists = `-- name: TaskGroupExists :one
 SELECT EXISTS(
     SELECT 1 FROM task_groups WHERE id = $1
@@ -112,20 +162,27 @@ const updateTaskGroupById = `-- name: UpdateTaskGroupById :one
 UPDATE task_groups
 SET
     name = $1,
-    description = $2
+    description = $2,
+    type = $3
 WHERE
-    id = $3
+    id = $4
 RETURNING id, name, description, type, created_at, updated_at
 `
 
 type UpdateTaskGroupByIdParams struct {
-	Name        string      `json:"name"`
-	Description pgtype.Text `json:"description"`
-	ID          int64       `json:"id"`
+	Name        string        `json:"name"`
+	Description pgtype.Text   `json:"description"`
+	Type        TaskGroupType `json:"type"`
+	ID          int64         `json:"id"`
 }
 
 func (q *Queries) UpdateTaskGroupById(ctx context.Context, arg UpdateTaskGroupByIdParams) (TaskGroup, error) {
-	row := q.db.QueryRow(ctx, updateTaskGroupById, arg.Name, arg.Description, arg.ID)
+	row := q.db.QueryRow(ctx, updateTaskGroupById,
+		arg.Name,
+		arg.Description,
+		arg.Type,
+		arg.ID,
+	)
 	var i TaskGroup
 	err := row.Scan(
 		&i.ID,

@@ -2,6 +2,7 @@ package taskgroup
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -24,6 +25,10 @@ func TaskGroupRouter(s *Service) chi.Router {
 	h := NewHandler(s)
 	r := chi.NewRouter()
 	r.Get("/", h.ListGroups)
+	// Query by type: /?type=day|week|month|year|custom
+	r.Get("/type/{type}", h.ListGroupsByType)
+	// Query by name
+	r.Get("/name/{name}", h.GetGroupByName)
 	r.Post("/", h.CreateGroup)
 	r.Get("/{id}", h.GetGroupById)
 	r.Put("/{id}", h.UpdateGroup)
@@ -51,6 +56,7 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	newGroup, err := h.S.CreateGroup(r.Context(), repository.CreateTaskGroupParams{
 		Name:        body.Name,
 		Description: body.Description,
+		Type:        h.S.mustParseType(body.Type),
 	})
 
 	if err != nil {
@@ -72,7 +78,7 @@ func (h *Handler) GetGroupById(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.S.GetGroupById(r.Context(), id)
 	if err != nil {
-		if err.Error() == "task group not found" {
+		if errors.Is(err, ErrTaskGroupNotFound) {
 			response.Error("Task group not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to get task group details").SetStatusCode(http.StatusInternalServerError).Build(w)
@@ -81,6 +87,36 @@ func (h *Handler) GetGroupById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success("Task group details").SetStatusCode(http.StatusOK).SetData(resp).Build(w)
+}
+
+// GET /type/{type}
+func (h *Handler) ListGroupsByType(w http.ResponseWriter, r *http.Request) {
+	typeStr := chi.URLParam(r, "type")
+	groups, err := h.S.ListGroupsByType(r.Context(), typeStr)
+	if err != nil {
+		response.Error("Failed to list task groups by type").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+	response.Success("List of task groups by type").SetStatusCode(http.StatusOK).SetData(groups).Build(w)
+}
+
+// GET /name/{name}
+func (h *Handler) GetGroupByName(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	if name == "" {
+		response.Error("Invalid group name").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+	group, err := h.S.GetGroupByName(r.Context(), name)
+	if err != nil {
+		if errors.Is(err, ErrTaskGroupNotFound) {
+			response.Error("Task group not found").SetStatusCode(http.StatusNotFound).Build(w)
+		} else {
+			response.Error("Failed to get task group").SetStatusCode(http.StatusInternalServerError).Build(w)
+		}
+		return
+	}
+	response.Success("Task group details").SetStatusCode(http.StatusOK).SetData(group).Build(w)
 }
 
 func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
@@ -101,10 +137,17 @@ func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		ID:          id,
 		Name:        body.Name,
 		Description: body.Description,
+		// Only update type if provided; otherwise preserve in service
+		Type: func() repository.TaskGroupType {
+			if body.Type == "" {
+				return ""
+			}
+			return h.S.mustParseType(body.Type)
+		}(),
 	})
 
 	if err != nil {
-		if err.Error() == "task group not found" {
+		if errors.Is(err, ErrTaskGroupNotFound) {
 			response.Error("Task group not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to update task group").SetStatusCode(http.StatusInternalServerError).Build(w)
@@ -124,7 +167,7 @@ func (h *Handler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 
 	err = h.S.DeleteGroup(r.Context(), id)
 	if err != nil {
-		if err.Error() == "task group not found" {
+		if errors.Is(err, ErrTaskGroupNotFound) {
 			response.Error("Task group not found").SetStatusCode(http.StatusNotFound).Build(w)
 		} else {
 			response.Error("Failed to delete task group").SetStatusCode(http.StatusInternalServerError).Build(w)

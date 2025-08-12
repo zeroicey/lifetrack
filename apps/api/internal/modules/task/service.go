@@ -13,6 +13,12 @@ type Service struct {
 	Q *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
 }
 
+// Sentinel errors for task domain
+var (
+	ErrTaskNotFound      = errors.New("task not found")
+	ErrTaskGroupNotFound = errors.New("task group not found")
+)
+
 func NewService(q *repository.Queries) *Service {
 	return &Service{Q: q}
 }
@@ -24,7 +30,7 @@ func (s *Service) CreateTask(ctx context.Context, params repository.CreateTaskPa
 		return types.TaskResponse{}, err
 	}
 	if !groupExists {
-		return types.TaskResponse{}, errors.New("task group not found")
+		return types.TaskResponse{}, ErrTaskGroupNotFound
 	}
 
 	task, err := s.Q.CreateTask(ctx, params)
@@ -70,7 +76,7 @@ func (s *Service) checkTaskExists(ctx context.Context, id int64) error {
 		return err
 	}
 	if !exists {
-		return errors.New("task not found")
+		return ErrTaskNotFound
 	}
 	return nil
 }
@@ -89,7 +95,6 @@ func (s *Service) convertToTaskResponse(task repository.Task) types.TaskResponse
 	return types.TaskResponse{
 		ID:          task.ID,
 		GroupID:     task.GroupID,
-		Pos:         task.Pos,
 		Content:     task.Content,
 		Description: description,
 		Status:      string(task.Status),
