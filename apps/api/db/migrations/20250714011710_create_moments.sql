@@ -17,8 +17,8 @@ COMMENT ON COLUMN moments.content IS '备忘录的主要文本内容';
 COMMENT ON COLUMN moments.created_at IS '记录创建时间';
 COMMENT ON COLUMN moments.updated_at IS '记录最后更新时间';
 
--- 3. 创建用于自动更新 updated_at 的触发器函数
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- 3. 创建用于自动更新 updated_at 的触发器函数（moments 专用）
+CREATE OR REPLACE FUNCTION update_moments_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -30,7 +30,7 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER moments_updated_at_trigger
 BEFORE UPDATE ON moments
 FOR EACH ROW
-EXECUTE PROCEDURE update_updated_at_column();
+EXECUTE FUNCTION update_moments_updated_at();
 
 -- +goose StatementEnd
 
@@ -41,7 +41,7 @@ EXECUTE PROCEDURE update_updated_at_column();
 -- 1. 删除 moments 表（这将自动删除 moments_updated_at_trigger 触发器）
 DROP TABLE IF EXISTS moments;
 
--- 2. 删除触发器函数，保持数据库清洁
-DROP FUNCTION IF EXISTS update_updated_at_column();
+-- 2. 删除 moments 专用触发器函数
+DROP FUNCTION IF EXISTS update_moments_updated_at();
 
 -- +goose StatementEnd
