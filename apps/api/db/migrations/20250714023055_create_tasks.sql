@@ -11,7 +11,7 @@ CREATE TABLE
         status task_status NOT NULL DEFAULT 'todo',
         deadline TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (), 
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
     );
 
 -- 创建更新时间触发器函数（tasks 专用）

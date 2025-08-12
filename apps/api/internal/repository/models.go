@@ -117,8 +117,6 @@ type Task struct {
 	ID int64 `json:"id"`
 	// 所属任务组ID，外键关联task_groups表
 	GroupID int64 `json:"group_id"`
-	// 任务在组内的位置标识
-	Pos string `json:"pos"`
 	// 任务内容
 	Content string `json:"content"`
 	// 任务描述

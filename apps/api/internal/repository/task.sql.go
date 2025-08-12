@@ -12,14 +12,13 @@ import (
 )
 
 const createTask = `-- name: CreateTask :one
-INSERT INTO tasks (group_id, pos, content, description, deadline)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, group_id, pos, content, description, status, deadline, created_at, updated_at
+INSERT INTO tasks (group_id, content, description, deadline)
+VALUES ($1, $2, $3, $4)
+RETURNING id, group_id, content, description, status, deadline, created_at, updated_at
 `
 
 type CreateTaskParams struct {
 	GroupID     int64              `json:"group_id"`
-	Pos         string             `json:"pos"`
 	Content     string             `json:"content"`
 	Description pgtype.Text        `json:"description"`
 	Deadline    pgtype.Timestamptz `json:"deadline"`
@@ -28,7 +27,6 @@ type CreateTaskParams struct {
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
 	row := q.db.QueryRow(ctx, createTask,
 		arg.GroupID,
-		arg.Pos,
 		arg.Content,
 		arg.Description,
 		arg.Deadline,
@@ -37,7 +35,6 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	err := row.Scan(
 		&i.ID,
 		&i.GroupID,
-		&i.Pos,
 		&i.Content,
 		&i.Description,
 		&i.Status,
@@ -59,7 +56,7 @@ func (q *Queries) DeleteTaskById(ctx context.Context, id int64) error {
 }
 
 const getTaskById = `-- name: GetTaskById :one
-SELECT id, group_id, pos, content, description, status, deadline, created_at, updated_at FROM tasks WHERE id = $1
+SELECT id, group_id, content, description, status, deadline, created_at, updated_at FROM tasks WHERE id = $1
 `
 
 func (q *Queries) GetTaskById(ctx context.Context, id int64) (Task, error) {
@@ -68,7 +65,6 @@ func (q *Queries) GetTaskById(ctx context.Context, id int64) (Task, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.GroupID,
-		&i.Pos,
 		&i.Content,
 		&i.Description,
 		&i.Status,
@@ -80,7 +76,12 @@ func (q *Queries) GetTaskById(ctx context.Context, id int64) (Task, error) {
 }
 
 const getTasksByGroupId = `-- name: GetTasksByGroupId :many
-SELECT id, group_id, pos, content, description, status, deadline, created_at, updated_at FROM tasks WHERE group_id = $1 ORDER BY pos
+SELECT id, group_id, content, description, status, deadline, created_at, updated_at FROM tasks
+WHERE group_id = $1
+ORDER BY
+    CASE WHEN deadline IS NULL THEN 1 ELSE 0 END,
+    CASE WHEN deadline < NOW() THEN 0 ELSE 1 END,
+    deadline ASC
 `
 
 func (q *Queries) GetTasksByGroupId(ctx context.Context, groupID int64) ([]Task, error) {
@@ -95,7 +96,6 @@ func (q *Queries) GetTasksByGroupId(ctx context.Context, groupID int64) ([]Task,
 		if err := rows.Scan(
 			&i.ID,
 			&i.GroupID,
-			&i.Pos,
 			&i.Content,
 			&i.Description,
 			&i.Status,
@@ -129,19 +129,17 @@ func (q *Queries) TaskExists(ctx context.Context, id int64) (bool, error) {
 const updateTaskById = `-- name: UpdateTaskById :one
 UPDATE tasks
 SET
-    pos = $2,
-    content = $3,
-    description = $4,
-    deadline = $5,
-    status = $6
+    content = $2,
+    description = $3,
+    deadline = $4,
+    status = $5
 WHERE
     id = $1
-RETURNING id, group_id, pos, content, description, status, deadline, created_at, updated_at
+RETURNING id, group_id, content, description, status, deadline, created_at, updated_at
 `
 
 type UpdateTaskByIdParams struct {
 	ID          int64              `json:"id"`
-	Pos         string             `json:"pos"`
 	Content     string             `json:"content"`
 	Description pgtype.Text        `json:"description"`
 	Deadline    pgtype.Timestamptz `json:"deadline"`
@@ -151,7 +149,6 @@ type UpdateTaskByIdParams struct {
 func (q *Queries) UpdateTaskById(ctx context.Context, arg UpdateTaskByIdParams) (Task, error) {
 	row := q.db.QueryRow(ctx, updateTaskById,
 		arg.ID,
-		arg.Pos,
 		arg.Content,
 		arg.Description,
 		arg.Deadline,
@@ -161,7 +158,6 @@ func (q *Queries) UpdateTaskById(ctx context.Context, arg UpdateTaskByIdParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.GroupID,
-		&i.Pos,
 		&i.Content,
 		&i.Description,
 		&i.Status,

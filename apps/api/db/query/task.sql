@@ -1,22 +1,27 @@
 -- name: GetTasksByGroupId :many
-SELECT * FROM tasks WHERE group_id = $1 ORDER BY pos;
+SELECT * FROM tasks
+WHERE group_id = $1
+ORDER BY
+    CASE WHEN deadline IS NULL THEN 1 ELSE 0 END,
+    CASE WHEN deadline < NOW() THEN 0 ELSE 1 END,
+    deadline ASC;
+
 
 -- name: GetTaskById :one
 SELECT * FROM tasks WHERE id = $1;
 
 -- name: CreateTask :one
-INSERT INTO tasks (group_id, pos, content, description, deadline)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO tasks (group_id, content, description, deadline)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: UpdateTaskById :one
 UPDATE tasks
 SET
-    pos = $2,
-    content = $3,
-    description = $4,
-    deadline = $5,
-    status = $6
+    content = $2,
+    description = $3,
+    deadline = $4,
+    status = $5
 WHERE
     id = $1
 RETURNING *;
