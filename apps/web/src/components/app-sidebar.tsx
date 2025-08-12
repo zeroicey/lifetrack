@@ -1,5 +1,12 @@
 "use client";
-import { Home, FileText, CheckSquare, Repeat, Calendar } from "lucide-react";
+import {
+    Home,
+    FileText,
+    CheckSquare,
+    Repeat,
+    Calendar,
+    Logs,
+} from "lucide-react";
 
 import {
     Sidebar,
@@ -9,7 +16,6 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarMenuBadge,
     SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { NavLink } from "react-router";
@@ -28,35 +34,36 @@ const items: MenuItem[] = [
         title: "Home",
         url: "/home",
         icon: Home,
-        badge: 5,
+        isEnd: false,
+    },
+    {
+        title: "Log",
+        url: "/log",
+        icon: Logs,
         isEnd: false,
     },
     {
         title: "Moment",
         url: "/moment",
         icon: FileText,
-        badge: 12,
         isEnd: false,
     },
     {
         title: "Task",
         url: "/task",
         icon: CheckSquare,
-        badge: 8,
         isEnd: false,
     },
     {
         title: "Habit",
         url: "/habit",
         icon: Repeat,
-        badge: 7,
         isEnd: false,
     },
     {
         title: "Event",
         url: "/event",
         icon: Calendar,
-        badge: 7,
         isEnd: false,
     },
 ];
@@ -89,9 +96,6 @@ export function AppSidebar() {
                                             >
                                                 <item.icon />
                                                 <span>{item.title}</span>
-                                                <SidebarMenuBadge>
-                                                    {item.badge}
-                                                </SidebarMenuBadge>
                                             </SidebarMenuButton>
                                         )}
                                     </NavLink>

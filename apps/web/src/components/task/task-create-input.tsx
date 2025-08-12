@@ -3,27 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTaskCreateMutation, useTaskQuery } from "@/hooks/use-task-query";
 import { useSettingStore } from "@/stores/setting";
-import { generateKeyBetween } from "fractional-indexing";
 
 export default function TaskCreateInput() {
     const [taskContent, setTaskContent] = useState("");
     const { currentTaskGroupId } = useSettingStore();
     const { mutate: createTask } = useTaskCreateMutation();
-    const { data: tasks, isPending } = useTaskQuery();
+    const { isPending } = useTaskQuery();
 
     const handleSubmit = () => {
         if (taskContent.trim() && !isPending) {
-            const _tasks = tasks || [];
-            let pos;
-            if (_tasks.length === 0) {
-                pos = generateKeyBetween(null, null);
-            } else {
-                pos = generateKeyBetween(_tasks[_tasks.length - 1].pos, null);
-            }
             createTask({
                 content: taskContent.trim(),
                 group_id: currentTaskGroupId,
-                pos,
             });
             setTaskContent("");
         }

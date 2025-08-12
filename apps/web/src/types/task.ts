@@ -1,6 +1,9 @@
+export type TaskGroupType = "day" | "week" | "month" | "year" | "custom";
+
 export type TaskGroup = {
     id: number;
     name: string;
+    type: TaskGroupType;
     description: string;
     created_at: string;
     updated_at: string;
@@ -9,7 +12,6 @@ export type TaskGroup = {
 export type Task = {
     id: number;
     group_id: number;
-    pos: string;
     content: string;
     description: string;
     status: string;
@@ -24,18 +26,18 @@ export type TaskGroupWithTasks = TaskGroup & {
 
 export type TaskGroupCreate = {
     name: string;
-    description: string;
+    type: TaskGroupType;
+    description?: string;
 };
 
 export type TaskGroupUpdate = {
     id: number;
-    name: string;
-    description: string;
+    name?: string;
+    description?: string;
 };
 
 export type TaskCreate = {
     group_id: number;
-    pos: string;
     content: string;
     description?: string;
     deadline?: string;
@@ -43,7 +45,6 @@ export type TaskCreate = {
 
 export type TaskUpdate = {
     id: number;
-    pos: string;
     status?: string;
     content?: string;
     description?: string;

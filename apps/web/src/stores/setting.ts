@@ -1,10 +1,15 @@
 import type { TaskGroup } from "@/types/task";
+import { format } from "date-fns";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface SettingState {
+    currentTaskGroupName: string;
     currentTaskGroupId: number;
     currentTaskGroup: TaskGroup;
+    isCurrentTaskGroupExists: boolean;
+    setIsCurrentTaskGroupExists: (isCurrentTaskGroupExists: boolean) => void;
+    setCurrentTaskGroupName: (currentTaskGroupName: string) => void;
     setCurrentTaskGroup: (currentTaskGroup: TaskGroup) => void;
     setCurrentTaskGroupId: (currentTaskGroupId: number) => void;
     clearCurrentTaskGroup: () => void;
@@ -12,6 +17,8 @@ interface SettingState {
 export const useSettingStore = create<SettingState>()(
     persist(
         (set) => ({
+            isCurrentTaskGroupExists: true,
+            currentTaskGroupName: format(new Date(), "yyyy-MM-dd"),
             currentTaskGroupId: -1,
             currentTaskGroup: {
                 id: -1,
@@ -19,6 +26,13 @@ export const useSettingStore = create<SettingState>()(
                 description: "",
                 created_at: "",
                 updated_at: "",
+                type: "day",
+            },
+            setIsCurrentTaskGroupExists(isCurrentTaskGroupExists) {
+                set(() => ({ isCurrentTaskGroupExists }));
+            },
+            setCurrentTaskGroupName(currentTaskGroupName) {
+                set(() => ({ currentTaskGroupName }));
             },
             setCurrentTaskGroup: (currentTaskGroup: TaskGroup) =>
                 set(() => ({
@@ -33,6 +47,7 @@ export const useSettingStore = create<SettingState>()(
                     currentTaskGroup: {
                         id: -1,
                         name: "",
+                        type: "day",
                         description: "",
                         created_at: "",
                         updated_at: "",
@@ -40,7 +55,7 @@ export const useSettingStore = create<SettingState>()(
                 })),
         }),
         {
-            name: "setting-storage", // 存储在 localStorage 中的键名
+            name: "setting-storage",
         }
     )
 );
