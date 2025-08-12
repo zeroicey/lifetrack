@@ -9,7 +9,6 @@ export type TaskGroup = {
 export type Task = {
     id: number;
     group_id: number;
-    pos: string;
     content: string;
     description: string;
     status: string;
@@ -24,6 +23,7 @@ export type TaskGroupWithTasks = TaskGroup & {
 
 export type TaskGroupCreate = {
     name: string;
+    type: string;
     description: string;
 };
 
@@ -35,7 +35,6 @@ export type TaskGroupUpdate = {
 
 export type TaskCreate = {
     group_id: number;
-    pos: string;
     content: string;
     description?: string;
     deadline?: string;
@@ -43,7 +42,6 @@ export type TaskCreate = {
 
 export type TaskUpdate = {
     id: number;
-    pos: string;
     status?: string;
     content?: string;
     description?: string;

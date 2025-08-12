@@ -38,6 +38,7 @@ export default function GroupCreateDialog({
             createGroup({
                 name: nameValue.trim(),
                 description: descriptionValue.trim(),
+                type: "custom",
             });
             handleClose();
             onGroupCreated?.();

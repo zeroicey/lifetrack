@@ -28,9 +28,7 @@ export const useTaskQuery = () => {
     });
 };
 
-export const useTaskUpdateMutation = (
-    options: { invalidate: boolean } = { invalidate: true }
-) => {
+export const useTaskUpdateMutation = () => {
     const queryClient = useQueryClient();
     const { currentTaskGroupId } = useSettingStore();
     const taskQueryKey = getTaskQueryKey(currentTaskGroupId);
@@ -41,9 +39,7 @@ export const useTaskUpdateMutation = (
             toast.success("Update task successfully!");
         },
         onSettled: () => {
-            if (options.invalidate) {
-                queryClient.invalidateQueries({ queryKey: taskQueryKey });
-            }
+            queryClient.invalidateQueries({ queryKey: taskQueryKey });
         },
         onError: () => {
             toast.error("Update task failed!");

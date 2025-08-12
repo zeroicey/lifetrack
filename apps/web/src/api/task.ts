@@ -51,10 +51,11 @@ export const apiCreateTask = async (task: TaskCreate) => {
 export const apiCreateTaskGroup = async ({
     name,
     description,
+    type,
 }: TaskGroupCreate) => {
     const res = await http
         .post<Response<TaskGroup>>("task-groups", {
-            json: { name, description },
+            json: { name, description, type },
         })
         .json();
     return res.data;
