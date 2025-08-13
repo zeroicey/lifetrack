@@ -26,10 +26,9 @@ WHERE
     id = $1
 RETURNING *;
 
--- name: DeleteTaskById :one
+-- name: DeleteTaskById :exec
 DELETE FROM tasks
-WHERE id = $1
-RETURNING id;
+WHERE id = $1;
 
 -- name: TaskExists :one
 SELECT EXISTS(

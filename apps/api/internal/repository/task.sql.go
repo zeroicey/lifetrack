@@ -45,16 +45,14 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	return i, err
 }
 
-const deleteTaskById = `-- name: DeleteTaskById :one
+const deleteTaskById = `-- name: DeleteTaskById :exec
 DELETE FROM tasks
 WHERE id = $1
-RETURNING id
 `
 
-func (q *Queries) DeleteTaskById(ctx context.Context, id int64) (int64, error) {
-	row := q.db.QueryRow(ctx, deleteTaskById, id)
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) DeleteTaskById(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteTaskById, id)
+	return err
 }
 
 const getTaskById = `-- name: GetTaskById :one

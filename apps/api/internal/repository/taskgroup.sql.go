@@ -37,16 +37,14 @@ func (q *Queries) CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams
 	return i, err
 }
 
-const deleteTaskGroupById = `-- name: DeleteTaskGroupById :one
+const deleteTaskGroupById = `-- name: DeleteTaskGroupById :exec
 DELETE FROM task_groups
 WHERE id = $1
-RETURNING id
 `
 
-func (q *Queries) DeleteTaskGroupById(ctx context.Context, id int64) (int64, error) {
-	row := q.db.QueryRow(ctx, deleteTaskGroupById, id)
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) DeleteTaskGroupById(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteTaskGroupById, id)
+	return err
 }
 
 const getAllTaskGroups = `-- name: GetAllTaskGroups :many
@@ -147,27 +145,14 @@ func (q *Queries) GetTaskGroupsByType(ctx context.Context, type_ TaskGroupType) 
 	return items, nil
 }
 
-const taskGroupExistsById = `-- name: TaskGroupExistsById :one
+const taskGroupExists = `-- name: TaskGroupExists :one
 SELECT EXISTS(
     SELECT 1 FROM task_groups WHERE id = $1
 ) AS exists
 `
 
-func (q *Queries) TaskGroupExistsById(ctx context.Context, id int64) (bool, error) {
-	row := q.db.QueryRow(ctx, taskGroupExistsById, id)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
-const taskGroupExistsByName = `-- name: TaskGroupExistsByName :one
-SELECT EXISTS(
-    SELECT 1 FROM task_groups WHERE name = $1
-) AS exists
-`
-
-func (q *Queries) TaskGroupExistsByName(ctx context.Context, name string) (bool, error) {
-	row := q.db.QueryRow(ctx, taskGroupExistsByName, name)
+func (q *Queries) TaskGroupExists(ctx context.Context, id int64) (bool, error) {
+	row := q.db.QueryRow(ctx, taskGroupExists, id)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
