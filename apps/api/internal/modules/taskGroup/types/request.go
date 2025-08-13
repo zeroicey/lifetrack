@@ -13,3 +13,8 @@ type UpdateGroupBody struct {
 	Description pgtype.Text `json:"description"`
 	Type        string      `json:"type"`
 }
+
+type ListGroupsParams struct {
+	Name *string // 使用指针来区分“未提供”和“提供空字符串”
+	Type *string
+}

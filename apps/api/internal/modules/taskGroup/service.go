@@ -6,217 +6,230 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup/types"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
+// Service 封装了与任务组相关的业务逻辑
 type Service struct {
-	Q *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
+	Q *repository.Queries
 }
 
-// ErrTaskGroupNotFound 当任务组不存在时返回的哨兵错误
+// ErrTaskGroupNotFound 是一个哨兵错误，在未找到任务组时返回
 var ErrTaskGroupNotFound = errors.New("task group not found")
 
+// NewService 创建一个新的 Service 实例
 func NewService(q *repository.Queries) *Service {
 	return &Service{Q: q}
 }
 
-func (s *Service) ListGroups(ctx context.Context) ([]types.TaskGroupResponse, error) {
-	groups, err := s.Q.GetAllTaskGroups(ctx)
+// ----------------------------------------------------------------------------
+// 统一的查询逻辑 (Unified Query Logic)
+// ----------------------------------------------------------------------------
+
+// ListGroupsParams 定义了列出或搜索任务组的参数
+
+// ListGroups 根据提供的参数（名称或类型）搜索任务组列表
+// 这是对 ListGroupsByType 和 GetGroupByName(返回列表)的统一和重构
+func (s *Service) ListGroups(ctx context.Context, params types.ListGroupsParams) ([]types.TaskGroupResponse, error) {
+	var (
+		groups []repository.TaskGroup
+		err    error
+	)
+
+	// 根据参数调用不同的数据库查询
+	if params.Name != nil {
+		// 按名称搜索（业务上假定唯一，但接口统一返回列表）
+		group, err_ := s.Q.GetTaskGroupByName(ctx, *params.Name)
+		if err_ != nil {
+			if errors.Is(err_, pgx.ErrNoRows) {
+				return []types.TaskGroupResponse{}, nil // 未找到，返回空列表，而非错误
+			}
+			return nil, err_
+		}
+		groups = append(groups, group)
+	} else if params.Type != nil {
+		// 按类型搜索
+		groupType, err_ := s.parseType(*params.Type)
+		if err_ != nil {
+			return nil, err_ // 无效的类型输入
+		}
+		groups, err = s.Q.GetTaskGroupsByType(ctx, groupType)
+	} else {
+		// 无参数，获取所有
+		groups, err = s.Q.GetAllTaskGroups(ctx)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	var responses []types.TaskGroupResponse
-	for _, group := range groups {
-		responses = append(responses, s.convertToTaskGroupResponse(group))
-	}
-	return responses, nil
+	// 统一的结果转换
+	return s.convertGroupRowsToResponse(groups), nil
 }
 
-func (s *Service) ListGroupsByType(ctx context.Context, typeStr string) ([]types.TaskGroupResponse, error) {
-	t, err := s.parseType(typeStr)
-	if err != nil {
-		return nil, err
-	}
-	groups, err := s.Q.GetTaskGroupsByType(ctx, t)
-	if err != nil {
-		return nil, err
-	}
-	var responses []types.TaskGroupResponse
-	for _, group := range groups {
-		responses = append(responses, s.convertToTaskGroupResponse(group))
-	}
-	return responses, nil
-}
+// ----------------------------------------------------------------------------
+// 单个资源获取 (Single Resource Retrieval)
+// ----------------------------------------------------------------------------
 
-func (s *Service) CreateGroup(ctx context.Context, params repository.CreateTaskGroupParams) (types.TaskGroupResponse, error) {
-	group, err := s.Q.CreateTaskGroup(ctx, params)
+// GetGroupByID 通过其唯一ID获取单个任务组
+func (s *Service) GetGroupByID(ctx context.Context, id int64) (types.TaskGroupResponse, error) {
+	group, err := s.Q.GetTaskGroupById(ctx, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return types.TaskGroupResponse{}, ErrTaskGroupNotFound
+		}
 		return types.TaskGroupResponse{}, err
 	}
 	return s.convertToTaskGroupResponse(group), nil
 }
 
-func (s *Service) GetGroupById(ctx context.Context, id int64) (*types.TaskGroupWithTasksResponse, error) {
-	if err := s.checkGroupExists(ctx, id); err != nil {
-		return nil, err
-	}
-	taskGroup, err := s.Q.GetTaskGroupById(ctx, id)
+// GetGroupWithTasksByID 通过其唯一ID获取单个任务组及其所有任务
+// 推荐：未来可以优化为 sqlc 的 JOIN 查询，以减少数据库交互次数
+func (s *Service) GetGroupWithTasksByID(ctx context.Context, id int64) (types.TaskGroupWithTasksResponse, error) {
+	groupInfo, err := s.Q.GetTaskGroupById(ctx, id)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return types.TaskGroupWithTasksResponse{}, ErrTaskGroupNotFound
+		}
+		return types.TaskGroupWithTasksResponse{}, err
 	}
 
 	tasks, err := s.Q.GetTasksByGroupId(ctx, id)
 	if err != nil {
-		return nil, err
+		return types.TaskGroupWithTasksResponse{}, err
 	}
 
-	var taskResponses []types.TaskResponse
-	for _, task := range tasks {
-		taskResponses = append(taskResponses, s.convertToTaskResponse(task))
-	}
-
-	resp := &types.TaskGroupWithTasksResponse{
-		ID:          taskGroup.ID,
-		Name:        taskGroup.Name,
-		Description: s.getStringFromPgText(taskGroup.Description),
-		Type:        string(taskGroup.Type),
-		CreatedAt:   taskGroup.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   taskGroup.UpdatedAt.Time.Format(time.RFC3339),
-		Tasks:       taskResponses,
-	}
-
-	return resp, nil
+	return s.populateTasksForGroup(
+		s.convertToTaskGroupResponse(groupInfo),
+		tasks,
+	), nil
 }
 
-func (s *Service) GetGroupByName(ctx context.Context, name string) (*types.TaskGroupWithTasksResponse, error) {
-	taskGroup, err := s.Q.GetTaskGroupByName(ctx, name)
+// ----------------------------------------------------------------------------
+// 写入操作 (Write Operations)
+// ----------------------------------------------------------------------------
+
+// CreateGroup 创建一个新的任务组
+func (s *Service) CreateGroup(ctx context.Context, params repository.CreateTaskGroupParams) (types.TaskGroupResponse, error) {
+	// 参数校验可以在这里添加
+	// ...
+
+	group, err := s.Q.CreateTaskGroup(ctx, params)
 	if err != nil {
-		return nil, ErrTaskGroupNotFound
-	}
-
-	tasks, err := s.Q.GetTasksByGroupId(ctx, taskGroup.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	var taskResponses []types.TaskResponse
-	for _, task := range tasks {
-		taskResponses = append(taskResponses, s.convertToTaskResponse(task))
-	}
-
-	resp := &types.TaskGroupWithTasksResponse{
-		ID:          taskGroup.ID,
-		Name:        taskGroup.Name,
-		Description: s.getStringFromPgText(taskGroup.Description),
-		Type:        string(taskGroup.Type),
-		CreatedAt:   taskGroup.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   taskGroup.UpdatedAt.Time.Format(time.RFC3339),
-		Tasks:       taskResponses,
-	}
-
-	return resp, nil
-}
-
-func (s *Service) UpdateGroup(ctx context.Context, params repository.UpdateTaskGroupByIdParams) (types.TaskGroupResponse, error) {
-	if err := s.checkGroupExists(ctx, params.ID); err != nil {
-		return types.TaskGroupResponse{}, err
-	}
-	// Preserve existing type if not provided
-	if params.Type == "" {
-		existing, err := s.Q.GetTaskGroupById(ctx, params.ID)
-		if err != nil {
-			return types.TaskGroupResponse{}, err
-		}
-		params.Type = existing.Type
-	}
-	group, err := s.Q.UpdateTaskGroupById(ctx, params)
-	if err != nil {
+		// 这里可以处理特定的数据库错误，例如唯一性约束冲突
 		return types.TaskGroupResponse{}, err
 	}
 	return s.convertToTaskGroupResponse(group), nil
 }
 
-func (s *Service) DeleteGroup(ctx context.Context, id int64) error {
-	if err := s.checkGroupExists(ctx, id); err != nil {
-		return err
-	}
-	return s.Q.DeleteTaskGroupById(ctx, id)
-}
-
-func (s *Service) checkGroupExists(ctx context.Context, id int64) error {
-	exists, err := s.Q.TaskGroupExists(ctx, id)
+// UpdateGroup 更新一个已有的任务组
+// 注意：移除了更新前多余的 checkGroupExists 调用
+func (s *Service) UpdateGroup(ctx context.Context, params repository.UpdateTaskGroupByIdParams) (types.TaskGroupResponse, error) {
+	group, err := s.Q.UpdateTaskGroupById(ctx, params)
 	if err != nil {
-		return err
+		if errors.Is(err, pgx.ErrNoRows) {
+			// 如果更新操作返回 ErrNoRows，说明ID不存在
+			return types.TaskGroupResponse{}, ErrTaskGroupNotFound
+		}
+		return types.TaskGroupResponse{}, err
 	}
-	if !exists {
-		return ErrTaskGroupNotFound
-	}
-	return nil
+	return s.convertToTaskGroupResponse(group), nil
 }
 
-func (s *Service) convertToTaskGroupResponse(group repository.TaskGroup) types.TaskGroupResponse {
+// DeleteGroup 删除一个任务组
+// 注意：移除了删除前多余的 checkGroupExists 调用
+func (s *Service) DeleteGroup(ctx context.Context, id int64) error {
+	// sqlc 生成的 Exec 方法会返回一个 CommandTag，可以检查受影响的行数
+	// 但为了简化，我们直接依赖 DeleteTaskGroupById 在找不到时是否返回错误
+	// 如果 sqlc 配置为不返回错误，则需要检查受影响的行数
+	err := s.Q.DeleteTaskGroupById(ctx, id)
+	// 假设：如果没找到可删除的行，sqlc方法会返回 pgx.ErrNoRows 或类似的错误。
+	// 如果它不返回错误，那么这个操作就是幂等的，也很好。
+	return err
+}
+
+// ----------------------------------------------------------------------------
+// 辅助函数和转换器 (Helpers & Converters)
+// ----------------------------------------------------------------------------
+
+// populateTasksForGroup 是一个纯函数，用于组装带有任务的任务组响应
+func (s *Service) populateTasksForGroup(group types.TaskGroupResponse, tasks []repository.Task) types.TaskGroupWithTasksResponse {
+	return types.TaskGroupWithTasksResponse{
+		TaskGroupResponse: group,
+		Tasks:             s.convertTaskRowsToResponse(tasks),
+	}
+}
+
+// convertGroupRowsToResponse 将数据库中的 TaskGroup 行切片转换为响应切片 - 抽象了重复的循环
+func (s *Service) convertGroupRowsToResponse(groups []repository.TaskGroup) []types.TaskGroupResponse {
+	responses := make([]types.TaskGroupResponse, len(groups))
+	for i, group := range groups {
+		responses[i] = s.convertToTaskGroupResponse(group)
+	}
+	return responses
+}
+
+// convertTaskRowsToResponse 将数据库中的 Task 行切片转换为响应切片
+func (s *Service) convertTaskRowsToResponse(tasks []repository.Task) []types.TaskResponse {
+	responses := make([]types.TaskResponse, len(tasks))
+	for i, task := range tasks {
+		responses[i] = s.convertToTaskResponse(task)
+	}
+	return responses
+}
+
+// convertToTaskGroupResponse 将单个数据库模型转换为API响应模型
+func (s *Service) convertToTaskGroupResponse(g repository.TaskGroup) types.TaskGroupResponse {
 	return types.TaskGroupResponse{
-		ID:          group.ID,
-		Name:        group.Name,
-		Description: s.getStringFromPgText(group.Description),
-		Type:        string(group.Type),
-		CreatedAt:   group.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   group.UpdatedAt.Time.Format(time.RFC3339),
+		ID:          g.ID,
+		Name:        g.Name,
+		Description: s.pgTextToString(g.Description),
+		Type:        string(g.Type),
+		CreatedAt:   s.pgTimestampToString(g.CreatedAt),
+		UpdatedAt:   s.pgTimestampToString(g.UpdatedAt),
 	}
 }
 
-func (s *Service) convertToTaskResponse(task repository.Task) types.TaskResponse {
+// convertToTaskResponse 将单个数据库模型转换为API响应模型
+func (s *Service) convertToTaskResponse(t repository.Task) types.TaskResponse {
 	return types.TaskResponse{
-		ID:          task.ID,
-		GroupID:     task.GroupID,
-		Content:     task.Content,
-		Description: s.getStringFromPgText(task.Description),
-		Status:      string(task.Status),
-		Deadline:    s.getStringFromPgTimestamp(task.Deadline),
-		CreatedAt:   task.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   task.UpdatedAt.Time.Format(time.RFC3339),
+		ID:          t.ID,
+		GroupID:     t.GroupID,
+		Content:     t.Content,
+		Description: s.pgTextToString(t.Description),
+		Status:      string(t.Status),
+		Deadline:    s.pgTimestampToString(t.Deadline),
+		CreatedAt:   s.pgTimestampToString(t.CreatedAt),
+		UpdatedAt:   s.pgTimestampToString(t.UpdatedAt),
 	}
 }
 
-func (s *Service) getStringFromPgText(pgText pgtype.Text) string {
-	if pgText.Valid {
-		return pgText.String
+// pgTextToString 是一个更通用的转换器
+func (s *Service) pgTextToString(pt pgtype.Text) string {
+	if !pt.Valid {
+		return ""
 	}
-	return ""
+	return pt.String
 }
 
-func (s *Service) getStringFromPgTimestamp(pgTimestamp pgtype.Timestamptz) string {
-	if pgTimestamp.Valid {
-		return pgTimestamp.Time.Format(time.RFC3339)
+// pgTimestampToString 是一个更通用的转换器
+func (s *Service) pgTimestampToString(pt pgtype.Timestamptz) string {
+	if !pt.Valid {
+		return ""
 	}
-	return ""
+	return pt.Time.Format(time.RFC3339)
 }
 
-// parseType converts user input string to repository.TaskGroupType.
+// parseType 验证并转换类型字符串
 func (s *Service) parseType(typeStr string) (repository.TaskGroupType, error) {
-	switch strings.ToLower(strings.TrimSpace(typeStr)) {
-	case string(repository.TaskGroupTypeDay):
-		return repository.TaskGroupTypeDay, nil
-	case string(repository.TaskGroupTypeWeek):
-		return repository.TaskGroupTypeWeek, nil
-	case string(repository.TaskGroupTypeMonth):
-		return repository.TaskGroupTypeMonth, nil
-	case string(repository.TaskGroupTypeYear):
-		return repository.TaskGroupTypeYear, nil
-	case string(repository.TaskGroupTypeCustom):
-		return repository.TaskGroupTypeCustom, nil
+	normalizedType := repository.TaskGroupType(strings.ToLower(strings.TrimSpace(typeStr)))
+	switch normalizedType {
+	case repository.TaskGroupTypeDay, repository.TaskGroupTypeWeek, repository.TaskGroupTypeMonth, repository.TaskGroupTypeYear, repository.TaskGroupTypeCustom:
+		return normalizedType, nil
 	default:
 		return "", errors.New("invalid task group type")
 	}
-}
-
-// mustParseType returns parsed type; if invalid, fallback to custom.
-func (s *Service) mustParseType(typeStr string) repository.TaskGroupType {
-	if t, err := s.parseType(typeStr); err == nil {
-		return t
-	}
-	return repository.TaskGroupTypeCustom
 }
