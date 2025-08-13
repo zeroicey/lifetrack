@@ -25,12 +25,18 @@ WHERE
     id = $4
 RETURNING *;
 
--- name: DeleteTaskGroupById :exec
+-- name: DeleteTaskGroupById :one
 DELETE FROM task_groups
-WHERE id = $1;
+WHERE id = $1
+RETURNING id;
 
--- name: TaskGroupExists :one
+
+-- name: TaskGroupExistsById :one
 SELECT EXISTS(
     SELECT 1 FROM task_groups WHERE id = $1
 ) AS exists;
 
+-- name: TaskGroupExistsByName :one
+SELECT EXISTS(
+    SELECT 1 FROM task_groups WHERE name = $1
+) AS exists;

@@ -84,7 +84,7 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 	identifier := chi.URLParam(r, "identifier")
 	ctx := r.Context()
 
-	var groupWithTasks *taskgroup.TaskGroupWithTasksResponse
+	var groupWithTasks *taskgroup.TaskGroupResponse
 	var err error
 
 	id, parseErr := strconv.ParseInt(identifier, 10, 64)
@@ -108,8 +108,8 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	identifier := chi.URLParam(r, "identifier")
+	id, err := strconv.ParseInt(identifier, 10, 64)
 	if err != nil || id <= 0 {
 		response.Error("Invalid group ID").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
@@ -146,8 +146,8 @@ func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	response.Success("Task group updated successfully").SetStatusCode(http.StatusOK).SetData(updatedGroup).Build(w)
 }
 func (h *Handler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	identifier := chi.URLParam(r, "identifier")
+	id, err := strconv.ParseInt(identifier, 10, 64)
 	if err != nil || id <= 0 {
 		response.Error("Invalid group ID").SetStatusCode(http.StatusBadRequest).Build(w)
 		return

@@ -6,17 +6,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup/types"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
 type Service struct {
-	Q *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
+	Q *repository.Queries
 }
 
-// ErrTaskGroupNotFound 当任务组不存在时返回的哨兵错误
 var ErrTaskGroupNotFound = errors.New("task group not found")
+var ErrTaskGroupInvalidType = errors.New("invalid task group type")
 
 func NewService(q *repository.Queries) *Service {
 	return &Service{Q: q}
@@ -59,100 +60,58 @@ func (s *Service) CreateGroup(ctx context.Context, params repository.CreateTaskG
 	return s.convertToTaskGroupResponse(group), nil
 }
 
-func (s *Service) GetGroupById(ctx context.Context, id int64) (*types.TaskGroupWithTasksResponse, error) {
-	if err := s.checkGroupExists(ctx, id); err != nil {
-		return nil, err
-	}
+func (s *Service) GetGroupById(ctx context.Context, id int64) (*types.TaskGroupResponse, error) {
 	taskGroup, err := s.Q.GetTaskGroupById(ctx, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTaskGroupNotFound
+		}
 		return nil, err
 	}
-
-	tasks, err := s.Q.GetTasksByGroupId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	var taskResponses []types.TaskResponse
-	for _, task := range tasks {
-		taskResponses = append(taskResponses, s.convertToTaskResponse(task))
-	}
-
-	resp := &types.TaskGroupWithTasksResponse{
-		ID:          taskGroup.ID,
-		Name:        taskGroup.Name,
-		Description: s.getStringFromPgText(taskGroup.Description),
-		Type:        string(taskGroup.Type),
-		CreatedAt:   taskGroup.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   taskGroup.UpdatedAt.Time.Format(time.RFC3339),
-		Tasks:       taskResponses,
-	}
-
-	return resp, nil
+	response := s.convertToTaskGroupResponse(taskGroup)
+	return &response, nil
 }
 
-func (s *Service) GetGroupByName(ctx context.Context, name string) (*types.TaskGroupWithTasksResponse, error) {
+func (s *Service) GetGroupByName(ctx context.Context, name string) (*types.TaskGroupResponse, error) {
 	taskGroup, err := s.Q.GetTaskGroupByName(ctx, name)
 	if err != nil {
-		return nil, ErrTaskGroupNotFound
-	}
-
-	tasks, err := s.Q.GetTasksByGroupId(ctx, taskGroup.ID)
-	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTaskGroupNotFound
+		}
 		return nil, err
 	}
-
-	var taskResponses []types.TaskResponse
-	for _, task := range tasks {
-		taskResponses = append(taskResponses, s.convertToTaskResponse(task))
-	}
-
-	resp := &types.TaskGroupWithTasksResponse{
-		ID:          taskGroup.ID,
-		Name:        taskGroup.Name,
-		Description: s.getStringFromPgText(taskGroup.Description),
-		Type:        string(taskGroup.Type),
-		CreatedAt:   taskGroup.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   taskGroup.UpdatedAt.Time.Format(time.RFC3339),
-		Tasks:       taskResponses,
-	}
-
-	return resp, nil
+	response := s.convertToTaskGroupResponse(taskGroup)
+	return &response, nil
 }
 
 func (s *Service) UpdateGroup(ctx context.Context, params repository.UpdateTaskGroupByIdParams) (types.TaskGroupResponse, error) {
-	if err := s.checkGroupExists(ctx, params.ID); err != nil {
-		return types.TaskGroupResponse{}, err
-	}
-	// Preserve existing type if not provided
 	if params.Type == "" {
 		existing, err := s.Q.GetTaskGroupById(ctx, params.ID)
 		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return types.TaskGroupResponse{}, ErrTaskGroupNotFound
+			}
 			return types.TaskGroupResponse{}, err
 		}
 		params.Type = existing.Type
 	}
 	group, err := s.Q.UpdateTaskGroupById(ctx, params)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return types.TaskGroupResponse{}, ErrTaskGroupNotFound
+		}
 		return types.TaskGroupResponse{}, err
 	}
 	return s.convertToTaskGroupResponse(group), nil
 }
 
 func (s *Service) DeleteGroup(ctx context.Context, id int64) error {
-	if err := s.checkGroupExists(ctx, id); err != nil {
-		return err
-	}
-	return s.Q.DeleteTaskGroupById(ctx, id)
-}
-
-func (s *Service) checkGroupExists(ctx context.Context, id int64) error {
-	exists, err := s.Q.TaskGroupExists(ctx, id)
+	_, err := s.Q.DeleteTaskGroupById(ctx, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrTaskGroupNotFound
+		}
 		return err
-	}
-	if !exists {
-		return ErrTaskGroupNotFound
 	}
 	return nil
 }
@@ -168,19 +127,6 @@ func (s *Service) convertToTaskGroupResponse(group repository.TaskGroup) types.T
 	}
 }
 
-func (s *Service) convertToTaskResponse(task repository.Task) types.TaskResponse {
-	return types.TaskResponse{
-		ID:          task.ID,
-		GroupID:     task.GroupID,
-		Content:     task.Content,
-		Description: s.getStringFromPgText(task.Description),
-		Status:      string(task.Status),
-		Deadline:    s.getStringFromPgTimestamp(task.Deadline),
-		CreatedAt:   task.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   task.UpdatedAt.Time.Format(time.RFC3339),
-	}
-}
-
 func (s *Service) getStringFromPgText(pgText pgtype.Text) string {
 	if pgText.Valid {
 		return pgText.String
@@ -188,14 +134,6 @@ func (s *Service) getStringFromPgText(pgText pgtype.Text) string {
 	return ""
 }
 
-func (s *Service) getStringFromPgTimestamp(pgTimestamp pgtype.Timestamptz) string {
-	if pgTimestamp.Valid {
-		return pgTimestamp.Time.Format(time.RFC3339)
-	}
-	return ""
-}
-
-// parseType converts user input string to repository.TaskGroupType.
 func (s *Service) parseType(typeStr string) (repository.TaskGroupType, error) {
 	switch strings.ToLower(strings.TrimSpace(typeStr)) {
 	case string(repository.TaskGroupTypeDay):
@@ -209,11 +147,10 @@ func (s *Service) parseType(typeStr string) (repository.TaskGroupType, error) {
 	case string(repository.TaskGroupTypeCustom):
 		return repository.TaskGroupTypeCustom, nil
 	default:
-		return "", errors.New("invalid task group type")
+		return "", ErrTaskGroupInvalidType
 	}
 }
 
-// mustParseType returns parsed type; if invalid, fallback to custom.
 func (s *Service) mustParseType(typeStr string) repository.TaskGroupType {
 	if t, err := s.parseType(typeStr); err == nil {
 		return t

@@ -15,7 +15,16 @@ export const apiGetTaskGroupByNameWithTasks = async (name: string) => {
     const res = await http
         .get<Response<TaskGroupWithTasks>>(`task-groups/${name}`)
         .json();
-    return res.data?.tasks;
+
+    return res.data;
+};
+
+export const apiGetTaskGroupByName = async (name: string) => {
+    const res = await http
+        .get<Response<TaskGroupWithTasks>>(`task-groups/${name}`)
+        .json();
+
+    return res.data;
 };
 
 export const apiGetTaskGroupsByType = async (type: TaskGroupType) => {

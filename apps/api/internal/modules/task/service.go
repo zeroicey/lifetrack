@@ -5,15 +5,15 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/zeroicey/lifetrack-api/internal/modules/task/types"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
 type Service struct {
-	Q *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
+	Q *repository.Queries
 }
 
-// Sentinel errors for task domain
 var (
 	ErrTaskNotFound      = errors.New("task not found")
 	ErrTaskGroupNotFound = errors.New("task group not found")
@@ -24,8 +24,7 @@ func NewService(q *repository.Queries) *Service {
 }
 
 func (s *Service) CreateTask(ctx context.Context, params repository.CreateTaskParams) (types.TaskResponse, error) {
-	// 检查任务组是否存在
-	groupExists, err := s.Q.TaskGroupExists(ctx, params.GroupID)
+	groupExists, err := s.Q.TaskGroupExistsById(ctx, params.GroupID)
 	if err != nil {
 		return types.TaskResponse{}, err
 	}
@@ -41,42 +40,46 @@ func (s *Service) CreateTask(ctx context.Context, params repository.CreateTaskPa
 	return s.convertToTaskResponse(task), nil
 }
 
-func (s *Service) GetTaskById(ctx context.Context, id int64) (types.TaskResponse, error) {
-	if err := s.checkTaskExists(ctx, id); err != nil {
-		return types.TaskResponse{}, err
-	}
-	task, err := s.Q.GetTaskById(ctx, id)
+func (s *Service) GetTasksByGroupId(ctx context.Context, id int64) ([]types.TaskResponse, error) {
+	groupExists, err := s.Q.TaskGroupExistsById(ctx, id)
 	if err != nil {
-		return types.TaskResponse{}, err
+		return nil, err
 	}
-	return s.convertToTaskResponse(task), nil
+	if !groupExists {
+		return nil, ErrTaskGroupNotFound
+	}
+
+	tasks, err := s.Q.GetTasksByGroupId(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []types.TaskResponse
+	for _, task := range tasks {
+		responses = append(responses, s.convertToTaskResponse(task))
+	}
+	return responses, nil
 }
 
+// service.go
 func (s *Service) UpdateTask(ctx context.Context, params repository.UpdateTaskByIdParams) (types.TaskResponse, error) {
-	if err := s.checkTaskExists(ctx, params.ID); err != nil {
-		return types.TaskResponse{}, err
-	}
 	task, err := s.Q.UpdateTaskById(ctx, params)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return types.TaskResponse{}, ErrTaskNotFound
+		}
 		return types.TaskResponse{}, err
 	}
 	return s.convertToTaskResponse(task), nil
 }
 
 func (s *Service) DeleteTask(ctx context.Context, id int64) error {
-	if err := s.checkTaskExists(ctx, id); err != nil {
-		return err
-	}
-	return s.Q.DeleteTaskById(ctx, id)
-}
-
-func (s *Service) checkTaskExists(ctx context.Context, id int64) error {
-	exists, err := s.Q.TaskExists(ctx, id)
+	_, err := s.Q.DeleteTaskById(ctx, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrTaskNotFound
+		}
 		return err
-	}
-	if !exists {
-		return ErrTaskNotFound
 	}
 	return nil
 }
