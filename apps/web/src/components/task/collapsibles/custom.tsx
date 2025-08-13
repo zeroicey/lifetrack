@@ -26,7 +26,6 @@ export default function CustomCollapsible({
     };
 
     const handleGroupCreated = () => {
-        // 确保折叠栏展开
         onOpenChange(true);
     };
 
@@ -66,8 +65,8 @@ export default function CustomCollapsible({
                     <CustomTaskGroupList />
                 </CollapsibleContent>
             </Collapsible>
-            <GroupCreateDialog 
-                open={dialogOpen} 
+            <GroupCreateDialog
+                open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 onGroupCreated={handleGroupCreated}
             />

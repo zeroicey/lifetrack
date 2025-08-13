@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTaskCreateMutation, useTaskQuery } from "@/hooks/use-task-query";
-import { useSettingStore } from "@/stores/setting";
+import { useTaskStore } from "@/stores/task";
 
 export default function TaskCreateInput() {
     const [taskContent, setTaskContent] = useState("");
-    const { currentTaskGroupId } = useSettingStore();
+    const { currentTaskGroup } = useTaskStore();
     const { mutate: createTask } = useTaskCreateMutation();
     const { isPending } = useTaskQuery();
 
@@ -14,7 +14,7 @@ export default function TaskCreateInput() {
         if (taskContent.trim() && !isPending) {
             createTask({
                 content: taskContent.trim(),
-                group_id: currentTaskGroupId,
+                group_id: currentTaskGroup!.id,
             });
             setTaskContent("");
         }

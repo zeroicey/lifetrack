@@ -1,7 +1,7 @@
 import {
     apiCreateTaskGroup,
     apiDeleteTaskGroup,
-    apiGetTaskGroups,
+    apiGetTaskGroupsByType,
     apiUpdateTaskGroup,
 } from "@/api/task";
 import {
@@ -15,10 +15,10 @@ import { toast } from "sonner";
 
 const queryGroupKey: QueryKey = ["list-groups"];
 
-export const useTaskGroupQuery = () => {
+export const useTaskCustomGroupQuery = () => {
     return useQuery({
         queryKey: queryGroupKey,
-        queryFn: () => apiGetTaskGroups(),
+        queryFn: () => apiGetTaskGroupsByType("custom"),
     });
 };
 

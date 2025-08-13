@@ -7,10 +7,9 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	taskgroup "github.com/zeroicey/lifetrack-api/internal/modules/taskgroup/types"
 	response "github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
-
-	taskgroup "github.com/zeroicey/lifetrack-api/internal/modules/taskgroup/types"
 )
 
 type Handler struct {
@@ -24,21 +23,35 @@ func NewHandler(s *Service) *Handler {
 func TaskGroupRouter(s *Service) chi.Router {
 	h := NewHandler(s)
 	r := chi.NewRouter()
-	r.Get("/", h.ListGroups)
-	// Query by type: /?type=day|week|month|year|custom
-	r.Get("/type/{type}", h.ListGroupsByType)
-	// Query by name
-	r.Get("/name/{name}", h.GetGroupByName)
+
+	r.Get("/", h.ListOrSearchGroups)
 	r.Post("/", h.CreateGroup)
-	r.Get("/{id}", h.GetGroupById)
-	r.Put("/{id}", h.UpdateGroup)
-	r.Delete("/{id}", h.DeleteGroup)
+
+	r.Route("/{identifier}", func(r chi.Router) {
+		r.Get("/", h.GetGroup)
+		r.Put("/", h.UpdateGroup)
+		r.Delete("/", h.DeleteGroup)
+	})
+
 	return r
 }
 
-// Without tasks items
-func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
-	taskGroups, err := h.S.ListGroups(r.Context())
+func (h *Handler) ListOrSearchGroups(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	groupType := r.URL.Query().Get("type")
+
+	if groupType != "" {
+		groups, err := h.S.ListGroupsByType(ctx, groupType)
+		if err != nil {
+			response.Error("Failed to list task groups by type").SetStatusCode(http.StatusBadRequest).Build(w)
+			return
+		}
+		response.Success("List of task groups by type").SetStatusCode(http.StatusOK).SetData(groups).Build(w)
+		return
+	}
+
+	taskGroups, err := h.S.ListGroups(ctx)
 	if err != nil {
 		response.Error("Failed to list task groups").SetStatusCode(http.StatusInternalServerError).Build(w)
 		return
@@ -67,47 +80,21 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	response.Success("Task group created successfully").SetStatusCode(http.StatusCreated).SetData(newGroup).Build(w)
 }
 
-// With tasks items
-func (h *Handler) GetGroupById(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil || id <= 0 {
-		response.Error("Invalid group ID").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
+func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
+	identifier := chi.URLParam(r, "identifier")
+	ctx := r.Context()
+
+	var groupWithTasks *taskgroup.TaskGroupWithTasksResponse
+	var err error
+
+	id, parseErr := strconv.ParseInt(identifier, 10, 64)
+
+	if parseErr == nil && id > 0 {
+		groupWithTasks, err = h.S.GetGroupById(ctx, id)
+	} else {
+		groupWithTasks, err = h.S.GetGroupByName(ctx, identifier)
 	}
 
-	resp, err := h.S.GetGroupById(r.Context(), id)
-	if err != nil {
-		if errors.Is(err, ErrTaskGroupNotFound) {
-			response.Error("Task group not found").SetStatusCode(http.StatusNotFound).Build(w)
-		} else {
-			response.Error("Failed to get task group details").SetStatusCode(http.StatusInternalServerError).Build(w)
-		}
-		return
-	}
-
-	response.Success("Task group details").SetStatusCode(http.StatusOK).SetData(resp).Build(w)
-}
-
-// GET /type/{type}
-func (h *Handler) ListGroupsByType(w http.ResponseWriter, r *http.Request) {
-	typeStr := chi.URLParam(r, "type")
-	groups, err := h.S.ListGroupsByType(r.Context(), typeStr)
-	if err != nil {
-		response.Error("Failed to list task groups by type").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-	response.Success("List of task groups by type").SetStatusCode(http.StatusOK).SetData(groups).Build(w)
-}
-
-// GET /name/{name}
-func (h *Handler) GetGroupByName(w http.ResponseWriter, r *http.Request) {
-	name := chi.URLParam(r, "name")
-	if name == "" {
-		response.Error("Invalid group name").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-	group, err := h.S.GetGroupByName(r.Context(), name)
 	if err != nil {
 		if errors.Is(err, ErrTaskGroupNotFound) {
 			response.Error("Task group not found").SetStatusCode(http.StatusNotFound).Build(w)
@@ -116,7 +103,8 @@ func (h *Handler) GetGroupByName(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	response.Success("Task group details").SetStatusCode(http.StatusOK).SetData(group).Build(w)
+
+	response.Success("Task group details").SetStatusCode(http.StatusOK).SetData(groupWithTasks).Build(w)
 }
 
 func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {

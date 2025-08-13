@@ -27,15 +27,15 @@ import { Button } from "@/components/ui/button";
 
 interface Props {
     group: TaskGroup;
-    setCurrentTaskGroup: (taskGroup: TaskGroup) => void;
-    currentTaskGroupId: number;
+    currentTaskGroup: TaskGroup | null;
+    setCurrentTaskGroup: (group: TaskGroup) => void;
     confirmDelete: () => void;
 }
 
 export default function TaskGroupItem({
     group,
+    currentTaskGroup,
     setCurrentTaskGroup,
-    currentTaskGroupId,
     confirmDelete,
 }: Props) {
     const { mutate: updateTaskGroup } = useTaskGroupUpdateMutation();
@@ -76,7 +76,7 @@ export default function TaskGroupItem({
                 className={cn(
                     "group cursor-pointer text-sm p-3 rounded-lg border transition-all duration-200",
                     "flex items-center justify-between hover:shadow-sm",
-                    currentTaskGroupId === group.id
+                    currentTaskGroup?.id === group.id
                         ? "bg-primary/10 border-primary/30 text-primary"
                         : "bg-card hover:bg-accent/50 border-border"
                 )}

@@ -91,12 +91,33 @@ func (s *Service) GetGroupById(ctx context.Context, id int64) (*types.TaskGroupW
 	return resp, nil
 }
 
-func (s *Service) GetGroupByName(ctx context.Context, name string) (types.TaskGroupResponse, error) {
-	group, err := s.Q.GetTaskGroupByName(ctx, name)
+func (s *Service) GetGroupByName(ctx context.Context, name string) (*types.TaskGroupWithTasksResponse, error) {
+	taskGroup, err := s.Q.GetTaskGroupByName(ctx, name)
 	if err != nil {
-		return types.TaskGroupResponse{}, ErrTaskGroupNotFound
+		return nil, ErrTaskGroupNotFound
 	}
-	return s.convertToTaskGroupResponse(group), nil
+
+	tasks, err := s.Q.GetTasksByGroupId(ctx, taskGroup.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var taskResponses []types.TaskResponse
+	for _, task := range tasks {
+		taskResponses = append(taskResponses, s.convertToTaskResponse(task))
+	}
+
+	resp := &types.TaskGroupWithTasksResponse{
+		ID:          taskGroup.ID,
+		Name:        taskGroup.Name,
+		Description: s.getStringFromPgText(taskGroup.Description),
+		Type:        string(taskGroup.Type),
+		CreatedAt:   taskGroup.CreatedAt.Time.Format(time.RFC3339),
+		UpdatedAt:   taskGroup.UpdatedAt.Time.Format(time.RFC3339),
+		Tasks:       taskResponses,
+	}
+
+	return resp, nil
 }
 
 func (s *Service) UpdateGroup(ctx context.Context, params repository.UpdateTaskGroupByIdParams) (types.TaskGroupResponse, error) {

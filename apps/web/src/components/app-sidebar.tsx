@@ -1,12 +1,5 @@
 "use client";
-import {
-    Home,
-    FileText,
-    CheckSquare,
-    Repeat,
-    Calendar,
-    Logs,
-} from "lucide-react";
+import { Home, FileText, CheckSquare, Repeat, Calendar } from "lucide-react";
 
 import {
     Sidebar,
@@ -34,12 +27,6 @@ const items: MenuItem[] = [
         title: "Home",
         url: "/home",
         icon: Home,
-        isEnd: false,
-    },
-    {
-        title: "Log",
-        url: "/log",
-        icon: Logs,
         isEnd: false,
     },
     {

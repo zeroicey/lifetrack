@@ -4,13 +4,13 @@ import CustomCollapsible from "@/components/task/collapsibles/custom";
 import { Button } from "@/components/ui/button";
 import { useIsPhone } from "@/hooks/use-mobile";
 import { useNavbarStore } from "@/stores/navbar";
-import { useSettingStore } from "@/stores/setting";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { useTaskStore } from "@/stores/task";
 
 export default function TaskPage() {
     const { setRightContent, clearRightContent } = useNavbarStore();
-    const { currentTaskGroup } = useSettingStore();
+    const { currentTaskGroup } = useTaskStore();
     const isMobile = useIsPhone();
     const [isCustomOpen, setIsCustomOpen] = useState(true);
 
@@ -18,12 +18,12 @@ export default function TaskPage() {
         setRightContent(
             <Link to={"task/groups"}>
                 <Button variant="ghost" className="text-gray-500 text-sm">
-                    {currentTaskGroup.name}
+                    {currentTaskGroup?.name}
                 </Button>
             </Link>
         );
         return () => clearRightContent();
-    }, [clearRightContent, setRightContent, isMobile, currentTaskGroup]);
+    }, [clearRightContent, setRightContent, isMobile, currentTaskGroup?.name]);
 
     return (
         <div className="h-full w-full flex justify-center">

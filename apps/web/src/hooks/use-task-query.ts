@@ -1,37 +1,43 @@
 import {
     apiCreateTask,
     apiDeleteTask,
-    apiGetTaskGroupWithTasks,
+    apiGetTaskGroupByNameWithTasks,
     apiUpdateTask,
 } from "@/api/task";
-import { useSettingStore } from "@/stores/setting";
+import { useTaskStore } from "@/stores/task";
 import {
     type QueryKey,
     useMutation,
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query";
+import { format } from "date-fns";
 
 import { toast } from "sonner";
 
-export const getTaskQueryKey = (taskGroupId: number): QueryKey => [
+export const getTaskQueryKey = (taskGroupName: string): QueryKey => [
     "list-tasks",
-    taskGroupId,
+    taskGroupName,
 ];
 
 export const useTaskQuery = () => {
-    const { currentTaskGroupId } = useSettingStore();
+    const { currentTaskGroup } = useTaskStore();
+    const taskGroupName =
+        currentTaskGroup?.name || format(new Date(), "yyyy-MM-dd");
     return useQuery({
-        queryKey: getTaskQueryKey(currentTaskGroupId),
-        queryFn: () => apiGetTaskGroupWithTasks(currentTaskGroupId),
-        enabled: currentTaskGroupId !== -1,
+        queryKey: getTaskQueryKey(taskGroupName),
+        queryFn: () => apiGetTaskGroupByNameWithTasks(taskGroupName),
+        retry: false,
+        enabled: !!currentTaskGroup,
     });
 };
 
 export const useTaskUpdateMutation = () => {
     const queryClient = useQueryClient();
-    const { currentTaskGroupId } = useSettingStore();
-    const taskQueryKey = getTaskQueryKey(currentTaskGroupId);
+    const { currentTaskGroup } = useTaskStore();
+    const taskGroupName =
+        currentTaskGroup?.name || format(new Date(), "yyyy-MM-dd");
+    const taskQueryKey = getTaskQueryKey(taskGroupName);
 
     return useMutation({
         mutationFn: apiUpdateTask,
@@ -50,13 +56,16 @@ export const useTaskUpdateMutation = () => {
 
 export const useTaskCreateMutation = () => {
     const queryClient = useQueryClient();
-    const { currentTaskGroupId } = useSettingStore();
+    const { currentTaskGroup } = useTaskStore();
+
+    const taskGroupName =
+        currentTaskGroup?.name || format(new Date(), "yyyy-MM-dd");
 
     return useMutation({
         mutationFn: apiCreateTask,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: getTaskQueryKey(currentTaskGroupId),
+                queryKey: getTaskQueryKey(taskGroupName),
             });
             toast.success("Create task successfully!");
         },
@@ -65,13 +74,16 @@ export const useTaskCreateMutation = () => {
 
 export const useTaskDeleteMutation = () => {
     const queryClient = useQueryClient();
-    const { currentTaskGroupId } = useSettingStore();
+    const { currentTaskGroup } = useTaskStore();
+
+    const taskGroupName =
+        currentTaskGroup?.name || format(new Date(), "yyyy-MM-dd");
 
     return useMutation({
         mutationFn: apiDeleteTask,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: getTaskQueryKey(currentTaskGroupId),
+                queryKey: getTaskQueryKey(taskGroupName),
             });
             toast.success("Delete task successfully!");
         },
