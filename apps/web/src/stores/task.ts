@@ -1,22 +1,11 @@
-import type { TaskGroup, TaskGroupType } from "@/types/task";
-import { format } from "date-fns";
+import { genNameFromType } from "@/utils/task";
 import { create } from "zustand";
 
 interface TaskState {
-    currentTaskGroup: TaskGroup | null;
-    setCurrentTaskGroup: (g: TaskGroup | null) => void;
-    getCurrentTaskGroupName: () => string;
-    getCurrentTaskGroupType: () => TaskGroupType;
+    selectedTaskGroupName: string;
+    setSelectedTaskGroupName: (name: string) => void;
 }
-export const useTaskStore = create<TaskState>()((set, get) => ({
-    currentTaskGroup: null,
-    getCurrentTaskGroupName() {
-        return get().currentTaskGroup?.name ?? format(new Date(), "yyyy-MM-dd");
-    },
-    getCurrentTaskGroupType() {
-        return get().currentTaskGroup?.type ?? "day";
-    },
-    setCurrentTaskGroup(g) {
-        set(() => ({ currentTaskGroup: g }));
-    },
+export const useTaskStore = create<TaskState>()((set) => ({
+    selectedTaskGroupName: genNameFromType("day"),
+    setSelectedTaskGroupName: (name) => set({ selectedTaskGroupName: name }),
 }));

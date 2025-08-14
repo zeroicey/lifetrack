@@ -15,6 +15,6 @@ type UpdateGroupBody struct {
 }
 
 type ListGroupsParams struct {
-	Name *string // 使用指针来区分“未提供”和“提供空字符串”
+	Name *string
 	Type *string
 }

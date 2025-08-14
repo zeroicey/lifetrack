@@ -58,9 +58,13 @@ func (h *Handler) groupIDContext(next http.Handler) http.Handler {
 	})
 }
 
-// ---- Handlers ----
+// ListGroups 根据查询参数列出任务组。
+// 支持通过 "with_tasks=true" 查询参数来决定是否一并返回每个组内的任务列表。
+// 这是一个统一的端点，根据请求参数调用不同的业务逻辑。
 func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
+	// 步骤 1: 解析查询参数 (这部分你已经写得很好了)
 	query := r.URL.Query()
+	withTasks := query.Get("with_tasks") == "true"
 	params := types.ListGroupsParams{}
 
 	if name := query.Get("name"); name != "" {
@@ -70,15 +74,28 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 		params.Type = &groupType
 	}
 
-	groups, err := h.S.ListGroups(r.Context(), params)
+	// 步骤 2: 声明通用变量来存储 service 层的返回结果
+	var (
+		data any // 使用 interface{} 可以接收不同类型的数据
+		err  error
+	)
+
+	// 步骤 3: 根据 withTasks 参数，条件性地调用不同的 service
+	if withTasks {
+		// 当需要返回任务时，调用我们新写的 ListGroupsWithTasks
+		data, err = h.S.ListGroupsWithTasks(r.Context(), params)
+	} else {
+		// 否则，调用原来的 ListGroups
+		data, err = h.S.ListGroups(r.Context(), params)
+	}
+
+	// 步骤 4: 统一处理错误和响应
 	if err != nil {
-		// **修正点**: 使用正确的链式调用
 		response.Error("Failed to retrieve task groups").SetStatusCode(http.StatusInternalServerError).Build(w)
 		return
 	}
 
-	// **修正点**: 使用正确的链式调用
-	response.Success("Task groups retrieved successfully").SetData(groups).Build(w)
+	response.Success("Task groups retrieved successfully").SetData(data).Build(w)
 }
 
 func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {

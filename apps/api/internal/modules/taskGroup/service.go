@@ -29,8 +29,6 @@ func NewService(q *repository.Queries) *Service {
 // 统一的查询逻辑 (Unified Query Logic)
 // ----------------------------------------------------------------------------
 
-// ListGroupsParams 定义了列出或搜索任务组的参数
-
 // ListGroups 根据提供的参数（名称或类型）搜索任务组列表
 // 这是对 ListGroupsByType 和 GetGroupByName(返回列表)的统一和重构
 func (s *Service) ListGroups(ctx context.Context, params types.ListGroupsParams) ([]types.TaskGroupResponse, error) {
@@ -68,6 +66,65 @@ func (s *Service) ListGroups(ctx context.Context, params types.ListGroupsParams)
 
 	// 统一的结果转换
 	return s.convertGroupRowsToResponse(groups), nil
+}
+
+// ListGroupsWithTasks 根据提供的参数搜索任务组列表，并附带其所有任务
+// 教学提示：此实现存在 N+1 查询问题（1次查询获取组，N次查询获取每个组的任务）。
+// 在高并发或大数据量场景下，这会严重影响性能。
+// 优化建议：
+// 1. (最佳) 在 repository 层使用 SQL JOIN 一次性查询出所有数据。
+// 2. (次佳) 在 service 层先获取所有 group ID，然后用 "WHERE group_id IN (...)" 一次性查询所有相关任务，最后在内存中进行匹配。
+func (s *Service) ListGroupsWithTasks(ctx context.Context, params types.ListGroupsParams) ([]types.TaskGroupWithTasksResponse, error) {
+	var (
+		groups []repository.TaskGroup
+		err    error
+	)
+
+	// 步骤 1: 获取基础的任务组列表 (重用 ListGroups 的内部逻辑)
+	if params.Name != nil {
+		group, err_ := s.Q.GetTaskGroupByName(ctx, *params.Name)
+		if err_ != nil {
+			if errors.Is(err_, pgx.ErrNoRows) {
+				return []types.TaskGroupWithTasksResponse{}, nil // 未找到，返回空列表
+			}
+			return nil, err_
+		}
+		groups = append(groups, group)
+	} else if params.Type != nil {
+		groupType, err_ := s.parseType(*params.Type)
+		if err_ != nil {
+			return nil, err_
+		}
+		groups, err = s.Q.GetTaskGroupsByType(ctx, groupType)
+	} else {
+		groups, err = s.Q.GetAllTaskGroups(ctx)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(groups) == 0 {
+		return []types.TaskGroupWithTasksResponse{}, nil
+	}
+
+	// 步骤 2: 为每个任务组获取其任务并构建最终响应
+	responses := make([]types.TaskGroupWithTasksResponse, 0, len(groups))
+	for _, group := range groups {
+		// 步骤 2a: 获取当前组的所有任务 (这是 N+1 问题中的 "+1" 查询)
+		tasks, err := s.Q.GetTasksByGroupId(ctx, group.ID)
+		if err != nil {
+			// 如果获取单个组的任务失败，应中断并返回错误，因为调用者期望获得完整或无数据
+			return nil, err
+		}
+
+		// 步骤 2b: 使用已有的辅助函数转换和组装响应
+		groupResponse := s.convertToTaskGroupResponse(group)
+		groupWithTasks := s.populateTasksForGroup(groupResponse, tasks)
+		responses = append(responses, groupWithTasks)
+	}
+
+	return responses, nil
 }
 
 // ----------------------------------------------------------------------------

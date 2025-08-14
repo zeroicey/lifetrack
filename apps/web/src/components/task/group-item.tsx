@@ -1,4 +1,7 @@
-import { useTaskGroupUpdateMutation } from "@/hooks/use-task-group-query";
+import {
+    useTaskGroupDeleteMutation,
+    useTaskGroupUpdateMutation,
+} from "@/hooks/use-task-group-query";
 import { cn } from "@/lib/utils";
 import type { TaskGroup } from "@/types/task";
 import { SquarePen, Trash2 } from "lucide-react";
@@ -24,21 +27,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useTaskStore } from "@/stores/task";
 
 interface Props {
     group: TaskGroup;
-    currentTaskGroup: TaskGroup | null;
-    setCurrentTaskGroup: (group: TaskGroup) => void;
-    confirmDelete: () => void;
 }
 
-export default function TaskGroupItem({
-    group,
-    currentTaskGroup,
-    setCurrentTaskGroup,
-    confirmDelete,
-}: Props) {
+export default function TaskGroupItem({ group }: Props) {
     const { mutate: updateTaskGroup } = useTaskGroupUpdateMutation();
+    const { mutate: deleteTaskGroup } = useTaskGroupDeleteMutation();
+    const { selectedTaskGroupName, setSelectedTaskGroupName } = useTaskStore();
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
@@ -72,11 +70,11 @@ export default function TaskGroupItem({
         <>
             <div
                 key={group.id}
-                onClick={() => setCurrentTaskGroup(group)}
+                onClick={() => setSelectedTaskGroupName(group.name)}
                 className={cn(
                     "group cursor-pointer text-sm p-3 rounded-lg border transition-all duration-200",
                     "flex items-center justify-between hover:shadow-sm",
-                    currentTaskGroup?.id === group.id
+                    selectedTaskGroupName === group.name
                         ? "bg-primary/10 border-primary/30 text-primary"
                         : "bg-card hover:bg-accent/50 border-border"
                 )}
@@ -122,7 +120,7 @@ export default function TaskGroupItem({
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => {
-                                confirmDelete();
+                                deleteTaskGroup(group.id);
                                 setShowDeleteDialog(false);
                             }}
                         >

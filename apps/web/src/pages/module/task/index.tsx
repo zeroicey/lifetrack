@@ -2,7 +2,6 @@ import TaskCreateInput from "@/components/task/task-create-input";
 import TaskList from "@/components/task/task-list";
 import CustomCollapsible from "@/components/task/collapsibles/custom";
 import { Button } from "@/components/ui/button";
-import { useIsPhone } from "@/hooks/use-mobile";
 import { useNavbarStore } from "@/stores/navbar";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
@@ -11,8 +10,7 @@ import RoutineCollapsible from "@/components/task/collapsibles/routine";
 
 export default function TaskPage() {
     const { setRightContent, clearRightContent } = useNavbarStore();
-    const { getCurrentTaskGroupName } = useTaskStore();
-    const isMobile = useIsPhone();
+    const { selectedTaskGroupName } = useTaskStore();
     const [isCustomOpen, setIsCustomOpen] = useState(true);
     const [isRoutineOpen, setIsRoutineOpen] = useState(true);
 
@@ -20,12 +18,12 @@ export default function TaskPage() {
         setRightContent(
             <Link to={"task/groups"}>
                 <Button variant="ghost" className="text-gray-500 text-sm">
-                    {getCurrentTaskGroupName()}
+                    {selectedTaskGroupName}
                 </Button>
             </Link>
         );
         return () => clearRightContent();
-    }, [clearRightContent, setRightContent, isMobile, getCurrentTaskGroupName]);
+    }, [selectedTaskGroupName]);
 
     return (
         <div className="h-full w-full flex justify-center">

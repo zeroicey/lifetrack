@@ -1,4 +1,3 @@
-import { apiGetTaskGroupByNameWithTasks } from "@/api/task";
 import { Button } from "@/components/ui/button";
 import {
     Collapsible,
@@ -6,9 +5,8 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useTaskStore } from "@/stores/task";
-import { format } from "date-fns";
+import { genNameFromType } from "@/utils/task";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useEffect } from "react";
 
 interface RoutineCollapsibleProps {
     isOpen: boolean;
@@ -19,20 +17,12 @@ export default function RoutineCollapsible({
     isOpen,
     onOpenChange,
 }: RoutineCollapsibleProps) {
-    const { setCurrentTaskGroup, currentTaskGroup } = useTaskStore();
-    useEffect(() => {
-        if (currentTaskGroup) return;
-        const loadDefaultGroup = async () => {
-            const data = await apiGetTaskGroupByNameWithTasks(
-                format(new Date(), "yyyy-MM-dd")
-            );
-            setCurrentTaskGroup(data);
-        };
-        loadDefaultGroup();
-        return () => {
-            setCurrentTaskGroup(null);
-        };
-    }, []);
+    const { selectedTaskGroupName, setSelectedTaskGroupName } = useTaskStore();
+    
+    const isSelected = (type: "day" | "week" | "month" | "year") => {
+        return selectedTaskGroupName === genNameFromType(type);
+    };
+    
     return (
         <Collapsible
             open={isOpen}
@@ -54,65 +44,37 @@ export default function RoutineCollapsible({
             </CollapsibleTrigger>
             <CollapsibleContent className="grid grid-cols-2 gap-2 p-2">
                 <Button
-                    variant="outline"
                     size="sm"
+                    variant={isSelected("day") ? "default" : "outline"}
                     onClick={() =>
-                        setCurrentTaskGroup({
-                            id: -1,
-                            name: format(new Date(), "yyyy-MM-dd"),
-                            description: "",
-                            created_at: "",
-                            type: "day",
-                            updated_at: "",
-                        })
+                        setSelectedTaskGroupName(genNameFromType("day"))
                     }
                 >
                     Today
                 </Button>
                 <Button
-                    variant="outline"
+                    variant={isSelected("week") ? "default" : "outline"}
                     size="sm"
                     onClick={() =>
-                        setCurrentTaskGroup({
-                            id: -1,
-                            name: format(new Date(), "yyyy-'W'ww"),
-                            description: "",
-                            created_at: "",
-                            type: "week",
-                            updated_at: "",
-                        })
+                        setSelectedTaskGroupName(genNameFromType("week"))
                     }
                 >
                     This Week
                 </Button>
                 <Button
-                    variant="outline"
+                    variant={isSelected("month") ? "default" : "outline"}
                     size="sm"
                     onClick={() =>
-                        setCurrentTaskGroup({
-                            id: -1,
-                            name: format(new Date(), "yyyy-'MM'"),
-                            description: "",
-                            created_at: "",
-                            type: "month",
-                            updated_at: "",
-                        })
+                        setSelectedTaskGroupName(genNameFromType("month"))
                     }
                 >
                     This Month
                 </Button>
                 <Button
-                    variant="outline"
+                    variant={isSelected("year") ? "default" : "outline"}
                     size="sm"
                     onClick={() =>
-                        setCurrentTaskGroup({
-                            id: -1,
-                            name: format(new Date(), "yyyy"),
-                            description: "",
-                            created_at: "",
-                            type: "year",
-                            updated_at: "",
-                        })
+                        setSelectedTaskGroupName(genNameFromType("year"))
                     }
                 >
                     This Year

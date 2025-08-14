@@ -13,7 +13,9 @@ import type {
 
 export const apiGetTaskGroupByNameWithTasks = async (name: string) => {
     const res = await http
-        .get<Response<TaskGroupWithTasks>>(`task-groups/${name}`)
+        .get<Response<TaskGroupWithTasks[]>>(
+            `task-groups?name=${name}&with_tasks=true`
+        )
         .json();
 
     return res.data;
