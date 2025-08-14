@@ -1,22 +1,8 @@
-import { useSettingStore } from "@/stores/setting";
 import TaskGroupItem from "./group-item";
-import {
-    useTaskGroupDeleteMutation,
-    useTaskGroupQuery,
-} from "@/hooks/use-task-group-query";
+import { useTaskCustomGroupQuery } from "@/hooks/use-task-group-query";
 
 export default function CustomTaskGroupList() {
-    const { mutate: deleteTaskGroup } = useTaskGroupDeleteMutation();
-    const { currentTaskGroupId, setCurrentTaskGroup, clearCurrentTaskGroup } =
-        useSettingStore();
-    const { data: groups, isPending } = useTaskGroupQuery();
-
-    const confirmDelete = (groupId: number) => {
-        deleteTaskGroup(groupId);
-        if (currentTaskGroupId === groupId) {
-            clearCurrentTaskGroup();
-        }
-    };
+    const { data: groups, isPending } = useTaskCustomGroupQuery();
 
     if (isPending) {
         return (
@@ -47,13 +33,7 @@ export default function CustomTaskGroupList() {
     return (
         <div className="w-full flex flex-col gap-1">
             {groups?.map((group) => (
-                <TaskGroupItem
-                    group={group}
-                    setCurrentTaskGroup={setCurrentTaskGroup}
-                    currentTaskGroupId={currentTaskGroupId}
-                    key={group.id}
-                    confirmDelete={() => confirmDelete(group.id)}
-                />
+                <TaskGroupItem group={group} key={group.id} />
             ))}
         </div>
     );

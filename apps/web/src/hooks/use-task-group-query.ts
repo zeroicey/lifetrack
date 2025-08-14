@@ -1,7 +1,7 @@
 import {
     apiCreateTaskGroup,
     apiDeleteTaskGroup,
-    apiGetTaskGroups,
+    apiGetTaskGroupsByType,
     apiUpdateTaskGroup,
 } from "@/api/task";
 import {
@@ -12,22 +12,27 @@ import {
 } from "@tanstack/react-query";
 
 import { toast } from "sonner";
+import { getTaskQueryKey } from "./use-task-query";
+import { useTaskStore } from "@/stores/task";
 
 const queryGroupKey: QueryKey = ["list-groups"];
 
-export const useTaskGroupQuery = () => {
+export const useTaskCustomGroupQuery = () => {
     return useQuery({
         queryKey: queryGroupKey,
-        queryFn: () => apiGetTaskGroups(),
+        queryFn: () => apiGetTaskGroupsByType("custom"),
     });
 };
 
 export const useTaskGroupCreateMutation = () => {
     const queryClient = useQueryClient();
+    const { selectedTaskGroupName } = useTaskStore();
     return useMutation({
         mutationFn: apiCreateTaskGroup,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: queryGroupKey });
+            queryClient.invalidateQueries({
+                queryKey: getTaskQueryKey(selectedTaskGroupName),
+            });
             toast.success("Create task group successfully!");
         },
     });

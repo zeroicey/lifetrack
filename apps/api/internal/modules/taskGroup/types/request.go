@@ -13,3 +13,8 @@ type UpdateGroupBody struct {
 	Description pgtype.Text `json:"description"`
 	Type        string      `json:"type"`
 }
+
+type ListGroupsParams struct {
+	Name *string
+	Type *string
+}

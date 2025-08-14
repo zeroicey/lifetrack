@@ -1,11 +1,15 @@
 import { useTaskQuery } from "@/hooks/use-task-query";
 import TaskItem from "./task-item";
-import { useSettingStore } from "@/stores/setting";
+import { useTaskStore } from "@/stores/task";
+import { useTaskGroupCreateMutation } from "@/hooks/use-task-group-query";
+import { Button } from "../ui/button";
+import { getTypeFromName } from "@/utils/task";
 
 export default function TaskList() {
-    const { currentTaskGroupId } = useSettingStore();
+    const { selectedTaskGroupName } = useTaskStore();
+    const { mutate: createTaskGroup } = useTaskGroupCreateMutation();
 
-    const { data: tasks = [], isLoading, error } = useTaskQuery();
+    const { data: groups = [], isPending, isError } = useTaskQuery();
 
     const renderStatusMessage = (message: string, isError = false) => (
         <div className="flex items-center justify-center p-8 w-full h-full">
@@ -14,16 +18,35 @@ export default function TaskList() {
             </div>
         </div>
     );
-    if (currentTaskGroupId === -1)
-        return renderStatusMessage("No task group created yet");
-    if (isLoading) return renderStatusMessage("Loading tasks...");
-    if (error) return renderStatusMessage("Error loading tasks", true);
-    if (!tasks || tasks.length === 0)
-        return renderStatusMessage("No tasks found");
+    if (isPending) return renderStatusMessage("Loading tasks...");
+    if (isError) return renderStatusMessage("loading tasks failed", true);
+    // Server Error
+    if (!groups) return renderStatusMessage("something went wrong, true");
+    // selectedTaskGroupName is not created yet
+    if (groups.length !== 1) {
+        return (
+            <div className="flex items-center justify-center p-8 w-full h-full flex-col">
+                <h3>分组 "{selectedTaskGroupName}" 不存在</h3>
+                <p>您想现在创建这个分组吗？</p>
+                <Button
+                    onClick={() =>
+                        createTaskGroup({
+                            name: selectedTaskGroupName,
+                            type: getTypeFromName(selectedTaskGroupName),
+                        })
+                    }
+                >
+                    创建分组
+                </Button>
+            </div>
+        );
+    }
+    if (groups[0].tasks.length === 0)
+        return renderStatusMessage("no tasks found");
 
     return (
         <div className="w-full h-full overflow-auto no-scrollbar">
-            {tasks.map((task) => (
+            {groups[0].tasks.map((task) => (
                 <TaskItem key={task.id} task={task} />
             ))}
         </div>

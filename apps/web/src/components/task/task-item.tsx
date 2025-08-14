@@ -12,7 +12,6 @@ interface Props {
 }
 
 export default function TaskItem({ task }: Props) {
-
     const { mutate: updateTask } = useTaskUpdateMutation();
     const { mutate: deleteTask } = useTaskDeleteMutation();
 
@@ -27,9 +26,8 @@ export default function TaskItem({ task }: Props) {
     return (
         <div
             className={cn(
-                "flex items-center gap-3 mb-2 px-5 py-4 list-none transition-shadow duration-200",
-                "bg-white",
-                "shadow-sm hover:shadow-md",
+                "flex items-center gap-3 mb-2 px-5 py-4 list-none",
+                "bg-gray-50",
                 "outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2",
                 task.status === "done" && "bg-gray-100"
             )}
@@ -44,14 +42,18 @@ export default function TaskItem({ task }: Props) {
                 className={cn(
                     "flex-1 select-none",
                     "text-gray-800 font-normal text-base", // from .Item text styles
-            task.status === "done" && "line-through text-gray-400" // from .disabled and original
+                    task.status === "done" && "line-through text-gray-400" // from .disabled and original
                 )}
             >
                 {task.content}
             </span>
 
             <CalendarDays size={12} className="cursor-pointer" />
-        <Trash2 size={12} className="cursor-pointer" onClick={() => deleteTask(task.id)} />
+            <Trash2
+                size={12}
+                className="cursor-pointer"
+                onClick={() => deleteTask(task.id)}
+            />
         </div>
     );
 }

@@ -33,4 +33,3 @@ WHERE id = $1;
 SELECT EXISTS(
     SELECT 1 FROM task_groups WHERE id = $1
 ) AS exists;
-

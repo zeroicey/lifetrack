@@ -1,10 +1,10 @@
 import {
     apiCreateTask,
     apiDeleteTask,
-    apiGetTaskGroupWithTasks,
+    apiGetTaskGroupByNameWithTasks,
     apiUpdateTask,
 } from "@/api/task";
-import { useSettingStore } from "@/stores/setting";
+import { useTaskStore } from "@/stores/task";
 import {
     type QueryKey,
     useMutation,
@@ -14,24 +14,24 @@ import {
 
 import { toast } from "sonner";
 
-export const getTaskQueryKey = (taskGroupId: number): QueryKey => [
+export const getTaskQueryKey = (taskGroupName: string): QueryKey => [
     "list-tasks",
-    taskGroupId,
+    taskGroupName,
 ];
 
 export const useTaskQuery = () => {
-    const { currentTaskGroupId } = useSettingStore();
+    const { selectedTaskGroupName } = useTaskStore();
     return useQuery({
-        queryKey: getTaskQueryKey(currentTaskGroupId),
-        queryFn: () => apiGetTaskGroupWithTasks(currentTaskGroupId),
-        enabled: currentTaskGroupId !== -1,
+        queryKey: getTaskQueryKey(selectedTaskGroupName),
+        queryFn: async () =>
+            apiGetTaskGroupByNameWithTasks(selectedTaskGroupName),
     });
 };
 
 export const useTaskUpdateMutation = () => {
     const queryClient = useQueryClient();
-    const { currentTaskGroupId } = useSettingStore();
-    const taskQueryKey = getTaskQueryKey(currentTaskGroupId);
+    const { selectedTaskGroupName } = useTaskStore();
+    const taskQueryKey = getTaskQueryKey(selectedTaskGroupName);
 
     return useMutation({
         mutationFn: apiUpdateTask,
@@ -50,13 +50,13 @@ export const useTaskUpdateMutation = () => {
 
 export const useTaskCreateMutation = () => {
     const queryClient = useQueryClient();
-    const { currentTaskGroupId } = useSettingStore();
+    const { selectedTaskGroupName } = useTaskStore();
 
     return useMutation({
         mutationFn: apiCreateTask,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: getTaskQueryKey(currentTaskGroupId),
+                queryKey: getTaskQueryKey(selectedTaskGroupName),
             });
             toast.success("Create task successfully!");
         },
@@ -65,13 +65,13 @@ export const useTaskCreateMutation = () => {
 
 export const useTaskDeleteMutation = () => {
     const queryClient = useQueryClient();
-    const { currentTaskGroupId } = useSettingStore();
+    const { selectedTaskGroupName } = useTaskStore();
 
     return useMutation({
         mutationFn: apiDeleteTask,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: getTaskQueryKey(currentTaskGroupId),
+                queryKey: getTaskQueryKey(selectedTaskGroupName),
             });
             toast.success("Delete task successfully!");
         },
