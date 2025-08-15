@@ -7,8 +7,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { format } from "date-fns";
 import YearSelector from "../routine-selectors/year";
 import MonthSelector from "../routine-selectors/month";
+import DaySelector from "../routine-selectors/day";
+import WeekSelector from "../routine-selectors/week";
+import { useTaskStore } from "@/stores/task";
 
 interface RoutineGroupSelectDialogProps {
     open: boolean;
@@ -21,48 +25,106 @@ export default function RoutineGroupSelectDialog({
     onOpenChange,
     onGroupSelected,
 }: RoutineGroupSelectDialogProps) {
-    const [activeTab, setActiveTab] = useState<'Day' | 'Week' | 'Month' | 'Year'>('Day');
-    const [selectedYear, setSelectedYear] = useState<string>('');
-    const [selectedMonth, setSelectedMonth] = useState<string>('');
-    
+    const [activeTab, setActiveTab] = useState<
+        "Day" | "Week" | "Month" | "Year"
+    >("Day");
+    const [selectedYear, setSelectedYear] = useState<string>("");
+    const [, setSelectedMonth] = useState<string>("");
+    const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+    const { setSelectedTaskGroupName } = useTaskStore();
+    const [selectedWeek, setSelectedWeek] = useState<{
+        start: Date;
+        end: Date;
+        number: number;
+    } | null>(null);
+    const [currentGroup, setCurrentGroup] = useState<string>("");
+
     const handleClose = () => {
         onOpenChange(false);
     };
 
     const handleSelect = () => {
-        // TODO: 实现选择逻辑
+        setSelectedTaskGroupName(currentGroup);
         handleClose();
         onGroupSelected?.();
     };
-    
-    const tabs = ['Day', 'Week', 'Month', 'Year'] as const;
-    
+
+    const tabs = ["Day", "Week", "Month", "Year"] as const;
+
     const handleYearSelected = (year: string) => {
         setSelectedYear(year);
-        console.log('Selected year:', year);
+        setCurrentGroup(year);
+        // Clear other selector states
+        setSelectedMonth("");
+        setSelectedDay(null);
+        setSelectedWeek(null);
     };
 
     const handleMonthSelected = (month: string) => {
         setSelectedMonth(month);
-        console.log('Selected month:', month);
+        setCurrentGroup(month);
+        // Clear other selector states
+        setSelectedYear("");
+        setSelectedDay(null);
+        setSelectedWeek(null);
     };
-    
+
+    const handleDaySelected = (date: Date) => {
+        setSelectedDay(date);
+        const dayGroup = format(date, "yyyy-MM-dd");
+        setCurrentGroup(dayGroup);
+        // Clear other selector states
+        setSelectedYear("");
+        setSelectedMonth("");
+        setSelectedWeek(null);
+    };
+
+    const handleWeekSelected = (
+        weekStart: Date,
+        weekEnd: Date,
+        weekNumber: number
+    ) => {
+        setSelectedWeek({ start: weekStart, end: weekEnd, number: weekNumber });
+        const year = format(weekStart, "yyyy");
+        const weekGroup = `${year}-W${weekNumber.toString().padStart(2, "0")}`;
+        setCurrentGroup(weekGroup);
+        // Clear other selector states
+        setSelectedYear("");
+        setSelectedMonth("");
+        setSelectedDay(null);
+    };
+
     const renderTabContent = () => {
         switch (activeTab) {
-            case 'Day':
-                return <div className="text-center text-gray-500">Day content will be implemented later</div>;
-            case 'Week':
-                return <div className="text-center text-gray-500">Week content will be implemented later</div>;
-            case 'Month':
+            case "Day":
                 return (
-                    <MonthSelector
-                        onMonthSelected={handleMonthSelected}
+                    <DaySelector
+                        onDaySelected={handleDaySelected}
+                        selectedDate={selectedDay || undefined}
                     />
                 );
-            case 'Year':
-                return <YearSelector onYearSelected={handleYearSelected} selectedYear={selectedYear} />;
+            case "Week":
+                return (
+                    <WeekSelector
+                        onWeekSelected={handleWeekSelected}
+                        selectedWeek={selectedWeek || undefined}
+                    />
+                );
+            case "Month":
+                return <MonthSelector onMonthSelected={handleMonthSelected} />;
+            case "Year":
+                return (
+                    <YearSelector
+                        onYearSelected={handleYearSelected}
+                        selectedYear={selectedYear}
+                    />
+                );
             default:
-                return <div className="text-center text-gray-500">Content will be implemented later</div>;
+                return (
+                    <div className="text-center text-gray-500">
+                        Content will be implemented later
+                    </div>
+                );
         }
     };
 
@@ -76,8 +138,15 @@ export default function RoutineGroupSelectDialog({
                     <DialogDescription className="text-gray-600">
                         Select a routine group for your tasks.
                     </DialogDescription>
+                    {currentGroup && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded-md border border-blue-200">
+                            <span className="text-sm font-medium text-blue-800">
+                                Currently selected: {currentGroup}
+                            </span>
+                        </div>
+                    )}
                 </DialogHeader>
-                <div className="space-y-6 py-4">
+                <div className="space-y-4 py-2">
                     {/* Tab Navigation */}
                     <div className="flex border-b border-gray-200">
                         {tabs.map((tab) => (
@@ -86,21 +155,19 @@ export default function RoutineGroupSelectDialog({
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                                     activeTab === tab
-                                        ? 'border-blue-600 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        ? "border-blue-600 text-blue-600"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                                 }`}
                             >
                                 {tab}
                             </button>
                         ))}
                     </div>
-                    
+
                     {/* Tab Content */}
-                    <div className="min-h-[200px] py-4">
-                        {renderTabContent()}
-                    </div>
-                    
-                    <div className="flex justify-end gap-3 pt-4">
+                    <div className="py-2">{renderTabContent()}</div>
+
+                    <div className="flex justify-end gap-3 pt-2">
                         <Button variant="outline" onClick={handleClose}>
                             Cancel
                         </Button>

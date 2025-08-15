@@ -35,12 +35,7 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthSelected }) => {
         setSelectedYear(prev => prev + 1);
     };
 
-    const handleThisMonth = () => {
-        setSelectedYear(currentYear);
-        setSelectedMonth(currentMonth);
-        const monthStr = currentMonth.toString().padStart(2, '0');
-        onMonthSelected(`${currentYear}-${monthStr}`);
-    };
+
 
     const handleMonthClick = (month: number) => {
         setSelectedMonth(month);
@@ -49,45 +44,32 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthSelected }) => {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             {/* Year Navigation */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="text-sm font-medium text-gray-700">
-                    Select Month
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleThisMonth}
-                        className="h-8 px-3 text-xs"
-                    >
-                        This Month
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePrevYear}
-                        className="h-8 w-8 p-0"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm text-gray-600 min-w-[60px] text-center font-medium">
-                        {selectedYear}
-                    </span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleNextYear}
-                        className="h-8 w-8 p-0"
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
-                </div>
+            <div className="flex items-center justify-center gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevYear}
+                    className="h-8 w-8 p-0"
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-gray-600 min-w-[60px] text-center font-medium">
+                    {selectedYear}
+                </span>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextYear}
+                    className="h-8 w-8 p-0"
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
             </div>
 
             {/* Month Grid */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5">
                 {months.map((month) => {
                     const isSelected = selectedMonth === month.value;
                     const isCurrentMonth = selectedYear === currentYear && month.value === currentMonth;
@@ -98,7 +80,7 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthSelected }) => {
                             variant={isSelected ? "default" : isCurrentMonth ? "secondary" : "outline"}
                             size="sm"
                             onClick={() => handleMonthClick(month.value)}
-                            className={`h-10 text-sm ${
+                            className={`h-8 text-xs ${
                                 isCurrentMonth && !isSelected
                                     ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200 hover:border-orange-400'
                                     : ''
@@ -110,12 +92,7 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthSelected }) => {
                 })}
             </div>
 
-            {/* Selected Display */}
-            {selectedMonth && (
-                <div className="text-sm text-gray-600">
-                    Selected: {selectedYear}-{selectedMonth.toString().padStart(2, '0')}
-                </div>
-            )}
+
         </div>
     );
 };
