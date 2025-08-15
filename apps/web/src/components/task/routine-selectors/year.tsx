@@ -90,13 +90,13 @@ export default function YearSelector({ onYearSelected, selectedYear }: YearSelec
                     return (
                         <Button
                             key={year}
-                            variant={isSelected ? "default" : "outline"}
+                            variant={isSelected ? "default" : isCurrentYear ? "secondary" : "outline"}
                             onClick={() => handleYearClick(year)}
                             className={`h-10 text-sm ${
                                 isSelected
                                     ? "bg-blue-600 hover:bg-blue-700 text-white"
                                     : isCurrentYear
-                                    ? "border-orange-400 text-orange-600 hover:bg-orange-50"
+                                    ? "bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200 hover:border-orange-400"
                                     : "hover:bg-gray-50"
                             }`}
                         >
