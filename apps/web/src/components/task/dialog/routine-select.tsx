@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import YearSelector from "../routine-selectors/year";
 
 interface RoutineGroupSelectDialogProps {
     open: boolean;
@@ -20,6 +21,7 @@ export default function RoutineGroupSelectDialog({
     onGroupSelected,
 }: RoutineGroupSelectDialogProps) {
     const [activeTab, setActiveTab] = useState<'Day' | 'Week' | 'Month' | 'Year'>('Day');
+    const [selectedYear, setSelectedYear] = useState<string>('');
     
     const handleClose = () => {
         onOpenChange(false);
@@ -33,6 +35,11 @@ export default function RoutineGroupSelectDialog({
     
     const tabs = ['Day', 'Week', 'Month', 'Year'] as const;
     
+    const handleYearSelected = (year: string) => {
+        setSelectedYear(year);
+        console.log('Selected year:', year);
+    };
+    
     const renderTabContent = () => {
         switch (activeTab) {
             case 'Day':
@@ -42,7 +49,7 @@ export default function RoutineGroupSelectDialog({
             case 'Month':
                 return <div className="text-center text-gray-500">Month content will be implemented later</div>;
             case 'Year':
-                return <div className="text-center text-gray-500">Year content will be implemented later</div>;
+                return <YearSelector onYearSelected={handleYearSelected} selectedYear={selectedYear} />;
             default:
                 return <div className="text-center text-gray-500">Content will be implemented later</div>;
         }
