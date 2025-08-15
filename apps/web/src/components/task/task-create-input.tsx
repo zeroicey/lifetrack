@@ -11,6 +11,7 @@ export default function TaskCreateInput() {
 
     const handleSubmit = () => {
         if (!groups) return;
+        if (groups.length !== 1) return;
         const group_id = groups[0].id;
         if (taskContent.trim() && !isPending) {
             createTask({

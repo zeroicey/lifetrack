@@ -33,6 +33,9 @@ export const useTaskGroupCreateMutation = () => {
             queryClient.invalidateQueries({
                 queryKey: getTaskQueryKey(selectedTaskGroupName),
             });
+            queryClient.invalidateQueries({
+                queryKey: queryGroupKey,
+            });
             toast.success("Create task group successfully!");
         },
     });

@@ -1,4 +1,4 @@
-import GroupCreateDialog from "@/components/task/group-create-dialog";
+import CustomGroupCreateDialog from "@/components/task/dialog/custom-create";
 import { Button } from "@/components/ui/button";
 import {
     Collapsible,
@@ -65,7 +65,7 @@ export default function CustomCollapsible({
                     <CustomTaskGroupList />
                 </CollapsibleContent>
             </Collapsible>
-            <GroupCreateDialog
+            <CustomGroupCreateDialog
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 onGroupCreated={handleGroupCreated}
