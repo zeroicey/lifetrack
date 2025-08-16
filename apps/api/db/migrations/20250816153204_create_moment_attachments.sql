@@ -1,0 +1,31 @@
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE
+    IF NOT EXISTS moment_attachments (
+        moment_id BIGINT NOT NULL,
+        attachment_id UUID NOT NULL,
+        position SMALLINT NOT NULL,
+        CONSTRAINT fk_moment FOREIGN KEY (moment_id) REFERENCES moments (id) ON DELETE CASCADE,
+        CONSTRAINT fk_attachment FOREIGN KEY (attachment_id) REFERENCES attachments (id) ON DELETE RESTRICT,
+        PRIMARY KEY (moment_id, attachment_id)
+    );
+
+-- 4. 为 moment_attachments 表和列添加注释
+COMMENT ON TABLE moment_attachments IS '连接 moments 和 attachments 的多对多联结表';
+
+COMMENT ON COLUMN moment_attachments.moment_id IS '关联的 Moment ID';
+
+COMMENT ON COLUMN moment_attachments.attachment_id IS '关联的附件 ID';
+
+COMMENT ON COLUMN moment_attachments.position IS '附件在 Moment 中的显示顺序 (1-9)';
+
+CREATE INDEX idx_moment_attachments_moment_id ON moment_attachments (moment_id);
+
+CREATE INDEX idx_moment_attachments_attachment_id ON moment_attachments (attachment_id);
+
+-- +goose StatementEnd
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS moment_attachments;
+
+-- +goose StatementEnd
