@@ -5,6 +5,7 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/modules/task"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
+	"go.uber.org/zap"
 )
 
 type AppServices struct {
@@ -12,9 +13,10 @@ type AppServices struct {
 	TaskGroup *taskgroup.Service
 	Task      *task.Service
 	// Storage   *storage.Service
+	Logger *zap.Logger
 }
 
-func NewAppServices(q *repository.Queries) *AppServices {
+func NewAppServices(q *repository.Queries, logger *zap.Logger) *AppServices {
 	// // 初始化存储服务
 	// storageService, err := storage.NewService()
 	// if err != nil {
@@ -26,6 +28,7 @@ func NewAppServices(q *repository.Queries) *AppServices {
 		TaskGroup: taskgroup.NewService(q),
 		Task:      task.NewService(q),
 		// Storage:   storageService,
+		Logger: logger,
 	}
 	return services
 }

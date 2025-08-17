@@ -43,7 +43,7 @@ func main() {
 
 	// Initialize repository and services
 	queries := repository.New(dbConn)
-	services := app.NewAppServices(queries)
+	services := app.NewAppServices(queries, logger)
 
 	// Register routes
 	internal.RegisterRoutes(r, services)
