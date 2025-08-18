@@ -10,8 +10,22 @@ CREATE TABLE
         file_size BIGINT NOT NULL,
         status VARCHAR(20) NOT NULL DEFAULT 'uploading',
         CONSTRAINT chk_status CHECK (status IN ('uploading', 'completed', 'failed')),
-        created_at timestamptz NOT NULL DEFAULT NOW ()
+        created_at timestamptz NOT NULL DEFAULT NOW (),
+        updated_at timestamptz NOT NULL DEFAULT NOW ()
     );
+
+CREATE OR REPLACE FUNCTION update_attachment_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language plpgsql;
+
+CREATE TRIGGER attachments_updated_at_trigger
+    BEFORE UPDATE ON attachments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_attachment_updated_at();
 
 -- 2. 为 attachments 表和列添加注释
 COMMENT ON TABLE attachments IS '存储所有上传文件的元数据，如图片、视频、音频等';
@@ -32,9 +46,12 @@ COMMENT ON COLUMN attachments.status IS '文件上传状态 (e.g., uploading, co
 
 COMMENT ON COLUMN attachments.created_at IS '记录创建时间';
 
+COMMENT ON COLUMN attachments.updated_at IS '记录最后更新时间';
+
 -- +goose StatementEnd
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS attachments;
-
+ALTER TABLE IF EXISTS attachments DROP CONSTRAINT IF EXISTS chk_status;
+DROP FUNCTION IF EXISTS update_attachment_updated_at();
 -- +goose StatementEnd
