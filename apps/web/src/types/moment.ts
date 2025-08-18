@@ -8,3 +8,10 @@ export type Moment = {
 export type MomentCreate = {
     content: string;
 };
+
+export type PresignedUploadRequest = {
+    fileName: string;
+    fileSize: number;
+    contentType: string;
+    md5: string;
+};

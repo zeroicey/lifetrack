@@ -7,10 +7,6 @@ type PresignedUploadRequest struct {
 	MD5         string `json:"md5" validate:"required,len=32"`
 }
 
-type PresignedDownloadRequest struct {
-	ObjectKey string `json:"objectKey" binding:"required"`
-}
-
 type DeleteFileRequest struct {
 	ObjectKey string `json:"objectKey" binding:"required"`
 }
