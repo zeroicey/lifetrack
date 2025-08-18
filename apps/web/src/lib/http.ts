@@ -1,9 +1,8 @@
 import ky from "ky";
 
 export type Response<T> = {
-    code: number;
     msg: string;
-    data: T | null;
+    data?: T;
 };
 
 const http = ky.create({
