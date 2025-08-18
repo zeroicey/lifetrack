@@ -26,6 +26,11 @@ func MomentRouter(s *Service) chi.Router {
 	r.Post("/", h.CreateMoment)
 	r.Get("/{id}", h.GetMomentById)
 	r.Delete("/{id}", h.DeleteMomentByID)
+
+	// 附件相关路由
+	r.Post("/{id}/attachments", h.AddAttachmentToMoment)
+	r.Delete("/{id}/attachments/{attachmentId}", h.RemoveAttachmentFromMoment)
+
 	return r
 }
 
@@ -112,4 +117,70 @@ func (h *Handler) DeleteMomentByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success("Moment deleted successfully").SetStatusCode(http.StatusOK).Build(w)
+}
+
+func (h *Handler) AddAttachmentToMoment(w http.ResponseWriter, r *http.Request) {
+	// 获取 moment ID
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+
+	// 解析请求体
+	var body types.AddAttachmentBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error("Failed to decode request body").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+
+	// 验证请求数据
+	if body.AttachmentID == "" {
+		response.Error("Attachment ID is required").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+
+	// 添加附件到 moment
+	err = h.S.AddAttachmentToMoment(r.Context(), id, body.AttachmentID, body.Position)
+	if err != nil {
+		if errors.Is(err, ErrMomentNotFound) {
+			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
+		} else {
+			response.Error("Failed to add attachment to moment").SetStatusCode(http.StatusInternalServerError).Build(w)
+		}
+		return
+	}
+
+	response.Success("Attachment added to moment successfully").SetStatusCode(http.StatusOK).Build(w)
+}
+
+func (h *Handler) RemoveAttachmentFromMoment(w http.ResponseWriter, r *http.Request) {
+	// 获取 moment ID
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+
+	// 获取 attachment ID
+	attachmentID := chi.URLParam(r, "attachmentId")
+	if attachmentID == "" {
+		response.Error("Attachment ID is required").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+
+	// 从 moment 移除附件
+	err = h.S.RemoveAttachmentFromMoment(r.Context(), id, attachmentID)
+	if err != nil {
+		if errors.Is(err, ErrMomentNotFound) {
+			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
+		} else {
+			response.Error("Failed to remove attachment from moment").SetStatusCode(http.StatusInternalServerError).Build(w)
+		}
+		return
+	}
+
+	response.Success("Attachment removed from moment successfully").SetStatusCode(http.StatusOK).Build(w)
 }

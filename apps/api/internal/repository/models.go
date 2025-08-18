@@ -139,7 +139,7 @@ type MomentAttachment struct {
 	MomentID int64 `json:"moment_id"`
 	// 关联的附件 ID
 	AttachmentID pgtype.UUID `json:"attachment_id"`
-	// 附件在 Moment 中的显示顺序 (1-9)
+	// 附件在 Moment 中的显示顺序 (0-8)
 	Position int16 `json:"position"`
 }
 

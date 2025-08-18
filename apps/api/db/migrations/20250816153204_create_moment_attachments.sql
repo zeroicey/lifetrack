@@ -17,7 +17,7 @@ COMMENT ON COLUMN moment_attachments.moment_id IS '关联的 Moment ID';
 
 COMMENT ON COLUMN moment_attachments.attachment_id IS '关联的附件 ID';
 
-COMMENT ON COLUMN moment_attachments.position IS '附件在 Moment 中的显示顺序 (1-9)';
+COMMENT ON COLUMN moment_attachments.position IS '附件在 Moment 中的显示顺序 (0-8)';
 
 CREATE INDEX idx_moment_attachments_moment_id ON moment_attachments (moment_id);
 
