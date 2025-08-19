@@ -41,6 +41,7 @@ export default function MomentCreateNineGrid({
             "audio/ogg",
             "audio/aac",
             "audio/flac",
+            "audio/x-m4a",
         ];
 
         Array.from(files).forEach((file) => {

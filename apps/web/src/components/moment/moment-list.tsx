@@ -32,11 +32,24 @@ export default function MomentList() {
         );
     }
     return (
-        <div className="flex flex-col gap-3 overflow-auto no-scrollbar">
-            {data?.pages.map((page) =>
-                page.items?.map((moment: Moment) => (
-                    <MomentItem key={moment.id} moment={moment} />
-                ))
+        <div className="flex flex-col overflow-auto no-scrollbar">
+            {data?.pages.map((page, pageIndex) =>
+                page.items?.map((moment: Moment, momentIndex: number) => {
+                    const isLastMomentInPage =
+                        momentIndex === (page.items?.length ?? 0) - 1;
+                    const isLastPage = pageIndex === data.pages.length - 1;
+                    const shouldShowSeparator =
+                        !isLastMomentInPage || !isLastPage;
+
+                    return (
+                        <div key={moment.id}>
+                            <MomentItem moment={moment} />
+                            {shouldShowSeparator && (
+                                <div className="border-b border-gray-200 my-3" />
+                            )}
+                        </div>
+                    );
+                })
             )}
             <div className="text-center text-gray-500 text-sm">
                 <Button

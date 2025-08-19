@@ -153,7 +153,6 @@ export const useAttachmentUrl = (attachmentId: string) => {
     return useQuery({
         queryKey: ["attachment-url", attachmentId],
         queryFn: () => {
-            console.log(attachmentId);
             return apiGetAttachmentUrl(attachmentId);
         },
         staleTime: 5 * 60 * 1000, // 5分钟缓存

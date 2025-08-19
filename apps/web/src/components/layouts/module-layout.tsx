@@ -6,7 +6,7 @@ import Navbar from "@/components/navbar";
 export default function ModuleLayout() {
     return (
         <SidebarProvider>
-            <div className="flex h-screen w-screen overflow-hidden">
+            <div className="flex h-screen w-screen overflow-hidden font-mono">
                 <AppSidebar />
 
                 <div className="flex flex-col flex-1 overflow-hidden ">

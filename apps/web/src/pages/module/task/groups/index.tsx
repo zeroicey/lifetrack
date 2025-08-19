@@ -16,12 +16,6 @@ export default function GroupsPage() {
         setSelectedWeekStart(weekStart);
         setSelectedWeekEnd(weekEnd);
         setSelectedWeekNumber(weekNumber);
-        console.log(
-            `选择了第${weekNumber}周: ${format(
-                weekStart,
-                "yyyy-MM-dd"
-            )} 到 ${format(weekEnd, "yyyy-MM-dd")}`
-        );
     };
 
     return (

@@ -10,12 +10,11 @@ export const apiUploadAttachment = async ({
     url: string;
     file: File;
 }) => {
-    const res = await ky
+    await ky
         .put(url, {
             body: file,
         })
         .json();
-    console.log(res);
 };
 
 export const apiGetPresignedURL = async (file: File) => {
@@ -38,7 +37,6 @@ export const apiCompleteUpload = async (attachmentId: string) => {
 };
 
 export const apiGetAttachmentUrl = async (attachmentId: string) => {
-    console.log(attachmentId);
     const res = await http
         .get<Response<{ url: string }>>(`storage/${attachmentId}/url`)
         .json();
