@@ -11,6 +11,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addAttachmentToMoment = `-- name: AddAttachmentToMoment :exec
+INSERT INTO moment_attachments (moment_id, attachment_id, position)
+VALUES ($1, $2, $3)
+`
+
+type AddAttachmentToMomentParams struct {
+	MomentID     int64       `json:"moment_id"`
+	AttachmentID pgtype.UUID `json:"attachment_id"`
+	Position     int16       `json:"position"`
+}
+
+func (q *Queries) AddAttachmentToMoment(ctx context.Context, arg AddAttachmentToMomentParams) error {
+	_, err := q.db.Exec(ctx, addAttachmentToMoment, arg.MomentID, arg.AttachmentID, arg.Position)
+	return err
+}
+
 const createMoment = `-- name: CreateMoment :one
 INSERT INTO moments
 (content)
@@ -38,6 +54,60 @@ WHERE id = $1
 func (q *Queries) DeleteMomentByID(ctx context.Context, id int64) error {
 	_, err := q.db.Exec(ctx, deleteMomentByID, id)
 	return err
+}
+
+const getMomentAttachmentsByID = `-- name: GetMomentAttachmentsByID :many
+SELECT 
+    a.id, a.object_key, a.original_name, a.mime_type, a.md5, a.file_size, a.status, a.created_at, a.updated_at,
+    ma.position
+FROM attachments a
+INNER JOIN moment_attachments ma ON a.id = ma.attachment_id
+WHERE ma.moment_id = $1 AND a.status = 'completed'
+ORDER BY ma.position
+`
+
+type GetMomentAttachmentsByIDRow struct {
+	ID           pgtype.UUID        `json:"id"`
+	ObjectKey    string             `json:"object_key"`
+	OriginalName string             `json:"original_name"`
+	MimeType     string             `json:"mime_type"`
+	Md5          string             `json:"md5"`
+	FileSize     int64              `json:"file_size"`
+	Status       string             `json:"status"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	Position     int16              `json:"position"`
+}
+
+func (q *Queries) GetMomentAttachmentsByID(ctx context.Context, momentID int64) ([]GetMomentAttachmentsByIDRow, error) {
+	rows, err := q.db.Query(ctx, getMomentAttachmentsByID, momentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMomentAttachmentsByIDRow
+	for rows.Next() {
+		var i GetMomentAttachmentsByIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ObjectKey,
+			&i.OriginalName,
+			&i.MimeType,
+			&i.Md5,
+			&i.FileSize,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Position,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getMomentByID = `-- name: GetMomentByID :one
@@ -105,4 +175,19 @@ func (q *Queries) MomentExists(ctx context.Context, id int64) (bool, error) {
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const removeAttachmentFromMoment = `-- name: RemoveAttachmentFromMoment :exec
+DELETE FROM moment_attachments
+WHERE moment_id = $1 AND attachment_id = $2
+`
+
+type RemoveAttachmentFromMomentParams struct {
+	MomentID     int64       `json:"moment_id"`
+	AttachmentID pgtype.UUID `json:"attachment_id"`
+}
+
+func (q *Queries) RemoveAttachmentFromMoment(ctx context.Context, arg RemoveAttachmentFromMomentParams) error {
+	_, err := q.db.Exec(ctx, removeAttachmentFromMoment, arg.MomentID, arg.AttachmentID)
+	return err
 }

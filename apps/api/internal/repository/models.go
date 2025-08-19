@@ -99,6 +99,28 @@ func (ns NullTaskStatus) Value() (driver.Value, error) {
 	return string(ns.TaskStatus), nil
 }
 
+// 存储所有上传文件的元数据，如图片、视频、音频等
+type Attachment struct {
+	// 附件的唯一标识符 (UUID)
+	ID pgtype.UUID `json:"id"`
+	// 文件在 MinIO 中的唯一存储键 (路径/名称)
+	ObjectKey string `json:"object_key"`
+	// 文件的原始名称
+	OriginalName string `json:"original_name"`
+	// 文件的媒体类型 (e.g., image/jpeg)
+	MimeType string `json:"mime_type"`
+	// 文件内容的 MD5 哈希值，用于验证文件完整性
+	Md5 string `json:"md5"`
+	// 文件大小（字节）
+	FileSize int64 `json:"file_size"`
+	// 文件上传状态 (e.g., uploading, completed, failed)
+	Status string `json:"status"`
+	// 记录创建时间
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 记录最后更新时间
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 // 用于存储即使信息，包括文本内容和附件
 type Moment struct {
 	// 备忘录的唯一标识符
@@ -109,6 +131,16 @@ type Moment struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	// 记录最后更新时间
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 连接 moments 和 attachments 的多对多联结表
+type MomentAttachment struct {
+	// 关联的 Moment ID
+	MomentID int64 `json:"moment_id"`
+	// 关联的附件 ID
+	AttachmentID pgtype.UUID `json:"attachment_id"`
+	// 附件在 Moment 中的显示顺序 (0-8)
+	Position int16 `json:"position"`
 }
 
 // 任务表，存储具体的任务信息

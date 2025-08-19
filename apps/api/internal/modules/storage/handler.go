@@ -3,176 +3,92 @@ package storage
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage/types"
 	response "github.com/zeroicey/lifetrack-api/internal/pkg"
 )
 
 type Handler struct {
-	S *Service
+	S        *Service
+	Validate *validator.Validate
 }
 
-func NewHandler(s *Service) *Handler {
-	return &Handler{S: s}
+func NewHandler(s *Service, v *validator.Validate) *Handler {
+	return &Handler{S: s, Validate: v}
 }
 
-func StorageRouter(s *Service) chi.Router {
-	h := NewHandler(s)
+func StorageRouter(s *Service, v *validator.Validate) chi.Router {
+	h := NewHandler(s, v)
 	r := chi.NewRouter()
-	r.Post("/presigned-upload", h.GetPresignedUploadURL)
-	r.Get("/info/{key}", h.GetFileInfo)
+	r.Post("/{attachmentID}/completed", h.CompleteUpload)
+	r.Post("/presigned/upload", h.GetPresignedUploadURL)
+	r.Get("/{attachmentID}/url", h.GetTemporaryAccessURL)
 	return r
 }
 
-// 获取预签名上传URL
 func (h *Handler) GetPresignedUploadURL(w http.ResponseWriter, r *http.Request) {
 	var req types.PresignedUploadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error("Invalid request body").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
-
-	// TODO: 从JWT或session中获取用户ID
-	// userID := getUserIDFromContext(r.Context())
-
-	result, err := h.S.GeneratePresignedUploadURL(r.Context(), req.FileName, req.ContentType)
-	if err != nil {
-		response.Error("Failed to generate presigned upload URL").SetStatusCode(http.StatusInternalServerError).Build(w)
+	if err := h.Validate.Struct(req); err != nil {
+		response.Error("Validation failed: " + err.Error()).SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
-
+	result, err := h.S.CreateUploadRequest(r.Context(), &req)
+	if err != nil {
+		response.Error("Failed to create upload request: " + err.Error()).SetStatusCode(http.StatusInternalServerError).Build(w)
+		return
+	}
+	// 4. 成功响应
 	response.Success("Presigned upload URL generated successfully").SetData(result).Build(w)
 }
-
-// 获取预签名下载URL (POST 方式)
-func (h *Handler) GetPresignedDownloadURL(w http.ResponseWriter, r *http.Request) {
-	var req types.PresignedDownloadRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error("Invalid request body").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	result, err := h.S.GeneratePresignedDownloadURL(r.Context(), req.ObjectKey)
+func (h *Handler) CompleteUpload(w http.ResponseWriter, r *http.Request) {
+	// 1. 从URL路径中提取 attachmentID
+	attachmentIDStr := chi.URLParam(r, "attachmentID")
+	attachmentID, err := uuid.Parse(attachmentIDStr)
 	if err != nil {
-		response.Error("Failed to generate presigned download URL").SetStatusCode(http.StatusInternalServerError).Build(w)
+		response.Error("Invalid attachment ID format").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
 
-	response.Success("Presigned download URL generated successfully").SetData(result).Build(w)
+	// 2. 调用 Service 层的方法来处理业务逻辑
+	err = h.S.CompleteUpload(r.Context(), attachmentID)
+	if err != nil {
+		// 这里的错误处理可以更精细，比如判断是否是 "not found" 错误
+		response.Error("Failed to complete upload: " + err.Error()).SetStatusCode(http.StatusInternalServerError).Build(w)
+		return
+	}
+	response.Success("Upload completed successfully").SetStatusCode(http.StatusNoContent).Build(w)
 }
 
-// 获取下载URL (GET 方式)
-func (h *Handler) GetDownloadURL(w http.ResponseWriter, r *http.Request) {
-	objectKey := chi.URLParam(r, "key")
-	if objectKey == "" {
-		response.Error("Object key is required").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	result, err := h.S.GeneratePresignedDownloadURL(r.Context(), objectKey)
-	if err != nil {
-		response.Error("Failed to generate download URL").SetStatusCode(http.StatusInternalServerError).Build(w)
-		return
-	}
-
-	response.Success("Download URL generated successfully").SetData(result).Build(w)
-}
-
-// 删除文件
-func (h *Handler) DeleteFile(w http.ResponseWriter, r *http.Request) {
-	objectKey := chi.URLParam(r, "key")
-	if objectKey == "" {
-		response.Error("Object key is required").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	err := h.S.DeleteFile(r.Context(), objectKey)
-	if err != nil {
-		response.Error("Failed to delete file").SetStatusCode(http.StatusInternalServerError).Build(w)
-		return
-	}
-
-	result := types.DeleteFileResponse{
-		Success:   true,
-		ObjectKey: objectKey,
-	}
-	response.Success("File deleted successfully").SetData(result).Build(w)
-}
-
-// 获取文件信息
-func (h *Handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
-	objectKey := chi.URLParam(r, "key")
-	if objectKey == "" {
-		response.Error("Object key is required").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	result, err := h.S.GetFileInfo(r.Context(), objectKey)
-	if err != nil {
-		response.Error("Failed to get file info").SetStatusCode(http.StatusInternalServerError).Build(w)
-		return
-	}
-
-	response.Success("File info retrieved successfully").SetData(result).Build(w)
-}
-
-// 获取临时访问URL (POST方式，可自定义过期时间)
 func (h *Handler) GetTemporaryAccessURL(w http.ResponseWriter, r *http.Request) {
-	var req types.TemporaryAccessRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error("Invalid request body").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	result, err := h.S.GetTemporaryAccessURL(r.Context(), req.ObjectKey, req.ExpiryMinutes)
+	// 1. 从路径参数中解析附件ID
+	attachmentIDStr := chi.URLParam(r, "attachmentID")
+	attachmentID, err := uuid.Parse(attachmentIDStr)
 	if err != nil {
-		response.Error("Failed to generate temporary access URL").SetStatusCode(http.StatusInternalServerError).Build(w)
+		response.Error("Invalid attachment ID format").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
-
-	response.Success("Temporary access URL generated successfully").SetData(result).Build(w)
-}
-
-// 批量获取临时访问URL
-func (h *Handler) GetBatchTemporaryAccessURLs(w http.ResponseWriter, r *http.Request) {
-	var req types.BatchTemporaryAccessRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error("Invalid request body").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	results, err := h.S.GetBatchTemporaryAccessURLs(r.Context(), req.ObjectKeys, req.ExpiryMinutes)
+	// 2. 调用Service层获取URL
+	url, err := h.S.GeneratePresignedGetURL(r.Context(), attachmentID)
 	if err != nil {
-		response.Error("Failed to generate temporary access URLs").SetStatusCode(http.StatusInternalServerError).Build(w)
-		return
-	}
-
-	response.Success("Temporary access URLs generated successfully").SetData(results).Build(w)
-}
-
-// 获取临时访问URL (GET方式，使用默认过期时间)
-func (h *Handler) GetTemporaryAccessURLByKey(w http.ResponseWriter, r *http.Request) {
-	objectKey := chi.URLParam(r, "key")
-	if objectKey == "" {
-		response.Error("Object key is required").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	// 从查询参数获取过期时间（可选）
-	expiryMinutes := 60 // 默认1小时
-	if expiry := r.URL.Query().Get("expiry"); expiry != "" {
-		if minutes, err := strconv.Atoi(expiry); err == nil && minutes > 0 {
-			expiryMinutes = minutes
+		// 这里可以根据 service 层返回的错误类型来设置更精确的状态码
+		// 例如，如果是 "not found"，则返回 404
+		if err.Error() == "attachment not found or not completed" {
+			response.Error(err.Error()).SetStatusCode(http.StatusNotFound).Build(w)
+		} else {
+			response.Error("Failed to generate access URL: " + err.Error()).SetStatusCode(http.StatusInternalServerError).Build(w)
 		}
-	}
-
-	result, err := h.S.GetTemporaryAccessURL(r.Context(), objectKey, expiryMinutes)
-	if err != nil {
-		response.Error("Failed to generate temporary access URL").SetStatusCode(http.StatusInternalServerError).Build(w)
 		return
 	}
-
-	response.Success("Temporary access URL generated successfully").SetData(result).Build(w)
+	// 3. 将URL包装在JSON对象中返回给客户端
+	responseData := map[string]string{
+		"url": url,
+	}
+	response.Success("Temporary access URL generated successfully").SetData(responseData).Build(w)
 }

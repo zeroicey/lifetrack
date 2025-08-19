@@ -7,6 +7,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/zeroicey/lifetrack-api/internal"
 	"github.com/zeroicey/lifetrack-api/internal/app"
 	"github.com/zeroicey/lifetrack-api/internal/config"
@@ -41,12 +44,26 @@ func main() {
 	}
 	defer dbConn.Close()
 
+	// Initialize MinIO storage service
+	minioClient, err := minio.New(config.Storage.Endpoint, &minio.Options{
+		Creds:        credentials.NewStaticV4(config.Storage.AccessKey, config.Storage.SecretKey, ""),
+		BucketLookup: minio.BucketLookupDNS,
+		Secure:       config.Storage.UseSSL,
+	})
+	if err != nil {
+		logger.Sugar().Fatalf("Failed to create MinIO client: %v", err)
+	}
+
 	// Initialize repository and services
 	queries := repository.New(dbConn)
-	services := app.NewAppServices(queries)
+	services := app.NewAppServices(queries, logger, minioClient)
+
+	services.Storage.EnsureBucketExists(ctx)
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	// Register routes
-	internal.RegisterRoutes(r, services)
+	internal.RegisterRoutes(r, services, validate)
 
 	// Start server
 	logger.Sugar().Infof("Server started at :%s", config.Port)

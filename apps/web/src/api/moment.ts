@@ -28,6 +28,23 @@ export const apiCreateMoment = async ({ content }: MomentCreate) => {
     return res.data;
 };
 
+export const apiAddAttachmentToMoment = async ({
+    momentId,
+    attachment_id,
+    position,
+}: {
+    momentId: number;
+    attachment_id: string;
+    position: number;
+}) => {
+    const res = await http
+        .post<Response<null>>(`moments/${momentId}/attachments`, {
+            json: { attachment_id, position },
+        })
+        .json();
+    return res.data;
+};
+
 export const apiDeleteMoment = async (id: number) => {
     const res = await http.delete<Response<null>>(`moments/${id}`).json();
     return res.data;
