@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useMomentCreateMutation } from "@/hooks/use-moment-query";
+import { useMomentCreateMutation, useMomentCreateWithAttachmentsMutation } from "@/hooks/use-moment-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import MomentCreateNineGrid from "@/components/moment/moment-create-nine-grid";
+import MomentCreateNineGrid from "@/components/moment/moment-create-attachment";
 import { type MediaFile } from "@/components/moment/media-preview-modal";
 
 export default function MomentCreatePage() {
@@ -10,7 +10,14 @@ export default function MomentCreatePage() {
     const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const { mutate } = useMomentCreateMutation();
+    const { mutate: createMoment } = useMomentCreateMutation();
+    const { mutate: createMomentWithAttachments, isPending: isCreatingWithAttachments } = useMomentCreateWithAttachmentsMutation();
+    
+    const handleSuccess = () => {
+        setTextareaValue("");
+        setMediaFiles([]);
+        navigate("/moment");
+    };
     useEffect(() => {
         const textarea = textareaRef.current;
         if (textarea) {
@@ -45,14 +52,29 @@ export default function MomentCreatePage() {
                 <div className="w-full flex justify-around gap-5 border-t p-4">
                     <Button
                         variant="default"
+                        disabled={isCreatingWithAttachments}
                         onClick={() => {
                             if (textareaValue?.trim() === "") {
                                 return;
                             }
-                            mutate({ content: textareaValue });
+                            
+                            // 如果有附件，使用带附件的创建方法
+                            if (mediaFiles.length > 0) {
+                                createMomentWithAttachments({
+                                    content: textareaValue,
+                                    attachments: mediaFiles,
+                                }, {
+                                    onSuccess: handleSuccess,
+                                });
+                            } else {
+                                // 没有附件，使用普通的创建方法
+                                createMoment({ content: textareaValue }, {
+                                    onSuccess: handleSuccess,
+                                });
+                            }
                         }}
                     >
-                        Create
+                        {isCreatingWithAttachments ? "Creating..." : "Create"}
                     </Button>
                     <Button
                         variant="secondary"

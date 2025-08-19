@@ -49,26 +49,14 @@ func (s *Service) EnsureBucketExists(ctx context.Context) {
 func (s *Service) CreateUploadRequest(ctx context.Context, req *types.PresignedUploadRequest) (*types.PresignedUploadResponse, error) {
 	existingAttachment, err := s.q.FindCompletedAttachmentByMD5(ctx, req.MD5)
 	if err == nil && existingAttachment.ID.Valid {
+		s.logger.Sugar().Logf(zap.InfoLevel, "Found existing attachment with name %s", existingAttachment.OriginalName)
 		standardUUID := uuid.UUID(existingAttachment.ID.Bytes)
 		s.logger.Info("Instant upload detected", zap.String("attachmentId", standardUUID.String()))
 
-		params := repository.CreateAttachmentParams{
-			ObjectKey:    existingAttachment.ObjectKey,
-			OriginalName: req.FileName,
-			MimeType:     req.ContentType,
-			Md5:          req.MD5,
-			FileSize:     req.FileSize,
-		}
-		newAttachment, err := s.q.CreateAttachment(ctx, params)
-		if err != nil {
-			s.logger.Error("Failed to create attachment record for instant upload", zap.Error(err))
-			return nil, fmt.Errorf("failed to create attachment record: %w", err)
-		}
-
 		return &types.PresignedUploadResponse{
-			AttachmentID: newAttachment.ID.String(),
+			AttachmentID: existingAttachment.ID.String(),
 			UploadURL:    "",
-			ObjectKey:    newAttachment.ObjectKey,
+			ObjectKey:    existingAttachment.ObjectKey,
 			IsDuplicate:  true,
 		}, nil
 	}

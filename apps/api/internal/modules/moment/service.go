@@ -9,17 +9,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
+	"go.uber.org/zap"
 )
 
 type Service struct {
-	Q *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
+	Q      *repository.Queries // Q 是 sqlc 生成的 Queries 结构体实例
+	logger *zap.Logger
 }
 
 // ErrMomentNotFound 是当备忘录不存在时返回的哨兵错误
 var ErrMomentNotFound = errors.New("moment not found")
 
-func NewService(q *repository.Queries) *Service {
-	return &Service{Q: q}
+func NewService(q *repository.Queries, logger *zap.Logger) *Service {
+	return &Service{Q: q, logger: logger}
 }
 
 func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit int) ([]types.MomentResponse, *int64, error) {
@@ -208,20 +210,27 @@ func (s *Service) getMomentAttachments(ctx context.Context, momentID int64) ([]t
 func (s *Service) AddAttachmentToMoment(ctx context.Context, momentID int64, attachmentID string, position int16) error {
 	// 检查 moment 是否存在
 	if err := s.checkMomentExists(ctx, momentID); err != nil {
-		return err
+		return ErrMomentNotFound
 	}
 
 	// 将字符串 ID 转换为 UUID
 	var attachmentUUID pgtype.UUID
 	if err := attachmentUUID.Scan(attachmentID); err != nil {
+		s.logger.Sugar().Errorf("invalid attachment ID format: %v", err)
+
 		return errors.New("invalid attachment ID format")
 	}
 
-	return s.Q.AddAttachmentToMoment(ctx, repository.AddAttachmentToMomentParams{
+	err := s.Q.AddAttachmentToMoment(ctx, repository.AddAttachmentToMomentParams{
 		MomentID:     momentID,
 		AttachmentID: attachmentUUID,
 		Position:     position,
 	})
+	if err != nil {
+		s.logger.Sugar().Errorf("failed to add attachment to moment: %v", err)
+		return err
+	}
+	return nil
 }
 
 // RemoveAttachmentFromMoment 从指定的 moment 移除附件

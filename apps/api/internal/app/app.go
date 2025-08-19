@@ -20,7 +20,7 @@ type AppServices struct {
 
 func NewAppServices(q *repository.Queries, logger *zap.Logger, minioClient *minio.Client) *AppServices {
 	services := &AppServices{
-		Moment:    moment.NewService(q),
+		Moment:    moment.NewService(q, logger),
 		TaskGroup: taskgroup.NewService(q),
 		Task:      task.NewService(q),
 		Storage:   storage.NewService(q, minioClient, logger),

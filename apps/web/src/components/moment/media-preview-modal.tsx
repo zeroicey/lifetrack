@@ -1,11 +1,11 @@
 import { X } from "lucide-react";
 
-interface MediaFile {
+export interface MediaFile {
     id: string;
     name: string;
     type: string;
     url: string;
-    file: File;
+    file?: File;
 }
 
 interface MediaPreviewModalProps {
@@ -14,7 +14,7 @@ interface MediaPreviewModalProps {
     onClose: () => void;
 }
 
-export default function MediaPreviewModal({ mediaFile, isOpen, onClose }: MediaPreviewModalProps) {
+function MediaPreviewModal({ mediaFile, isOpen, onClose }: MediaPreviewModalProps) {
     if (!isOpen || !mediaFile) return null;
 
     const handleBackdropClick = (e: React.MouseEvent) => {
@@ -71,4 +71,6 @@ export default function MediaPreviewModal({ mediaFile, isOpen, onClose }: MediaP
     );
 }
 
-export type { MediaFile, MediaPreviewModalProps };
+export { MediaPreviewModal };
+export default MediaPreviewModal;
+export type { MediaPreviewModalProps };
