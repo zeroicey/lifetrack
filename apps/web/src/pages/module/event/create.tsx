@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BasicInput from "@/components/event/setp-inputs/basic-input";
 import { TimeInput } from "@/components/event/step-inputs/time-input";
+import { RemindInput } from "@/components/event/step-inputs/remind-input";
 import { isAfter, format, addHours } from "date-fns";
 
 interface EventFormData {
@@ -13,6 +14,7 @@ interface EventFormData {
     startTime: string;
     endDate?: Date;
     endTime: string;
+    reminders: number[]; // Array of minutes before event start
 }
 
 const TOTAL_STEPS = 3;
@@ -24,7 +26,8 @@ export default function EventCreatePage() {
         description: "",
         location: "",
         startTime: "",
-        endTime: ""
+        endTime: "",
+        reminders: []
     });
 
     const updateFormData = (data: Partial<EventFormData>) => {
@@ -40,7 +43,7 @@ export default function EventCreatePage() {
                 // Validate time settings: check if end time is after start time
                 return validateTimeRange();
             case 3:
-                // Third step validation logic (to be implemented)
+                // Third step validation logic - reminders are optional
                 return true;
             default:
                 return true;
@@ -78,6 +81,19 @@ export default function EventCreatePage() {
         }
     };
 
+    const handleComplete = () => {
+        if (!validateCurrentStep()) {
+            return;
+        }
+        
+        const finalData = getProcessedFormData();
+        console.log('Event Creation Data:', finalData);
+        console.log('Form completed successfully!');
+        
+        // Here you would typically send the data to your backend
+        // For now, we just log it to console
+    };
+
     // Get processed form data (with default values)
     const getProcessedFormData = (): EventFormData => {
         const now = new Date();
@@ -88,7 +104,8 @@ export default function EventCreatePage() {
             startDate: formData.startDate || now,
             startTime: formData.startTime || format(now, 'HH:mm'),
             endDate: formData.endDate || addHours(now, 1),
-            endTime: formData.endTime || format(addHours(now, 1), 'HH:mm')
+            endTime: formData.endTime || format(addHours(now, 1), 'HH:mm'),
+            reminders: formData.reminders
         };
     };
 
@@ -115,7 +132,12 @@ export default function EventCreatePage() {
                     />
                 );
             case 3:
-                return <div>Step 3: Reminder Settings (To be implemented)</div>;
+                return (
+                    <RemindInput 
+                        value={formData.reminders}
+                        onChange={(reminders) => updateFormData({ reminders })}
+                    />
+                );
             default:
                 return null;
         }
@@ -159,8 +181,8 @@ export default function EventCreatePage() {
                             Previous
                         </Button>
                         <Button 
-                            onClick={handleNext}
-                            disabled={currentStep === TOTAL_STEPS || !validateCurrentStep()}
+                            onClick={currentStep === TOTAL_STEPS ? handleComplete : handleNext}
+                            disabled={!validateCurrentStep()}
                         >
                             {currentStep === TOTAL_STEPS ? "Complete" : "Next"}
                         </Button>
