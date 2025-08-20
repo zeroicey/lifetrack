@@ -21,6 +21,38 @@ type Props = {
 
 export default function MomentItem({ moment }: Props) {
     const { mutate: deleteMoment } = useMomentDeleteMutation();
+    function ComfirmMomentDelete() {
+        return (
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Trash2
+                        size={17}
+                        strokeWidth={1.8}
+                        className="text-gray-500 cursor-pointer hover:text-red-500"
+                    />
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this moment?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently
+                            delete this moment.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                deleteMoment(moment.id);
+                            }}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        );
+    }
     return (
         <div className="flex flex-col gap-2 max-w-[600px] w-full">
             <p className="font-mono whitespace-pre-wrap break-words text-xl">
@@ -31,39 +63,10 @@ export default function MomentItem({ moment }: Props) {
                 <MomentAttachmentGrid attachments={moment.attachments} />
             )}
             <div className="flex justify-between items-center mt-2">
-                <span className="text-gray-500 text">
+                <span className="text-gray-500 text-sm">
                     {format(new Date(moment.created_at), "MM-dd HH:mm")}
                 </span>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Trash2
-                            size={17}
-                            strokeWidth={1.8}
-                            className="text-gray-500 cursor-pointer hover:text-red-500"
-                        />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Delete this moment?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete this moment.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={() => {
-                                    deleteMoment(moment.id);
-                                }}
-                            >
-                                Delete
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <ComfirmMomentDelete />
             </div>
         </div>
     );
