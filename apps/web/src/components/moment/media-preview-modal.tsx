@@ -46,7 +46,6 @@ function MediaPreviewModal({
                     <img
                         src={mediaFile.url}
                         alt={mediaFile.name}
-                        className="max-w-full max-h-full min-w-[300px] min-h-[300px] object-contain"
                         style={{ maxWidth: "90vw", maxHeight: "90vh" }}
                     />
                 )}
@@ -55,7 +54,7 @@ function MediaPreviewModal({
                     <video
                         src={mediaFile.url}
                         controls
-                        className="max-w-full max-h-full"
+                        style={{ maxWidth: "90vw", maxHeight: "90vh" }}
                     />
                 )}
 

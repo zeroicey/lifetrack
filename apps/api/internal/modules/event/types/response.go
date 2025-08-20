@@ -3,15 +3,15 @@ package types
 import "time"
 
 type EventResponse struct {
-	ID          int64             `json:"id"`
-	Content     string            `json:"content"`
-	Place       string            `json:"place"`
-	Description string            `json:"description"`
-	StartTime   time.Time         `json:"start_time"`
-	EndTime     time.Time         `json:"end_time"`
-	Reminders   []EventReminder   `json:"reminders"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
+	ID          int64           `json:"id"`
+	Name        string          `json:"name"`
+	Place       string          `json:"place"`
+	Description string          `json:"description"`
+	StartTime   time.Time       `json:"start_time"`
+	EndTime     time.Time       `json:"end_time"`
+	Reminders   []EventReminder `json:"reminders"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 type EventReminder struct {

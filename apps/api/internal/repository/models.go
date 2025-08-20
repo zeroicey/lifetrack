@@ -124,8 +124,8 @@ type Attachment struct {
 type Event struct {
 	// 事件的唯一标识符
 	ID int64 `json:"id"`
-	// 事件的内容
-	Content string `json:"content"`
+	// 事件的名称
+	Name string `json:"name"`
 	// 事件的地点
 	Place string `json:"place"`
 	// 事件的描述

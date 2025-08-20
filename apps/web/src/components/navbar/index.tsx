@@ -5,12 +5,16 @@ import MomentNav from "./moment-nav";
 import MomentCreateNav from "./moment-create-nav";
 import TaskNav from "./task-nav";
 import TaskGroupNav from "./task-group-nav";
+import EventNav from "./event-nav";
+import EventCreateNav from "./event-create-nav";
 
 const rightContents = new Map<string, React.ReactNode>([
     ["/moment", <MomentNav />],
     ["/moment/create", <MomentCreateNav />],
     ["/task", <TaskNav />],
     ["/task/group", <TaskGroupNav />],
+    ["/event", <EventNav />],
+    ["/event/create", <EventCreateNav />],
 ]);
 
 export default function Navbar() {

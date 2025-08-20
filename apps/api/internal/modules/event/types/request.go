@@ -3,7 +3,7 @@ package types
 import "time"
 
 type CreateEventBody struct {
-	Content     string    `json:"content" validate:"required"`
+	Name        string    `json:"name" validate:"required"`
 	Place       string    `json:"place" validate:"required"`
 	Description string    `json:"description" validate:"required"`
 	StartTime   time.Time `json:"start_time" validate:"required"`
@@ -12,7 +12,7 @@ type CreateEventBody struct {
 }
 
 type UpdateEventBody struct {
-	Content     string    `json:"content" validate:"required"`
+	Name        string    `json:"name" validate:"required"`
 	Place       string    `json:"place" validate:"required"`
 	Description string    `json:"description" validate:"required"`
 	StartTime   time.Time `json:"start_time" validate:"required"`

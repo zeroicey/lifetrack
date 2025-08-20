@@ -1,7 +1,7 @@
 -- name: GetAllEvents :many
 SELECT 
     e.id,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,
@@ -19,7 +19,7 @@ ORDER BY e.start_time ASC, er.remind_before ASC;
 -- name: GetEventByID :one
 SELECT 
     e.id,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,
@@ -37,7 +37,7 @@ ORDER BY er.remind_before ASC;
 
 -- name: CreateEvent :one
 INSERT INTO events (
-    content,
+    name,
     place,
     description,
     start_time,
@@ -45,18 +45,18 @@ INSERT INTO events (
 ) VALUES (
     $1, $2, $3, $4, $5
 )
-RETURNING id, content, place, description, start_time, end_time, created_at, updated_at;
+RETURNING id, name, place, description, start_time, end_time, created_at, updated_at;
 
 -- name: UpdateEvent :one
 UPDATE events
 SET 
-    content = $2,
+    name = $2,
     place = $3,
     description = $4,
     start_time = $5,
     end_time = $6
 WHERE id = $1
-RETURNING id, content, place, description, start_time, end_time, created_at, updated_at;
+RETURNING id, name, place, description, start_time, end_time, created_at, updated_at;
 
 -- name: DeleteEvent :exec
 DELETE FROM events
@@ -65,7 +65,7 @@ WHERE id = $1;
 -- name: GetEventsByDateRange :many
 SELECT 
     e.id,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,
@@ -106,7 +106,7 @@ SELECT
     er.remind_before,
     er.notified,
     er.created_at,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,

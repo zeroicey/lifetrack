@@ -3,7 +3,7 @@
 CREATE TABLE
     events (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        content TEXT NOT NULL,
+        name TEXT NOT NULL,
         place TEXT NOT NULL,
         description TEXT NOT NULL,
         start_time timestamptz NOT NULL,
@@ -27,7 +27,7 @@ CREATE TRIGGER events_updated_at_trigger
 
 COMMENT ON COLUMN events.id IS '事件的唯一标识符';
 
-COMMENT ON COLUMN events.content IS '事件的内容';
+COMMENT ON COLUMN events.name IS '事件的名称';
 
 COMMENT ON COLUMN events.place IS '事件的地点';
 

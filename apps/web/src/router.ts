@@ -11,6 +11,7 @@ import RootLayout from "./components/layouts/root-layout";
 import HomePage from "./pages/module/home";
 import EventPage from "./pages/module/event";
 import TaskGroupPage from "./pages/module/task/group";
+import EventCreatePage from "./pages/module/event/create";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -46,7 +47,13 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "event",
-                        children: [{ index: true, Component: EventPage }],
+                        children: [
+                            { index: true, Component: EventPage },
+                            {
+                                path: "create",
+                                Component: EventCreatePage,
+                            },
+                        ],
                     },
                 ],
             },

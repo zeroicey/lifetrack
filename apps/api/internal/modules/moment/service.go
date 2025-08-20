@@ -88,7 +88,7 @@ func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit 
 
 func (s *Service) CreateMoment(ctx context.Context, body types.CreateMomentBody) (types.MomentResponse, error) {
 	if body.Content == "" {
-		return types.MomentResponse{}, errors.New("content is required")
+		return types.MomentResponse{}, errors.New("name is required")
 	}
 
 	// 创建 moment

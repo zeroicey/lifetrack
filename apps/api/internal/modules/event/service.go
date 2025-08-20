@@ -47,7 +47,7 @@ func (s *Service) GetEventByID(ctx context.Context, id int64) (types.EventRespon
 	rowSlice := []repository.GetAllEventsRow{
 		{
 			ID:                rows.ID,
-			Content:           rows.Content,
+			Name:              rows.Name,
 			Place:             rows.Place,
 			Description:       rows.Description,
 			StartTime:         rows.StartTime,
@@ -84,7 +84,7 @@ func (s *Service) CreateEvent(ctx context.Context, body types.CreateEventBody) (
 
 	// 创建事件
 	event, err := s.Q.CreateEvent(ctx, repository.CreateEventParams{
-		Content:     body.Content,
+		Name:        body.Name,
 		Place:       body.Place,
 		Description: body.Description,
 		StartTime:   startTime,
@@ -118,7 +118,7 @@ func (s *Service) CreateEvent(ctx context.Context, body types.CreateEventBody) (
 
 	return types.EventResponse{
 		ID:          event.ID,
-		Content:     event.Content,
+		Name:        event.Name,
 		Place:       event.Place,
 		Description: event.Description,
 		StartTime:   event.StartTime.Time,
@@ -145,7 +145,7 @@ func (s *Service) UpdateEvent(ctx context.Context, id int64, body types.UpdateEv
 	// 更新事件
 	event, err := s.Q.UpdateEvent(ctx, repository.UpdateEventParams{
 		ID:          id,
-		Content:     body.Content,
+		Name:        body.Name,
 		Place:       body.Place,
 		Description: body.Description,
 		StartTime:   startTime,
@@ -175,7 +175,7 @@ func (s *Service) UpdateEvent(ctx context.Context, id int64, body types.UpdateEv
 
 	return types.EventResponse{
 		ID:          event.ID,
-		Content:     event.Content,
+		Name:        event.Name,
 		Place:       event.Place,
 		Description: event.Description,
 		StartTime:   event.StartTime.Time,
@@ -232,7 +232,7 @@ func (s *Service) GetEventsByDateRange(ctx context.Context, startDate, endDate s
 	for _, row := range rows {
 		allEventsRows = append(allEventsRows, repository.GetAllEventsRow{
 			ID:                row.ID,
-			Content:           row.Content,
+			Name:              row.Name,
 			Place:             row.Place,
 			Description:       row.Description,
 			StartTime:         row.StartTime,
@@ -288,7 +288,7 @@ func (s *Service) groupEventRows(rows []repository.GetAllEventsRow) []types.Even
 		if _, exists := eventMap[row.ID]; !exists {
 			eventMap[row.ID] = &types.EventResponse{
 				ID:          row.ID,
-				Content:     row.Content,
+				Name:        row.Name,
 				Place:       row.Place,
 				Description: row.Description,
 				StartTime:   row.StartTime.Time,

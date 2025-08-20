@@ -13,7 +13,7 @@ import (
 
 const createEvent = `-- name: CreateEvent :one
 INSERT INTO events (
-    content,
+    name,
     place,
     description,
     start_time,
@@ -21,11 +21,11 @@ INSERT INTO events (
 ) VALUES (
     $1, $2, $3, $4, $5
 )
-RETURNING id, content, place, description, start_time, end_time, created_at, updated_at
+RETURNING id, name, place, description, start_time, end_time, created_at, updated_at
 `
 
 type CreateEventParams struct {
-	Content     string             `json:"content"`
+	Name        string             `json:"name"`
 	Place       string             `json:"place"`
 	Description string             `json:"description"`
 	StartTime   pgtype.Timestamptz `json:"start_time"`
@@ -34,7 +34,7 @@ type CreateEventParams struct {
 
 func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error) {
 	row := q.db.QueryRow(ctx, createEvent,
-		arg.Content,
+		arg.Name,
 		arg.Place,
 		arg.Description,
 		arg.StartTime,
@@ -43,7 +43,7 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event
 	var i Event
 	err := row.Scan(
 		&i.ID,
-		&i.Content,
+		&i.Name,
 		&i.Place,
 		&i.Description,
 		&i.StartTime,
@@ -105,7 +105,7 @@ func (q *Queries) DeleteEventReminder(ctx context.Context, id int64) error {
 const getAllEvents = `-- name: GetAllEvents :many
 SELECT 
     e.id,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,
@@ -123,7 +123,7 @@ ORDER BY e.start_time ASC, er.remind_before ASC
 
 type GetAllEventsRow struct {
 	ID                int64              `json:"id"`
-	Content           string             `json:"content"`
+	Name              string             `json:"name"`
 	Place             string             `json:"place"`
 	Description       string             `json:"description"`
 	StartTime         pgtype.Timestamptz `json:"start_time"`
@@ -147,7 +147,7 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
 		var i GetAllEventsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Content,
+			&i.Name,
 			&i.Place,
 			&i.Description,
 			&i.StartTime,
@@ -172,7 +172,7 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
 const getEventByID = `-- name: GetEventByID :one
 SELECT 
     e.id,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,
@@ -191,7 +191,7 @@ ORDER BY er.remind_before ASC
 
 type GetEventByIDRow struct {
 	ID                int64              `json:"id"`
-	Content           string             `json:"content"`
+	Name              string             `json:"name"`
 	Place             string             `json:"place"`
 	Description       string             `json:"description"`
 	StartTime         pgtype.Timestamptz `json:"start_time"`
@@ -209,7 +209,7 @@ func (q *Queries) GetEventByID(ctx context.Context, id int64) (GetEventByIDRow, 
 	var i GetEventByIDRow
 	err := row.Scan(
 		&i.ID,
-		&i.Content,
+		&i.Name,
 		&i.Place,
 		&i.Description,
 		&i.StartTime,
@@ -269,7 +269,7 @@ SELECT
     er.remind_before,
     er.notified,
     er.created_at,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,
@@ -287,7 +287,7 @@ type GetEventRemindersToNotifyRow struct {
 	RemindBefore int32              `json:"remind_before"`
 	Notified     bool               `json:"notified"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	Content      string             `json:"content"`
+	Name         string             `json:"name"`
 	Place        string             `json:"place"`
 	Description  string             `json:"description"`
 	StartTime    pgtype.Timestamptz `json:"start_time"`
@@ -309,7 +309,7 @@ func (q *Queries) GetEventRemindersToNotify(ctx context.Context) ([]GetEventRemi
 			&i.RemindBefore,
 			&i.Notified,
 			&i.CreatedAt,
-			&i.Content,
+			&i.Name,
 			&i.Place,
 			&i.Description,
 			&i.StartTime,
@@ -328,7 +328,7 @@ func (q *Queries) GetEventRemindersToNotify(ctx context.Context) ([]GetEventRemi
 const getEventsByDateRange = `-- name: GetEventsByDateRange :many
 SELECT 
     e.id,
-    e.content,
+    e.name,
     e.place,
     e.description,
     e.start_time,
@@ -352,7 +352,7 @@ type GetEventsByDateRangeParams struct {
 
 type GetEventsByDateRangeRow struct {
 	ID                int64              `json:"id"`
-	Content           string             `json:"content"`
+	Name              string             `json:"name"`
 	Place             string             `json:"place"`
 	Description       string             `json:"description"`
 	StartTime         pgtype.Timestamptz `json:"start_time"`
@@ -376,7 +376,7 @@ func (q *Queries) GetEventsByDateRange(ctx context.Context, arg GetEventsByDateR
 		var i GetEventsByDateRangeRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Content,
+			&i.Name,
 			&i.Place,
 			&i.Description,
 			&i.StartTime,
@@ -401,18 +401,18 @@ func (q *Queries) GetEventsByDateRange(ctx context.Context, arg GetEventsByDateR
 const updateEvent = `-- name: UpdateEvent :one
 UPDATE events
 SET 
-    content = $2,
+    name = $2,
     place = $3,
     description = $4,
     start_time = $5,
     end_time = $6
 WHERE id = $1
-RETURNING id, content, place, description, start_time, end_time, created_at, updated_at
+RETURNING id, name, place, description, start_time, end_time, created_at, updated_at
 `
 
 type UpdateEventParams struct {
 	ID          int64              `json:"id"`
-	Content     string             `json:"content"`
+	Name        string             `json:"name"`
 	Place       string             `json:"place"`
 	Description string             `json:"description"`
 	StartTime   pgtype.Timestamptz `json:"start_time"`
@@ -422,7 +422,7 @@ type UpdateEventParams struct {
 func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event, error) {
 	row := q.db.QueryRow(ctx, updateEvent,
 		arg.ID,
-		arg.Content,
+		arg.Name,
 		arg.Place,
 		arg.Description,
 		arg.StartTime,
@@ -431,7 +431,7 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 	var i Event
 	err := row.Scan(
 		&i.ID,
-		&i.Content,
+		&i.Name,
 		&i.Place,
 		&i.Description,
 		&i.StartTime,
