@@ -1,34 +1,17 @@
 import TaskCreateInput from "@/components/task/task-create-input";
 import TaskList from "@/components/task/task-list";
 import CustomCollapsible from "@/components/task/collapsibles/custom";
-import { Button } from "@/components/ui/button";
-import { useNavbarStore } from "@/stores/navbar";
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { useTaskStore } from "@/stores/task";
 import RoutineCollapsible from "@/components/task/collapsibles/routine";
+import { useState } from "react";
 
 export default function TaskPage() {
-    const { setRightContent, clearRightContent } = useNavbarStore();
-    const { selectedTaskGroupName } = useTaskStore();
     const [isCustomOpen, setIsCustomOpen] = useState(true);
     const [isRoutineOpen, setIsRoutineOpen] = useState(true);
-
-    useEffect(() => {
-        setRightContent(
-            <Link to={"task/groups"}>
-                <Button variant="ghost" className="text-gray-500 text-sm">
-                    {selectedTaskGroupName}
-                </Button>
-            </Link>
-        );
-        return () => clearRightContent();
-    }, [selectedTaskGroupName]);
 
     return (
         <div className="h-full w-full flex justify-center">
             <div className="w-full flex gap-2 p-2">
-                <div className="items-center min-w-[270px] border flex-col h-full sm:flex hidden overflow-auto no-scrollbar">
+                <div className="items-center border flex-col h-full sm:flex hidden overflow-auto no-scrollbar max-w-[170px] w-full md:max-w-[250px] transition-all duration-300 ease-in-out">
                     <RoutineCollapsible
                         isOpen={isRoutineOpen}
                         onOpenChange={setIsRoutineOpen}

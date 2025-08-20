@@ -55,7 +55,7 @@ export default function MomentItem({ moment }: Props) {
     }
     return (
         <div className="flex flex-col gap-2 max-w-[600px] w-full">
-            <p className="font-mono whitespace-pre-wrap break-words text-xl">
+            <p className="font-mono whitespace-pre-wrap break-words text-lg">
                 {moment.content}
             </p>
 
