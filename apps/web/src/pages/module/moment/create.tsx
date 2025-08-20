@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useMomentCreateMutation, useMomentCreateWithAttachmentsMutation } from "@/hooks/use-moment-query";
+import {
+    useMomentCreateMutation,
+    useMomentCreateWithAttachmentsMutation,
+} from "@/hooks/use-moment-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import MomentCreateNineGrid from "@/components/moment/moment-create-attachment";
@@ -11,8 +14,11 @@ export default function MomentCreatePage() {
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { mutate: createMoment } = useMomentCreateMutation();
-    const { mutate: createMomentWithAttachments, isPending: isCreatingWithAttachments } = useMomentCreateWithAttachmentsMutation();
-    
+    const {
+        mutate: createMomentWithAttachments,
+        isPending: isCreatingWithAttachments,
+    } = useMomentCreateWithAttachmentsMutation();
+
     const handleSuccess = () => {
         setTextareaValue("");
         setMediaFiles([]);
@@ -53,24 +59,31 @@ export default function MomentCreatePage() {
                     <Button
                         variant="default"
                         disabled={isCreatingWithAttachments}
+                        className="cursor-pointer"
                         onClick={() => {
                             if (textareaValue?.trim() === "") {
                                 return;
                             }
-                            
+
                             // 如果有附件，使用带附件的创建方法
                             if (mediaFiles.length > 0) {
-                                createMomentWithAttachments({
-                                    content: textareaValue,
-                                    attachments: mediaFiles,
-                                }, {
-                                    onSuccess: handleSuccess,
-                                });
+                                createMomentWithAttachments(
+                                    {
+                                        content: textareaValue,
+                                        attachments: mediaFiles,
+                                    },
+                                    {
+                                        onSuccess: handleSuccess,
+                                    }
+                                );
                             } else {
                                 // 没有附件，使用普通的创建方法
-                                createMoment({ content: textareaValue }, {
-                                    onSuccess: handleSuccess,
-                                });
+                                createMoment(
+                                    { content: textareaValue },
+                                    {
+                                        onSuccess: handleSuccess,
+                                    }
+                                );
                             }
                         }}
                     >
@@ -78,6 +91,7 @@ export default function MomentCreatePage() {
                     </Button>
                     <Button
                         variant="secondary"
+                        className="cursor-pointer"
                         onClick={() => {
                             setTextareaValue("");
                             navigate("/moment");

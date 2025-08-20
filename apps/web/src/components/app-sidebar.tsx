@@ -61,11 +61,11 @@ export function AppSidebar() {
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupContent>
-                        <SidebarGroupLabel className="flex items-center gap-2">
+                        <SidebarGroupLabel className="flex items-center gap-2 text-xl mb-5 text-bold">
                             <img
                                 src="/logo.png"
                                 alt="Lifetrack"
-                                className="w-6 h-6"
+                                className="w-10 h-10"
                             />
                             Lifetrack
                         </SidebarGroupLabel>
@@ -82,7 +82,9 @@ export function AppSidebar() {
                                                 isActive={isActive}
                                             >
                                                 <item.icon />
-                                                <span>{item.title}</span>
+                                                <span className="text-lg">
+                                                    {item.title}
+                                                </span>
                                             </SidebarMenuButton>
                                         )}
                                     </NavLink>

@@ -67,7 +67,7 @@ export default function RoutineCollapsible({
                         </div>
                     </Button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="grid grid-cols-2 gap-2 p-2">
+                <CollapsibleContent className="grid md:grid-cols-2 md:gap-2 p-2 grid-cols-1 gap-4">
                     <Button
                         size="sm"
                         variant={isSelected("day") ? "default" : "outline"}

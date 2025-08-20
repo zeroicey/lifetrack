@@ -9,10 +9,8 @@ import GuidePage from "@/pages/guide";
 import ModuleLayout from "./components/layouts/module-layout";
 import RootLayout from "./components/layouts/root-layout";
 import HomePage from "./pages/module/home";
-import GroupsPage from "./pages/module/task/groups";
-import GroupCreatePage from "./pages/module/task/groups/create";
 import EventPage from "./pages/module/event";
-import LogPage from "./pages/module/log";
+import TaskGroupPage from "./pages/module/task/group";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -39,16 +37,7 @@ const router = createBrowserRouter([
                         path: "task",
                         children: [
                             { index: true, Component: TaskPage },
-                            {
-                                path: "groups",
-                                children: [
-                                    { index: true, Component: GroupsPage },
-                                    {
-                                        path: "create",
-                                        Component: GroupCreatePage,
-                                    },
-                                ],
-                            },
+                            { path: "group", Component: TaskGroupPage },
                         ],
                     },
                     {
@@ -58,10 +47,6 @@ const router = createBrowserRouter([
                     {
                         path: "event",
                         children: [{ index: true, Component: EventPage }],
-                    },
-                    {
-                        path: "log",
-                        children: [{ index: true, Component: LogPage }],
                     },
                 ],
             },
