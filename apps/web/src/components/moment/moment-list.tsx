@@ -8,7 +8,7 @@ export default function MomentList() {
         useMomentInfiniteQuery();
     if (isPending) {
         return (
-            <div className="flex justify-center items-center h-full">
+            <div className="flex justify-center items-center h-full w-full">
                 <div role="status">
                     <svg
                         aria-hidden="true"
@@ -32,7 +32,7 @@ export default function MomentList() {
         );
     }
     return (
-        <div className="flex flex-col overflow-auto no-scrollbar">
+        <div className="flex flex-col overflow-auto no-scrollbar w-full">
             {data?.pages.map((page, pageIndex) =>
                 page.items?.map((moment: Moment, momentIndex: number) => {
                     const isLastMomentInPage =
@@ -42,16 +42,16 @@ export default function MomentList() {
                         !isLastMomentInPage || !isLastPage;
 
                     return (
-                        <div key={moment.id}>
+                        <div key={moment.id} className="flex flex-col items-center w-full">
                             <MomentItem moment={moment} />
                             {shouldShowSeparator && (
-                                <div className="border-b border-gray-200 my-3" />
+                                <div className="border-b border-gray-200 my-3 max-w-[600px] w-full" />
                             )}
                         </div>
                     );
                 })
             )}
-            <div className="text-center text-gray-500 text-sm">
+            <div className="text-center text-gray-500 text-sm mt-2">
                 <Button
                     variant={"outline"}
                     disabled={!hasNextPage || isFetchingNextPage}

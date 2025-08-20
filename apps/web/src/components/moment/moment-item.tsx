@@ -22,8 +22,8 @@ type Props = {
 export default function MomentItem({ moment }: Props) {
     const { mutate: deleteMoment } = useMomentDeleteMutation();
     return (
-        <div className="flex flex-col justify-center gap-2">
-            <p className="font-mono whitespace-pre-wrap break-words">
+        <div className="flex flex-col gap-2 max-w-[600px] w-full">
+            <p className="font-mono whitespace-pre-wrap break-words text-xl">
                 {moment.content}
             </p>
 
@@ -36,17 +36,11 @@ export default function MomentItem({ moment }: Props) {
                 </span>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <button
-                            type="button"
-                            aria-label="Delete moment"
-                            className="p-1 rounded hover:bg-muted"
-                        >
-                            <Trash2
-                                size={17}
-                                strokeWidth={1.8}
-                                className="text-gray-500 cursor-pointer"
-                            />
-                        </button>
+                        <Trash2
+                            size={17}
+                            strokeWidth={1.8}
+                            className="text-gray-500 cursor-pointer hover:text-red-500"
+                        />
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader>
