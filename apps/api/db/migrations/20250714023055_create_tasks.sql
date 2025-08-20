@@ -65,8 +65,6 @@ COMMENT ON COLUMN tasks.updated_at IS '更新时间';
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TRIGGER IF EXISTS update_task_groups_on_task_change ON tasks;
-DROP TRIGGER IF EXISTS tasks_updated_at_trigger ON tasks;
 DROP FUNCTION IF EXISTS update_parent_updated_at();
 DROP FUNCTION IF EXISTS update_tasks_updated_at();
 DROP TABLE IF EXISTS tasks;

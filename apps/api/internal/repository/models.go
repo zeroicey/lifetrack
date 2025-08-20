@@ -121,6 +121,39 @@ type Attachment struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Event struct {
+	// 事件的唯一标识符
+	ID int64 `json:"id"`
+	// 事件的内容
+	Content string `json:"content"`
+	// 事件的地点
+	Place string `json:"place"`
+	// 事件的描述
+	Description string `json:"description"`
+	// 事件的开始时间
+	StartTime pgtype.Timestamptz `json:"start_time"`
+	// 事件的结束时间
+	EndTime pgtype.Timestamptz `json:"end_time"`
+	// 记录创建时间
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 记录最后更新时间
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 事件提醒表
+type EventReminder struct {
+	// 主键，自增ID
+	ID int64 `json:"id"`
+	// 关联的事件ID
+	EventID int64 `json:"event_id"`
+	// 提醒前的时间间隔（单位：分）
+	RemindBefore int32 `json:"remind_before"`
+	// 是否已通知
+	Notified bool `json:"notified"`
+	// 创建时间
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 // 用于存储即使信息，包括文本内容和附件
 type Moment struct {
 	// 备忘录的唯一标识符
@@ -135,6 +168,8 @@ type Moment struct {
 
 // 连接 moments 和 attachments 的多对多联结表
 type MomentAttachment struct {
+	// 联结记录的唯一标识符
+	ID int64 `json:"id"`
 	// 关联的 Moment ID
 	MomentID int64 `json:"moment_id"`
 	// 关联的附件 ID

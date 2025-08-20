@@ -57,7 +57,6 @@ COMMENT ON COLUMN task_groups.updated_at IS '更新时间';
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TRIGGER IF EXISTS task_groups_updated_at_trigger ON task_groups;
 ALTER TABLE IF EXISTS task_groups DROP CONSTRAINT IF EXISTS check_name_format;
 DROP TABLE IF EXISTS task_groups;
 DROP TYPE IF EXISTS task_group_type;
