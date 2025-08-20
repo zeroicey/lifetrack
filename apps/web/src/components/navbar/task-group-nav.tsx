@@ -7,7 +7,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "../ui/breadcrumb";
-import { ArrowLeft, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function TaskGroupNav() {
     const navigate = useNavigate();
