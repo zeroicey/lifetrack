@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 
 export default function MomentSearch() {
     return (
-        <div className="flex items-center border w-full rounded-md gap-2 px-2">
+        <div className="max-w-[600px] w-full flex items-center border rounded-md gap-2 px-2">
             <input
                 type="text"
                 placeholder="Search"

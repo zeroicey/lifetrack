@@ -36,7 +36,9 @@ export default function Navbar() {
                 pathSegments[0].slice(1);
             return (
                 <BreadcrumbItem>
-                    <BreadcrumbPage>{pageName}</BreadcrumbPage>
+                    <BreadcrumbPage className="text-xl">
+                        {pageName}
+                    </BreadcrumbPage>
                 </BreadcrumbItem>
             );
         }
@@ -50,20 +52,25 @@ export default function Navbar() {
         return (
             <>
                 <BreadcrumbItem>
-                    <BreadcrumbLink href={`/${pathSegments[0]}`}>
+                    <BreadcrumbLink
+                        href={`/${pathSegments[0]}`}
+                        className="text-xl"
+                    >
                         {parentName}
                     </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                    <BreadcrumbPage>{childName}</BreadcrumbPage>
+                    <BreadcrumbPage className="text-xl">
+                        {childName}
+                    </BreadcrumbPage>
                 </BreadcrumbItem>
             </>
         );
     };
 
     return (
-        <header className="flex h-12 items-center justify-between border-b px-4">
+        <header className="flex items-center justify-between border-b px-4 py-4">
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
