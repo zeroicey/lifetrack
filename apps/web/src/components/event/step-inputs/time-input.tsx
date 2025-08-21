@@ -174,17 +174,17 @@ export function TimeInput({ data, onUpdate }: TimeInputProps) {
 
                     {/* Start Time */}
                     <div className="space-y-2">
-                        <Label htmlFor="start-time">Start Time</Label>
-                        <div className="relative">
-                            <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                id="start-time"
-                                type="time"
-                                value={getStartTimeValue()}
-                                onChange={handleStartTimeChange}
-                                className="pl-10"
-                            />
-                        </div>
+                        <Label htmlFor="start-time" className="flex items-center gap-2">
+                            <ClockIcon className="h-4 w-4 text-muted-foreground" />
+                            Start Time
+                        </Label>
+                        <Input
+                            id="start-time"
+                            type="time"
+                            value={getStartTimeValue()}
+                            onChange={handleStartTimeChange}
+                            className="w-full"
+                        />
                     </div>
                 </div>
             </div>
@@ -234,17 +234,17 @@ export function TimeInput({ data, onUpdate }: TimeInputProps) {
 
                     {/* End Time */}
                     <div className="space-y-2">
-                        <Label htmlFor="end-time">End Time</Label>
-                        <div className="relative">
-                            <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                id="end-time"
-                                type="time"
-                                value={getEndTimeValue()}
-                                onChange={handleEndTimeChange}
-                                className="pl-10"
-                            />
-                        </div>
+                        <Label htmlFor="end-time" className="flex items-center gap-2">
+                            <ClockIcon className="h-4 w-4 text-muted-foreground" />
+                            End Time
+                        </Label>
+                        <Input
+                            id="end-time"
+                            type="time"
+                            value={getEndTimeValue()}
+                            onChange={handleEndTimeChange}
+                            className="w-full"
+                        />
                     </div>
                 </div>
             </div>

@@ -51,11 +51,8 @@ func (h *Handler) ListEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success("Events retrieved successfully").SetData(types.EventListResponse{
-		Events:     events,
-		NextCursor: nil,
-		HasMore:    false,
-	}).Build(w)
+	response.Success("Events retrieved successfully").SetData(events).Build(w)
+
 }
 
 // CreateEvent 创建新事件
@@ -174,10 +171,7 @@ func (h *Handler) GetEventsByDateRange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success("Events retrieved successfully").SetData(types.EventListResponse{
-
-		Events: events,
-	}).Build(w)
+	response.Success("Events retrieved successfully").SetData(events).Build(w)
 }
 
 // CreateEventReminder 为事件创建提醒

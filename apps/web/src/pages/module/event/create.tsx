@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import BasicInput from "@/components/event/setp-inputs/basic-input";
+import BasicInput from "@/components/event/step-inputs/basic-input";
 import { TimeInput } from "@/components/event/step-inputs/time-input";
 import { RemindInput } from "@/components/event/step-inputs/remind-input";
 import { isAfter, format, addHours } from "date-fns";
+import { useEventCreateMutation } from "@/hooks/use-event-query";
+import type { EventCreate } from "@/types/event";
 
 interface EventFormData {
     name: string;
@@ -20,6 +22,7 @@ interface EventFormData {
 const TOTAL_STEPS = 3;
 
 export default function EventCreatePage() {
+    const { mutate: createEvent } = useEventCreateMutation();
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState<EventFormData>({
         name: "",
@@ -27,11 +30,11 @@ export default function EventCreatePage() {
         location: "",
         startTime: "",
         endTime: "",
-        reminders: []
+        reminders: [],
     });
 
     const updateFormData = (data: Partial<EventFormData>) => {
-        setFormData(prev => ({ ...prev, ...data }));
+        setFormData((prev) => ({ ...prev, ...data }));
     };
 
     const validateCurrentStep = (): boolean => {
@@ -54,12 +57,12 @@ export default function EventCreatePage() {
         const now = new Date();
         const startDate = formData.startDate || now;
         const endDate = formData.endDate || addHours(now, 1);
-        const startTime = formData.startTime || format(now, 'HH:mm');
-        const endTime = formData.endTime || format(addHours(now, 1), 'HH:mm');
+        const startTime = formData.startTime || format(now, "HH:mm");
+        const endTime = formData.endTime || format(addHours(now, 1), "HH:mm");
 
         // Create full datetime objects for comparison
-        const [startHour, startMinute] = startTime.split(':').map(Number);
-        const [endHour, endMinute] = endTime.split(':').map(Number);
+        const [startHour, startMinute] = startTime.split(":").map(Number);
+        const [endHour, endMinute] = endTime.split(":").map(Number);
 
         const startDateTime = new Date(startDate);
         startDateTime.setHours(startHour, startMinute, 0, 0);
@@ -75,9 +78,9 @@ export default function EventCreatePage() {
             // If validation fails, don't allow proceeding to next step
             return;
         }
-        
+
         if (currentStep < TOTAL_STEPS) {
-            setCurrentStep(prev => prev + 1);
+            setCurrentStep((prev) => prev + 1);
         }
     };
 
@@ -85,13 +88,12 @@ export default function EventCreatePage() {
         if (!validateCurrentStep()) {
             return;
         }
-        
+
         const finalData = getProcessedFormData();
-        console.log('Event Creation Data:', finalData);
-        console.log('Form completed successfully!');
-        
-        // Here you would typically send the data to your backend
-        // For now, we just log it to console
+        const eventData = convertToEventCreate(finalData);
+
+        console.log("Event Creation Data:", eventData);
+        createEvent(eventData);
     };
 
     // Get processed form data (with default values)
@@ -99,41 +101,54 @@ export default function EventCreatePage() {
         const now = new Date();
         return {
             name: formData.name.trim(),
-            description: formData.description.trim() || "The description of this event",
+            description:
+                formData.description.trim() || "The description of this event",
             location: formData.location.trim() || "Unknown",
             startDate: formData.startDate || now,
-            startTime: formData.startTime || format(now, 'HH:mm'),
+            startTime: formData.startTime || format(now, "HH:mm"),
             endDate: formData.endDate || addHours(now, 1),
-            endTime: formData.endTime || format(addHours(now, 1), 'HH:mm'),
-            reminders: formData.reminders
+            endTime: formData.endTime || format(addHours(now, 1), "HH:mm"),
+            reminders: formData.reminders,
+        };
+    };
+
+    // Convert form data to EventCreate format for API
+    const convertToEventCreate = (data: EventFormData): EventCreate => {
+        // Create full datetime objects
+        const [startHour, startMinute] = data.startTime.split(":").map(Number);
+        const [endHour, endMinute] = data.endTime.split(":").map(Number);
+
+        const startDateTime = new Date(data.startDate!);
+        startDateTime.setHours(startHour, startMinute, 0, 0);
+
+        const endDateTime = new Date(data.endDate!);
+        endDateTime.setHours(endHour, endMinute, 0, 0);
+
+        return {
+            name: data.name,
+            place: data.location,
+            description: data.description,
+            start_time: startDateTime,
+            end_time: endDateTime,
+            reminders: data.reminders.length > 0 ? data.reminders : undefined,
         };
     };
 
     const handlePrevious = () => {
         if (currentStep > 1) {
-            setCurrentStep(prev => prev - 1);
+            setCurrentStep((prev) => prev - 1);
         }
     };
 
     const renderStepContent = () => {
         switch (currentStep) {
             case 1:
-                return (
-                    <BasicInput 
-                        data={formData}
-                        onUpdate={updateFormData}
-                    />
-                );
+                return <BasicInput data={formData} onUpdate={updateFormData} />;
             case 2:
-                return (
-                    <TimeInput 
-                        data={formData}
-                        onUpdate={updateFormData}
-                    />
-                );
+                return <TimeInput data={formData} onUpdate={updateFormData} />;
             case 3:
                 return (
-                    <RemindInput 
+                    <RemindInput
                         value={formData.reminders}
                         onChange={(reminders) => updateFormData({ reminders })}
                     />
@@ -171,17 +186,21 @@ export default function EventCreatePage() {
                 </CardHeader>
                 <CardContent>
                     {renderStepContent()}
-                    
+
                     <div className="flex justify-between mt-6">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={handlePrevious}
                             disabled={currentStep === 1}
                         >
                             Previous
                         </Button>
-                        <Button 
-                            onClick={currentStep === TOTAL_STEPS ? handleComplete : handleNext}
+                        <Button
+                            onClick={
+                                currentStep === TOTAL_STEPS
+                                    ? handleComplete
+                                    : handleNext
+                            }
                             disabled={!validateCurrentStep()}
                         >
                             {currentStep === TOTAL_STEPS ? "Complete" : "Next"}

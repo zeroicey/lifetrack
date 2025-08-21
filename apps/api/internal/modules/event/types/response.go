@@ -22,12 +22,6 @@ type EventReminder struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
-type EventListResponse struct {
-	Events     []EventResponse `json:"events"`
-	NextCursor *string         `json:"next_cursor,omitempty"`
-	HasMore    bool            `json:"has_more"`
-}
-
 type EventReminderResponse struct {
 	ID           int64     `json:"id"`
 	EventID      int64     `json:"event_id"`
