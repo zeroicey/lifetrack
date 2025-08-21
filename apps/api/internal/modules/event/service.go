@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/wneessen/go-mail"
+	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/modules/event/types"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 	"go.uber.org/zap"
@@ -299,8 +301,47 @@ func (s *Service) CheckAndLogReminders(ctx context.Context) {
 			zap.Int32("remind_before_minutes", reminder.RemindBefore),
 		)
 
+		message := mail.NewMsg()
+		if err := message.From(config.Mail.From); err != nil {
+			s.logger.Error("Failed to set From address", zap.Error(err))
+			return
+		}
+		if err := message.To(config.Mail.To); err != nil {
+			s.logger.Error("Failed to set To address", zap.Error(err))
+			return
+		}
+		subject := fmt.Sprintf("🔔 Gentle Reminder: %s", reminder.Name)
+		message.Subject(subject)
+
+		body := fmt.Sprintf(`🌟 Event Reminder 🌟
+
+Hi there! 👋
+
+I hope this message finds you well! I wanted to gently remind you about your upcoming event:
+
+📅 Event: %s
+📍 Location: %s
+📝 Description: %s
+⏰ Start Time: %s
+⏰ End Time: %s
+⏱️ Reminder: %d minutes before
+
+I hope you have a wonderful time! 😊✨
+
+Warm regards! 💕`,
+			reminder.Name,
+			reminder.Place,
+			reminder.Description,
+			reminder.StartTime.Time.Format("2006-01-02 15:04:05"),
+			reminder.EndTime.Time.Format("2006-01-02 15:04:05"),
+			reminder.RemindBefore,
+		)
+		message.SetBodyString(mail.TypeTextPlain, body)
+		client, _ := mail.NewClient(config.Mail.Host, mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
+			mail.WithUsername(config.Mail.Username), mail.WithPassword(config.Mail.Password))
+		client.DialAndSend(message)
 		// 标记为已通知
-		err := s.Q.UpdateEventReminderNotified(ctx, repository.UpdateEventReminderNotifiedParams{
+		err = s.Q.UpdateEventReminderNotified(ctx, repository.UpdateEventReminderNotifiedParams{
 			ID:       reminder.ID,
 			Notified: true,
 		})

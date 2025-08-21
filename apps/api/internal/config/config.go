@@ -24,8 +24,8 @@ func Load() {
 	Port = viper.GetString("PORT")
 	APPMODE = viper.GetString("APPMODE")
 
-	// 统一调用其它配置的 Load
 	LoadDB()
 	LoadJWT()
 	LoadStorage()
+	LoadMail()
 }
