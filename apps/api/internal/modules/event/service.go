@@ -279,6 +279,40 @@ func (s *Service) DeleteEventReminder(ctx context.Context, reminderID int64) err
 	return nil
 }
 
+// CheckAndLogReminders 检查需要提醒的事件并在日志中输出
+func (s *Service) CheckAndLogReminders(ctx context.Context) {
+	reminders, err := s.Q.GetEventRemindersToNotify(ctx)
+	if err != nil {
+		s.logger.Error("Failed to get event reminders to notify", zap.Error(err))
+		return
+	}
+
+	for _, reminder := range reminders {
+		// 在日志中输出提醒信息
+		s.logger.Info("Event Reminder",
+			zap.Int64("reminder_id", reminder.ID),
+			zap.Int64("event_id", reminder.EventID),
+			zap.String("event_name", reminder.Name),
+			zap.String("event_place", reminder.Place),
+			zap.String("event_description", reminder.Description),
+			zap.Time("event_start_time", reminder.StartTime.Time),
+			zap.Int32("remind_before_minutes", reminder.RemindBefore),
+		)
+
+		// 标记为已通知
+		err := s.Q.UpdateEventReminderNotified(ctx, repository.UpdateEventReminderNotifiedParams{
+			ID:       reminder.ID,
+			Notified: true,
+		})
+		if err != nil {
+			s.logger.Error("Failed to update reminder notified status",
+				zap.Int64("reminder_id", reminder.ID),
+				zap.Error(err),
+			)
+		}
+	}
+}
+
 // groupEventRows 将数据库查询结果按事件分组，合并提醒信息
 func (s *Service) groupEventRows(rows []repository.GetAllEventsRow) []types.EventResponse {
 	eventMap := make(map[int64]*types.EventResponse)

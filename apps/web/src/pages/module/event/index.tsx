@@ -1,3 +1,4 @@
+import { EventItem } from "@/components/event/event-item";
 import { useEventQuery } from "@/hooks/use-event-query";
 
 export default function EventPage() {
@@ -15,13 +16,7 @@ export default function EventPage() {
         <div>
             <h2>Event List</h2>
             {events.map((event) => (
-                <div key={event.id}>
-                    <h3>{event.name}</h3>
-                    <p>{event.description}</p>
-                    <p>{new Date(event.start_time).toLocaleString()}</p>
-                    <p>{new Date(event.end_time).toLocaleString()}</p>
-                    <p>{event.place}</p>
-                </div>
+                <EventItem key={event.id} event={event} />
             ))}
         </div>
     );

@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -65,10 +69,41 @@ func main() {
 	// Register routes
 	internal.RegisterRoutes(r, services, validate)
 
-	// Start server
-	logger.Sugar().Infof("Server started at :%s", config.Port)
-	err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", config.Port), r)
+	// Start event reminder scheduler
+	err = services.Scheduler.Start()
 	if err != nil {
-		logger.Sugar().Fatalf("Failed to start server: %v", err)
+		logger.Sugar().Fatalf("Failed to start scheduler: %v", err)
 	}
+
+	// Create HTTP server
+	server := &http.Server{
+		Addr:    fmt.Sprintf("0.0.0.0:%s", config.Port),
+		Handler: r,
+	}
+
+	// Start server in a goroutine
+	go func() {
+		logger.Sugar().Infof("Server started at :%s", config.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Sugar().Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	logger.Sugar().Info("Shutting down server...")
+
+	// Stop the scheduler
+	services.Scheduler.Stop()
+
+	// Shutdown the server with a timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Sugar().Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	logger.Sugar().Info("Server exited")
 }
