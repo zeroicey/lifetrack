@@ -12,6 +12,7 @@ import HomePage from "./pages/module/home";
 import EventPage from "./pages/module/event";
 import TaskGroupPage from "./pages/module/task/group";
 import EventCreatePage from "./pages/module/event/create";
+import RegisterPage from "./pages/register";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
         children: [
             { index: true, Component: IndexPage },
             { path: "login", Component: LoginPage },
+            { path: "register", Component: RegisterPage },
             { path: "guide", Component: GuidePage },
             {
                 Component: ModuleLayout,

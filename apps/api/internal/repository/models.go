@@ -213,3 +213,25 @@ type TaskGroup struct {
 	// 更新时间
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
+
+// 用户表，存储用户基本信息
+type User struct {
+	// 主键，自增ID
+	ID int64 `json:"id"`
+	// 用户邮箱，唯一标识
+	Email string `json:"email"`
+	// 用户姓名
+	Name string `json:"name"`
+	// 密码哈希值
+	PasswordHash string `json:"password_hash"`
+	// 用户生日
+	Birthday pgtype.Date `json:"birthday"`
+	// 头像Base64编码数据
+	AvatarBase64 pgtype.Text `json:"avatar_base64"`
+	// 用户简介
+	Bio pgtype.Text `json:"bio"`
+	// 创建时间
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 更新时间
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}

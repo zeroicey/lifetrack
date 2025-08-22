@@ -18,6 +18,7 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage"
 	"github.com/zeroicey/lifetrack-api/internal/modules/task"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup"
+	"github.com/zeroicey/lifetrack-api/internal/modules/user"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 	"go.uber.org/zap"
 )
@@ -39,6 +40,7 @@ type App struct {
 	EventService        *event.Service
 	StorageService      *storage.Service
 	NotificationService *notification.Service
+	UserService         *user.Service
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -93,6 +95,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	taskGroupService := taskgroup.NewService(queries)
 	taskService := task.NewService(queries)
 	storageService := storage.NewService(queries, minioClient, logger, cfg)
+	userService := user.NewService(queries)
 	eventScheduler := event.NewScheduler(eventService, logger)
 
 	app := &App{
@@ -109,6 +112,7 @@ func NewApp(ctx context.Context) (*App, error) {
 		EventService:        eventService,
 		StorageService:      storageService,
 		NotificationService: notificationService,
+		UserService:         userService,
 	}
 
 	// Ensure storage bucket exists
