@@ -17,13 +17,14 @@ import (
 type Service struct {
 	Q      *repository.Queries
 	logger *zap.Logger
+	config *config.Config
 }
 
 // ErrEventNotFound 是当事件不存在时返回的哨兵错误
 var ErrEventNotFound = errors.New("event not found")
 
-func NewService(q *repository.Queries, logger *zap.Logger) *Service {
-	return &Service{Q: q, logger: logger}
+func NewService(q *repository.Queries, logger *zap.Logger, config *config.Config) *Service {
+	return &Service{Q: q, logger: logger, config: config}
 }
 
 // GetAllEvents 获取所有事件及其提醒
@@ -302,11 +303,11 @@ func (s *Service) CheckAndLogReminders(ctx context.Context) {
 		)
 
 		message := mail.NewMsg()
-		if err := message.From(config.Mail.From); err != nil {
+		if err := message.From(s.config.Mail.From); err != nil {
 			s.logger.Error("Failed to set From address", zap.Error(err))
 			return
 		}
-		if err := message.To(config.Mail.To); err != nil {
+		if err := message.To(s.config.Mail.To); err != nil {
 			s.logger.Error("Failed to set To address", zap.Error(err))
 			return
 		}
@@ -337,8 +338,8 @@ Warm regards! 💕`,
 			reminder.RemindBefore,
 		)
 		message.SetBodyString(mail.TypeTextPlain, body)
-		client, _ := mail.NewClient(config.Mail.Host, mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
-			mail.WithUsername(config.Mail.Username), mail.WithPassword(config.Mail.Password))
+		client, _ := mail.NewClient(s.config.Mail.Host, mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
+			mail.WithUsername(s.config.Mail.Username), mail.WithPassword(s.config.Mail.Password))
 		client.DialAndSend(message)
 		// 标记为已通知
 		err = s.Q.UpdateEventReminderNotified(ctx, repository.UpdateEventReminderNotifiedParams{

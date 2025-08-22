@@ -4,27 +4,31 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
+type DBConfig struct {
 	DBHost     string
 	DBPort     string
 	DBUser     string
 	DBPASSWORD string
 	DBName     string
 	DBURL      string
-)
+}
 
-func LoadDB() {
+func NewDBConfig() *DBConfig {
+	config := &DBConfig{}
+
 	viper.SetDefault("DB_HOST", "127.0.0.1")
 	viper.SetDefault("DB_PORT", "3306")
 	viper.SetDefault("DB_USER", "root")
 	viper.SetDefault("DB_PASSWORD", "")
 	viper.SetDefault("DB_NAME", "test")
 
-	DBHost = viper.GetString("DB_HOST")
-	DBPort = viper.GetString("DB_PORT")
-	DBUser = viper.GetString("DB_USER")
-	DBPASSWORD = viper.GetString("DB_PASSWORD")
-	DBName = viper.GetString("DB_NAME")
+	config.DBHost = viper.GetString("DB_HOST")
+	config.DBPort = viper.GetString("DB_PORT")
+	config.DBUser = viper.GetString("DB_USER")
+	config.DBPASSWORD = viper.GetString("DB_PASSWORD")
+	config.DBName = viper.GetString("DB_NAME")
 
-	DBURL = "postgres://" + DBUser + ":" + DBPASSWORD + "@" + DBHost + ":" + DBPort + "/" + DBName + "?sslmode=disable"
+	config.DBURL = "postgres://" + config.DBUser + ":" + config.DBPASSWORD + "@" + config.DBHost + ":" + config.DBPort + "/" + config.DBName + "?sslmode=disable"
+
+	return config
 }

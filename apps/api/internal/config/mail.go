@@ -13,9 +13,9 @@ type MailConfig struct {
 	To       string
 }
 
-var Mail MailConfig
+func NewMailConfig() *MailConfig {
+	config := &MailConfig{}
 
-func LoadMail() {
 	// 设置默认值
 	viper.SetDefault("MAIL_HOST", "smtp.qq.com")
 	viper.SetDefault("MAIL_PORT", 587)
@@ -24,13 +24,12 @@ func LoadMail() {
 	viper.SetDefault("MAIL_FROM", "123@qq.com")
 	viper.SetDefault("MAIL_TO", "123@qq.com")
 
-	Mail = MailConfig{
-		Host:     viper.GetString("MAIL_HOST"),
-		Port:     viper.GetInt("MAIL_PORT"),
-		Username: viper.GetString("MAIL_USERNAME"),
-		Password: viper.GetString("MAIL_PASSWORD"),
-		From:     viper.GetString("MAIL_FROM"),
-		To:       viper.GetString("MAIL_TO"),
-	}
+	config.Host = viper.GetString("MAIL_HOST")
+	config.Port = viper.GetInt("MAIL_PORT")
+	config.Username = viper.GetString("MAIL_USERNAME")
+	config.Password = viper.GetString("MAIL_PASSWORD")
+	config.From = viper.GetString("MAIL_FROM")
+	config.To = viper.GetString("MAIL_TO")
 
+	return config
 }

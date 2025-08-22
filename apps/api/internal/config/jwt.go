@@ -4,11 +4,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
+type JWTConfig struct {
 	JWTSecret string
-)
+}
 
-func LoadJWT() {
-	viper.SetDefault("JWT_SECRET", "changeme")
-	JWTSecret = viper.GetString("JWT_SECRET")
+func NewJWTConfig() *JWTConfig {
+	config := &JWTConfig{}
+	viper.SetDefault("JWT_SECRET", "lifetrack-secret")
+	config.JWTSecret = viper.GetString("JWT_SECRET")
+	return config
 }

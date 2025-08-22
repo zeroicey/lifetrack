@@ -21,29 +21,32 @@ type Service struct {
 	q      *repository.Queries
 	logger *zap.Logger
 	client *minio.Client
+	config *config.Config
 }
 
-func NewService(q *repository.Queries, client *minio.Client, logger *zap.Logger) *Service {
+func NewService(q *repository.Queries, client *minio.Client, logger *zap.Logger, config *config.Config) *Service {
+
 	return &Service{
 		q:      q,
 		client: client,
 		logger: logger,
+		config: config,
 	}
 }
 
-func (s *Service) EnsureBucketExists(ctx context.Context) {
-	bucketName := config.Storage.BucketName
+func (s *Service) EnsureBucketExists(ctx context.Context) error {
+	bucketName := s.config.Storage.BucketName
 	exists, err := s.client.BucketExists(ctx, bucketName)
 	if err != nil {
-		s.logger.Fatal("Failed to check if bucket exists", zap.Error(err))
+		return fmt.Errorf("failed to check if bucket exists: %w", err)
 	}
 	if !exists {
-		err = s.client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: config.Storage.Region})
+		err = s.client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: s.config.Storage.Region})
 		if err != nil {
-			s.logger.Fatal("Failed to create bucket", zap.String("bucket", bucketName), zap.Error(err))
+			return fmt.Errorf("failed to create bucket: %w", err)
 		}
-		s.logger.Info("Successfully created bucket", zap.String("bucket", bucketName))
 	}
+	return nil
 }
 
 func (s *Service) CreateUploadRequest(ctx context.Context, req *types.PresignedUploadRequest) (*types.PresignedUploadResponse, error) {
@@ -77,8 +80,8 @@ func (s *Service) CreateUploadRequest(ctx context.Context, req *types.PresignedU
 		return nil, fmt.Errorf("failed to create attachment record: %w", err)
 	}
 
-	expiry := time.Duration(config.Storage.PresignedExpiry) * time.Minute
-	presignedURL, err := s.client.PresignedPutObject(ctx, config.Storage.BucketName, objectKey, expiry)
+	expiry := time.Duration(s.config.Storage.PresignedExpiry) * time.Minute
+	presignedURL, err := s.client.PresignedPutObject(ctx, s.config.Storage.BucketName, objectKey, expiry)
 	if err != nil {
 		s.logger.Error("Failed to generate presigned URL", zap.Error(err))
 		return nil, fmt.Errorf("failed to generate presigned URL: %w", err)
@@ -119,8 +122,8 @@ func (s *Service) GeneratePresignedGetURL(ctx context.Context, attachmentID uuid
 		return "", fmt.Errorf("attachment not found or not completed")
 	}
 
-	expiry := time.Duration(config.Storage.PresignedExpiry) * time.Minute
-	presignedURL, err := s.client.PresignedGetObject(ctx, config.Storage.BucketName, objectKey, expiry, nil)
+	expiry := time.Duration(s.config.Storage.PresignedExpiry) * time.Minute
+	presignedURL, err := s.client.PresignedGetObject(ctx, s.config.Storage.BucketName, objectKey, expiry, nil)
 	if err != nil {
 		s.logger.Error("Failed to generate presigned GET URL",
 			zap.String("objectKey", objectKey),
