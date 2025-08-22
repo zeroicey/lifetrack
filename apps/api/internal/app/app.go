@@ -17,7 +17,6 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/modules/task"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
-	"github.com/zeroicey/lifetrack-api/internal/scheduler"
 	"go.uber.org/zap"
 )
 
@@ -28,12 +27,15 @@ type App struct {
 	DB        *pgxpool.Pool
 	Config    *config.Config
 
+	// Scheduled tasks
+	EventScheduler *event.Scheduler
+
+	// Services
 	MomentService    *moment.Service
 	TaskGroupService *taskgroup.Service
 	TaskService      *task.Service
 	EventService     *event.Service
 	StorageService   *storage.Service
-	SchedulerService *scheduler.Scheduler
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -78,7 +80,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	taskGroupService := taskgroup.NewService(queries)
 	taskService := task.NewService(queries)
 	storageService := storage.NewService(queries, minioClient, logger, cfg)
-	schedulerService := scheduler.NewScheduler(eventService, logger)
+	eventScheduler := event.NewScheduler(eventService, logger)
 
 	app := &App{
 		Logger:    logger,
@@ -86,12 +88,13 @@ func NewApp(ctx context.Context) (*App, error) {
 		DB:        dbConn,
 		Config:    cfg,
 
+		EventScheduler: eventScheduler,
+
 		MomentService:    momentService,
 		TaskGroupService: taskGroupService,
 		TaskService:      taskService,
 		EventService:     eventService,
 		StorageService:   storageService,
-		SchedulerService: schedulerService,
 	}
 
 	// Ensure storage bucket exists
@@ -117,4 +120,17 @@ func (a *App) Close() error {
 	}
 
 	return nil
+}
+
+func (a *App) StartSchedulers() error {
+	a.Logger.Info("Starting schedulers...")
+	if err := a.EventScheduler.Start(); err != nil {
+		return fmt.Errorf("failed to start event scheduler: %w", err)
+	}
+	return nil
+}
+
+func (a *App) StopSchedulers() {
+	a.Logger.Info("Stopping schedulers...")
+	a.EventScheduler.Stop()
 }

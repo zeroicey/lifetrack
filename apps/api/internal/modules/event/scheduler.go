@@ -1,4 +1,4 @@
-package scheduler
+package event
 
 import (
 	"context"
@@ -6,19 +6,17 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
-
-	"github.com/zeroicey/lifetrack-api/internal/modules/event"
 )
 
 // Scheduler 定时任务调度器
 type Scheduler struct {
 	cron         *cron.Cron
-	eventService *event.Service
+	eventService *Service
 	logger       *zap.Logger
 }
 
 // NewScheduler 创建新的调度器实例
-func NewScheduler(eventService *event.Service, logger *zap.Logger) *Scheduler {
+func NewScheduler(eventService *Service, logger *zap.Logger) *Scheduler {
 	return &Scheduler{
 		cron:         cron.New(cron.WithSeconds()),
 		eventService: eventService,
@@ -49,9 +47,4 @@ func (s *Scheduler) Stop() {
 	ctx := s.cron.Stop()
 	<-ctx.Done()
 	s.logger.Info("Event reminder scheduler stopped")
-}
-
-// IsRunning 检查调度器是否正在运行
-func (s *Scheduler) IsRunning() bool {
-	return len(s.cron.Entries()) > 0
 }

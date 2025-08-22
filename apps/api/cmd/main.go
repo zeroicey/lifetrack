@@ -37,8 +37,7 @@ func main() {
 	internal.RegisterRoutes(r, app)
 
 	// Start event reminder scheduler
-	err = app.SchedulerService.Start()
-	if err != nil {
+	if err = app.StartSchedulers(); err != nil {
 		logger.Sugar().Fatalf("Failed to start scheduler: %v", err)
 	}
 
@@ -63,7 +62,7 @@ func main() {
 	logger.Sugar().Info("Shutting down server...")
 
 	// Stop the scheduler
-	app.SchedulerService.Stop()
+	app.StopSchedulers()
 
 	// Shutdown the server with a timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
