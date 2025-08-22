@@ -10,6 +10,7 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage"
 	"github.com/zeroicey/lifetrack-api/internal/modules/task"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup"
+	"github.com/zeroicey/lifetrack-api/internal/modules/user"
 	response "github.com/zeroicey/lifetrack-api/internal/pkg"
 )
 
@@ -27,5 +28,6 @@ func RegisterRoutes(r chi.Router, app *app.App) {
 		api.Mount("/tasks", task.TaskRouter(app.TaskService))
 		api.Mount("/events", event.EventRouter(app.EventService, app.Validator))
 		api.Mount("/storage", storage.StorageRouter(app.StorageService, app.Validator))
+		api.Mount("/users", user.UserRouter(app.UserService))
 	})
 }
