@@ -30,7 +30,7 @@ func (s *Scheduler) Start() error {
 	_, err := s.cron.AddFunc("0 * * * * *", func() {
 		ctx := context.Background()
 		s.logger.Debug("Running event reminder check", zap.Time("timestamp", time.Now()))
-		s.eventService.CheckAndLogReminders(ctx)
+		s.eventService.CheckAndSendReminders(ctx)
 	})
 	if err != nil {
 		s.logger.Error("Failed to add cron job", zap.Error(err))

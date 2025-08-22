@@ -7,24 +7,25 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/wneessen/go-mail"
 	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/modules/event/types"
+	"github.com/zeroicey/lifetrack-api/internal/modules/notification"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 	"go.uber.org/zap"
 )
 
 type Service struct {
-	Q      *repository.Queries
-	logger *zap.Logger
-	config *config.Config
+	Q                   *repository.Queries
+	logger              *zap.Logger
+	config              *config.Config
+	notificationService *notification.Service
 }
 
 // ErrEventNotFound 是当事件不存在时返回的哨兵错误
 var ErrEventNotFound = errors.New("event not found")
 
-func NewService(q *repository.Queries, logger *zap.Logger, config *config.Config) *Service {
-	return &Service{Q: q, logger: logger, config: config}
+func NewService(q *repository.Queries, logger *zap.Logger, config *config.Config, notificationService *notification.Service) *Service {
+	return &Service{Q: q, logger: logger, config: config, notificationService: notificationService}
 }
 
 // GetAllEvents 获取所有事件及其提醒
@@ -282,8 +283,7 @@ func (s *Service) DeleteEventReminder(ctx context.Context, reminderID int64) err
 	return nil
 }
 
-// CheckAndLogReminders 检查需要提醒的事件并在日志中输出
-func (s *Service) CheckAndLogReminders(ctx context.Context) {
+func (s *Service) CheckAndSendReminders(ctx context.Context) {
 	reminders, err := s.Q.GetEventRemindersToNotify(ctx)
 	if err != nil {
 		s.logger.Error("Failed to get event reminders to notify", zap.Error(err))
@@ -301,19 +301,7 @@ func (s *Service) CheckAndLogReminders(ctx context.Context) {
 			zap.Time("event_start_time", reminder.StartTime.Time),
 			zap.Int32("remind_before_minutes", reminder.RemindBefore),
 		)
-
-		message := mail.NewMsg()
-		if err := message.From(s.config.Mail.From); err != nil {
-			s.logger.Error("Failed to set From address", zap.Error(err))
-			return
-		}
-		if err := message.To(s.config.Mail.To); err != nil {
-			s.logger.Error("Failed to set To address", zap.Error(err))
-			return
-		}
 		subject := fmt.Sprintf("🔔 Gentle Reminder: %s", reminder.Name)
-		message.Subject(subject)
-
 		body := fmt.Sprintf(`🌟 Event Reminder 🌟
 
 Hi there! 👋
@@ -337,11 +325,14 @@ Warm regards! 💕`,
 			reminder.EndTime.Time.Format("2006-01-02 15:04:05"),
 			reminder.RemindBefore,
 		)
-		message.SetBodyString(mail.TypeTextPlain, body)
-		client, _ := mail.NewClient(s.config.Mail.Host, mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
-			mail.WithUsername(s.config.Mail.Username), mail.WithPassword(s.config.Mail.Password))
-		client.DialAndSend(message)
-		// 标记为已通知
+		err := s.notificationService.SendEmail(s.config.Mail.To, subject, body)
+		if err != nil {
+			s.logger.Error("Failed to send reminder email via notification service",
+				zap.Int64("reminder_id", reminder.ID),
+				zap.Error(err),
+			)
+			continue
+		}
 		err = s.Q.UpdateEventReminderNotified(ctx, repository.UpdateEventReminderNotifiedParams{
 			ID:       reminder.ID,
 			Notified: true,

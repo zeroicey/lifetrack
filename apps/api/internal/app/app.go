@@ -9,10 +9,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/wneessen/go-mail"
 	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/middleware"
 	"github.com/zeroicey/lifetrack-api/internal/modules/event"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment"
+	"github.com/zeroicey/lifetrack-api/internal/modules/notification"
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage"
 	"github.com/zeroicey/lifetrack-api/internal/modules/task"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup"
@@ -31,11 +33,12 @@ type App struct {
 	EventScheduler *event.Scheduler
 
 	// Services
-	MomentService    *moment.Service
-	TaskGroupService *taskgroup.Service
-	TaskService      *task.Service
-	EventService     *event.Service
-	StorageService   *storage.Service
+	MomentService       *moment.Service
+	TaskGroupService    *taskgroup.Service
+	TaskService         *task.Service
+	EventService        *event.Service
+	StorageService      *storage.Service
+	NotificationService *notification.Service
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -46,7 +49,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	}
 
 	// Initialize logger
-	logger, err := middleware.NewLogger()
+	logger, err := middleware.NewLogger(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize logger: %w", err)
 	}
@@ -68,6 +71,16 @@ func NewApp(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("failed to create MinIO client: %w", err)
 	}
 
+	// Initialize mailer
+	mailClient, err := mail.NewClient(cfg.Mail.Host, mail.WithPort(cfg.Mail.Port), mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
+		mail.WithUsername(cfg.Mail.Username), mail.WithPassword(cfg.Mail.Password))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mail client: %w", err)
+	}
+	smtpMailer := notification.NewSMTPMailer(mailClient, cfg.Mail, logger)
+
+	notificationService := notification.NewService(logger, smtpMailer)
+
 	// Initialize validator
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
@@ -75,7 +88,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	queries := repository.New(dbConn)
 
 	// Initialize services
-	eventService := event.NewService(queries, logger, cfg)
+	eventService := event.NewService(queries, logger, cfg, notificationService)
 	momentService := moment.NewService(queries, logger)
 	taskGroupService := taskgroup.NewService(queries)
 	taskService := task.NewService(queries)
@@ -90,11 +103,12 @@ func NewApp(ctx context.Context) (*App, error) {
 
 		EventScheduler: eventScheduler,
 
-		MomentService:    momentService,
-		TaskGroupService: taskGroupService,
-		TaskService:      taskService,
-		EventService:     eventService,
-		StorageService:   storageService,
+		MomentService:       momentService,
+		TaskGroupService:    taskGroupService,
+		TaskService:         taskService,
+		EventService:        eventService,
+		StorageService:      storageService,
+		NotificationService: notificationService,
 	}
 
 	// Ensure storage bucket exists

@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/zeroicey/lifetrack-api/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -67,20 +67,14 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func NewLogger() (*zap.Logger, error) {
-	env := os.Getenv("APP_ENV")
-	if env == "prod" {
-		// 生产环境使用JSON格式，不带颜色，更适合机器解析
+func NewLogger(config *config.Config) (*zap.Logger, error) {
+	if config.APPMODE == "prod" {
 		return zap.NewProduction()
 	}
 
-	// 开发环境使用更易读的控制台格式
 	cfg := zap.NewDevelopmentConfig()
-	// 自定义时间格式
 	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("06-01-02 15:04:05")
-	// 启用彩色日志级别
 	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	// 禁用调用者信息（如 a/b/c.go:123），因为在日志中间件中这通常指向zap本身，意义不大
 	cfg.DisableCaller = true
 
 	return cfg.Build()
