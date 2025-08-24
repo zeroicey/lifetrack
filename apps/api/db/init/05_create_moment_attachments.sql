@@ -1,5 +1,3 @@
--- +goose Up
--- +goose StatementBegin
 CREATE TABLE
     IF NOT EXISTS moment_attachments (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -10,7 +8,6 @@ CREATE TABLE
         CONSTRAINT fk_attachment FOREIGN KEY (attachment_id) REFERENCES attachments (id) ON DELETE RESTRICT
     );
 
--- 4. 为 moment_attachments 表和列添加注释
 COMMENT ON TABLE moment_attachments IS '连接 moments 和 attachments 的多对多联结表';
 
 COMMENT ON COLUMN moment_attachments.moment_id IS '关联的 Moment ID';
@@ -24,10 +21,3 @@ COMMENT ON COLUMN moment_attachments.position IS '附件在 Moment 中的显示�
 CREATE INDEX idx_moment_attachments_moment_id ON moment_attachments (moment_id);
 
 CREATE INDEX idx_moment_attachments_attachment_id ON moment_attachments (attachment_id);
-
--- +goose StatementEnd
--- +goose Down
--- +goose StatementBegin
-DROP TABLE IF EXISTS moment_attachments;
-
--- +goose StatementEnd

@@ -1,5 +1,3 @@
--- +goose Up
--- +goose StatementBegin
 CREATE TABLE
     IF NOT EXISTS event_reminders (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -20,10 +18,3 @@ COMMENT ON COLUMN event_reminders.remind_before IS '提醒前的时间间隔（�
 COMMENT ON COLUMN event_reminders.notified IS '是否已通知';
 
 COMMENT ON COLUMN event_reminders.created_at IS '创建时间';
-
--- +goose StatementEnd
--- +goose Down
--- +goose StatementBegin
-DROP TABLE IF EXISTS event_reminders;
-
--- +goose StatementEnd

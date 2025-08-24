@@ -1,5 +1,3 @@
--- +goose Up
--- +goose StatementBegin
 CREATE TYPE task_status AS ENUM ('todo', 'done', 'abandon');
 
 CREATE TABLE
@@ -14,44 +12,29 @@ CREATE TABLE
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
     );
 
--- 创建更新时间触发器函数（tasks 专用）
-CREATE OR REPLACE FUNCTION update_tasks_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language plpgsql;
-
--- 为 tasks 表创建自动更新 updated_at 的触发器
 CREATE TRIGGER tasks_updated_at_trigger
     BEFORE UPDATE ON tasks 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_tasks_updated_at();
+    EXECUTE FUNCTION update_updated_at_column();
 
--- 创建父表更新触发器函数
 CREATE OR REPLACE FUNCTION update_parent_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- 更新父表 task_groups 的 updated_at
     UPDATE task_groups 
     SET updated_at = NOW() 
     WHERE id = COALESCE(NEW.group_id, OLD.group_id);
     
     RETURN COALESCE(NEW, OLD);
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- 为 tasks 表创建父表更新触发器（INSERT, UPDATE, DELETE 时都更新父表）
 CREATE TRIGGER update_task_groups_on_task_change
     AFTER INSERT OR UPDATE OR DELETE ON tasks
     FOR EACH ROW 
     EXECUTE FUNCTION update_parent_updated_at();
 
--- 表注释
 COMMENT ON TABLE tasks IS '任务表，存储具体的任务信息';
 
--- 字段注释
 COMMENT ON COLUMN tasks.id IS '主键，自增ID';
 COMMENT ON COLUMN tasks.group_id IS '所属任务组ID，外键关联task_groups表';
 COMMENT ON COLUMN tasks.content IS '任务内容';
@@ -60,13 +43,3 @@ COMMENT ON COLUMN tasks.status IS '任务状态：todo(待办), done(完成), ab
 COMMENT ON COLUMN tasks.deadline IS '任务截止时间';
 COMMENT ON COLUMN tasks.created_at IS '创建时间';
 COMMENT ON COLUMN tasks.updated_at IS '更新时间';
-
--- +goose StatementEnd
-
--- +goose Down
--- +goose StatementBegin
-DROP FUNCTION IF EXISTS update_parent_updated_at();
-DROP FUNCTION IF EXISTS update_tasks_updated_at();
-DROP TABLE IF EXISTS tasks;
-DROP TYPE IF EXISTS task_status;
--- +goose StatementEnd

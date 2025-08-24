@@ -1,7 +1,5 @@
--- +goose Up
--- +goose StatementBegin
 CREATE TABLE
-    events (
+    IF NOT EXISTS events (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         name TEXT NOT NULL,
         place TEXT NOT NULL,
@@ -12,18 +10,8 @@ CREATE TABLE
         updated_at timestamptz NOT NULL DEFAULT NOW ()
     );
 
-CREATE OR REPLACE FUNCTION update_event_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language plpgsql;
-
-CREATE TRIGGER events_updated_at_trigger
-    BEFORE UPDATE ON events
-    FOR EACH ROW
-    EXECUTE FUNCTION update_event_updated_at();
+CREATE TRIGGER events_updated_at_trigger BEFORE
+UPDATE ON events FOR EACH ROW EXECUTE FUNCTION update_updated_at_column ();
 
 COMMENT ON COLUMN events.id IS '事件的唯一标识符';
 
@@ -40,11 +28,3 @@ COMMENT ON COLUMN events.end_time IS '事件的结束时间';
 COMMENT ON COLUMN events.created_at IS '记录创建时间';
 
 COMMENT ON COLUMN events.updated_at IS '记录最后更新时间';
-
-
--- +goose StatementEnd
--- +goose Down
--- +goose StatementBegin
-DROP TABLE IF EXISTS events;
-DROP FUNCTION IF EXISTS update_event_updated_at();
--- +goose StatementEnd

@@ -1,0 +1,16 @@
+services:
+  lifetrack-db:
+    image: postgres:15-alpine
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-lifetrack}
+      - POSTGRES_USER=${DB_USER:-zeroicey}
+      - POSTGRES_DB=${DB_NAME:-lifetrack}
+    volumes:
+      - lifetrack-pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+
+volumes:
+  lifetrack-pgdata:
+    external: true
