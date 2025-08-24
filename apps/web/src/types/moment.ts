@@ -17,4 +17,8 @@ export type MomentAttachment = {
 
 export type MomentCreate = {
     content: string;
+    attachments: {
+        attachment_id: string;
+        position: number;
+    }[];
 };

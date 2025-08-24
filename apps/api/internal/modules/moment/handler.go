@@ -3,8 +3,10 @@ package moment
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
@@ -16,7 +18,17 @@ type Handler struct {
 }
 
 func NewHandler(s *Service) *Handler {
-	return &Handler{S: s}
+	return &Handler{s}
+}
+
+// parseIDFromURL 从URL参数中解析ID，返回解析后的int64值
+func parseIDFromURL(r *http.Request, paramName string) (int64, error) {
+	idStr := chi.URLParam(r, paramName)
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		return 0, fmt.Errorf("invalid %s", paramName)
+	}
+	return id, nil
 }
 
 func MomentRouter(s *Service) chi.Router {
@@ -24,29 +36,34 @@ func MomentRouter(s *Service) chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", h.ListMoments)
 	r.Post("/", h.CreateMoment)
-	r.Get("/{id}", h.GetMomentById)
+	r.Get("/{id}", h.GetMomentByID)
 	r.Delete("/{id}", h.DeleteMomentByID)
-
-	// 附件相关路由
-	r.Post("/{id}/attachments", h.AddAttachmentToMoment)
-	r.Delete("/{id}/attachments/{attachmentId}", h.RemoveAttachmentFromMoment)
-
 	return r
 }
 
 func (h *Handler) ListMoments(w http.ResponseWriter, r *http.Request) {
-	// cursorStr is int64, limitStr is int
-	cursorStr := r.URL.Query().Get("cursor")
-	limitStr := r.URL.Query().Get("limit")
+	cursor, err := func() (int64, error) {
+		cursorStr := r.URL.Query().Get("cursor")
+		if strings.TrimSpace(cursorStr) == "" {
+			return 0, nil
+		}
+		return strconv.ParseInt(cursorStr, 10, 64)
+	}()
+	if err != nil {
+		response.Error("Invalid cursor").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
 
-	var cursor int64
-	if cursorStr != "" {
-		cursor, _ = strconv.ParseInt(cursorStr, 10, 64) // default cursor is 0
-	}
-	limit := 10
-	if n, err := strconv.Atoi(limitStr); err == nil && n > 0 {
-		limit = min(n, 100)
-	}
+	limit := func() int {
+		limitStr := r.URL.Query().Get("limit")
+		if strings.TrimSpace(limitStr) == "" {
+			return 10
+		}
+		if n, parseErr := strconv.Atoi(limitStr); parseErr == nil && n > 0 {
+			return min(n, 100)
+		}
+		return 10
+	}()
 
 	moments, nextCursor, err := h.S.ListMomentsPaginated(r.Context(), cursor, limit)
 	if err != nil {
@@ -61,9 +78,21 @@ func (h *Handler) ListMoments(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateMoment(w http.ResponseWriter, r *http.Request) {
-	var body types.CreateMomentBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		response.Error("Failed to decode request body").SetStatusCode(http.StatusBadRequest).Build(w)
+	body, err := func() (types.CreateMomentBody, error) {
+		var body types.CreateMomentBody
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			return body, err
+		}
+
+		if strings.TrimSpace(body.Content) == "" {
+			return body, errors.New("content cannot be empty")
+		}
+
+		return body, nil
+	}()
+
+	if err != nil {
+		response.Error("Failed to decode request body or invalid content").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
 
@@ -76,10 +105,9 @@ func (h *Handler) CreateMoment(w http.ResponseWriter, r *http.Request) {
 	response.Success("Moment created successfully").SetStatusCode(http.StatusCreated).SetData(newMoment).Build(w)
 }
 
-func (h *Handler) GetMomentById(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil || id <= 0 {
+func (h *Handler) GetMomentByID(w http.ResponseWriter, r *http.Request) {
+	id, err := parseIDFromURL(r, "id")
+	if err != nil {
 		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
@@ -98,10 +126,8 @@ func (h *Handler) GetMomentById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteMomentByID(w http.ResponseWriter, r *http.Request) {
-	// Get moment ID from URL parameter
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil || id <= 0 {
+	id, err := parseIDFromURL(r, "id")
+	if err != nil {
 		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
@@ -117,70 +143,4 @@ func (h *Handler) DeleteMomentByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success("Moment deleted successfully").SetStatusCode(http.StatusOK).Build(w)
-}
-
-func (h *Handler) AddAttachmentToMoment(w http.ResponseWriter, r *http.Request) {
-	// 获取 moment ID
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil || id <= 0 {
-		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	// 解析请求体
-	var body types.AddAttachmentBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		response.Error("Failed to decode request body").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	// 验证请求数据
-	if body.AttachmentID == "" {
-		response.Error("Attachment ID is required").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	// 添加附件到 moment
-	err = h.S.AddAttachmentToMoment(r.Context(), id, body.AttachmentID, body.Position)
-	if err != nil {
-		if errors.Is(err, ErrMomentNotFound) {
-			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
-		} else {
-			response.Error("Failed to add attachment to moment").SetStatusCode(http.StatusInternalServerError).Build(w)
-		}
-		return
-	}
-
-	response.Success("Attachment added to moment successfully").SetStatusCode(http.StatusOK).Build(w)
-}
-
-func (h *Handler) RemoveAttachmentFromMoment(w http.ResponseWriter, r *http.Request) {
-	// 获取 moment ID
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil || id <= 0 {
-		response.Error("Invalid moment ID").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	// 获取 attachment ID
-	attachmentID := chi.URLParam(r, "attachmentId")
-	if attachmentID == "" {
-		response.Error("Attachment ID is required").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	// 从 moment 移除附件
-	err = h.S.RemoveAttachmentFromMoment(r.Context(), id, attachmentID)
-	if err != nil {
-		if errors.Is(err, ErrMomentNotFound) {
-			response.Error("Moment not found").SetStatusCode(http.StatusNotFound).Build(w)
-		} else {
-			response.Error("Failed to remove attachment from moment").SetStatusCode(http.StatusInternalServerError).Build(w)
-		}
-		return
-	}
-
-	response.Success("Attachment removed from moment successfully").SetStatusCode(http.StatusOK).Build(w)
 }

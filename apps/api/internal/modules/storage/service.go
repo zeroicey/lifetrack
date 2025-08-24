@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/minio/minio-go/v7"
 	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage/types"
+	"github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 	"go.uber.org/zap"
 )
@@ -97,7 +97,7 @@ func (s *Service) CreateUploadRequest(ctx context.Context, req *types.PresignedU
 
 func (s *Service) CompleteUpload(ctx context.Context, attachmentID uuid.UUID) error {
 	err := s.q.UpdateAttachmentStatus(ctx, repository.UpdateAttachmentStatusParams{
-		ID:     pgtype.UUID{Bytes: attachmentID, Valid: true},
+		ID:     pkg.UUIDToPgUUID(attachmentID),
 		Status: "completed",
 	})
 	if err != nil {
@@ -113,7 +113,7 @@ func (s *Service) CompleteUpload(ctx context.Context, attachmentID uuid.UUID) er
 }
 
 func (s *Service) GeneratePresignedGetURL(ctx context.Context, attachmentID uuid.UUID) (string, error) {
-	objectKey, err := s.q.GetCompletedAttachmentObjectKey(ctx, pgtype.UUID{Bytes: attachmentID, Valid: true})
+	objectKey, err := s.q.GetCompletedAttachmentObjectKey(ctx, pkg.UUIDToPgUUID(attachmentID))
 	if err != nil {
 		s.logger.Warn("Failed to get completed attachment object key",
 			zap.String("attachmentId", attachmentID.String()),

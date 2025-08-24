@@ -35,10 +35,11 @@ pg-create:
         -e POSTGRES_DB="{{env('DB_NAME')}}" \
         -p {{env('DB_PORT')}}:5432 \
         -v lifetrack-pgdata:/var/lib/postgresql/data \
+        -v {{justfile_directory()}}/db/init:/docker-entrypoint-initdb.d \
         postgres:15-alpine
 
+
     @echo "Postgres container started."
-    just migrate-up
 
 # Stop and remove Postgres container and volume
 pg-delete:

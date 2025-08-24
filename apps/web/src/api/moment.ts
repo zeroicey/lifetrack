@@ -19,10 +19,13 @@ export const apiGetMoments = async ({ cursor }: { cursor?: number }) => {
     };
 };
 
-export const apiCreateMoment = async ({ content }: MomentCreate) => {
+export const apiCreateMoment = async ({
+    content,
+    attachments = [],
+}: MomentCreate) => {
     const res = await http
         .post<Response<Moment>>("moments", {
-            json: { content },
+            json: { content, attachments },
         })
         .json();
     return res.data;

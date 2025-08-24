@@ -1,9 +1,4 @@
-import {
-    apiCreateMoment,
-    apiDeleteMoment,
-    apiGetMoments,
-    apiAddAttachmentToMoment,
-} from "@/api/moment";
+import { apiCreateMoment, apiDeleteMoment, apiGetMoments } from "@/api/moment";
 import {
     apiGetAttachmentUrl,
     apiGetPresignedURL,
@@ -51,7 +46,7 @@ export const useMomentCreateMutation = () => {
     });
 };
 
-export interface CreateMomentWithAttachmentsData {
+export interface CreateMomentBody {
     content: string;
     attachments: MediaFile[];
 }
@@ -60,10 +55,7 @@ export const useMomentCreateWithAttachmentsMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            content,
-            attachments,
-        }: CreateMomentWithAttachmentsData) => {
+        mutationFn: async ({ content, attachments }: CreateMomentBody) => {
             // 1. 上传所有附件
             const uploadedAttachments = [];
 
@@ -112,28 +104,18 @@ export const useMomentCreateWithAttachmentsMutation = () => {
             }
 
             // 2. 创建 moment
-            const moment = await apiCreateMoment({ content });
+            const moment = await apiCreateMoment({
+                content,
+                attachments: uploadedAttachments.map((attachment) => ({
+                    attachment_id: attachment.attachmentId,
+                    position: attachment.position,
+                })),
+            });
             if (!moment || !moment.id) {
                 throw new Error(
                     "Failed to create moment: Invalid response from server"
                 );
             }
-
-            // 3. 将附件关联到 moment
-            for (const attachment of uploadedAttachments) {
-                try {
-                    await apiAddAttachmentToMoment({
-                        momentId: moment.id,
-                        attachment_id: attachment.attachmentId,
-                        position: attachment.position,
-                    });
-                } catch (error) {
-                    throw new Error(
-                        `Failed to attach ${attachment.attachmentId} to moment: ${error}`
-                    );
-                }
-            }
-
             return moment;
         },
         onSuccess: () => {
