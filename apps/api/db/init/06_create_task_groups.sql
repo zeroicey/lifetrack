@@ -11,11 +11,8 @@ CREATE TABLE
         UNIQUE (name)
     );
 
--- 为 task_groups 表创建触发器
-CREATE TRIGGER task_groups_updated_at_trigger
-    BEFORE UPDATE ON task_groups 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER task_groups_updated_at_trigger BEFORE
+UPDATE ON task_groups FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 ALTER TABLE task_groups ADD CONSTRAINT check_name_format
 CHECK (

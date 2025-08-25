@@ -12,12 +12,10 @@ CREATE TABLE
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
     );
 
-CREATE TRIGGER tasks_updated_at_trigger
-    BEFORE UPDATE ON tasks 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER tasks_updated_at_trigger BEFORE
+UPDATE ON tasks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE OR REPLACE FUNCTION update_parent_updated_at()
+CREATE OR REPLACE FUNCTION update_task_groups_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE task_groups 
@@ -28,10 +26,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_task_groups_on_task_change
+CREATE TRIGGER update_task_groups_on_tasks_change
     AFTER INSERT OR UPDATE OR DELETE ON tasks
     FOR EACH ROW 
-    EXECUTE FUNCTION update_parent_updated_at();
+    EXECUTE FUNCTION update_task_groups_updated_at();
 
 COMMENT ON TABLE tasks IS '任务表，存储具体的任务信息';
 
