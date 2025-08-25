@@ -154,6 +154,30 @@ type EventReminder struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+// 习惯表
+type Habit struct {
+	// 习惯的唯一标识符
+	ID int64 `json:"id"`
+	// 习惯的名称
+	Name string `json:"name"`
+	// 习惯的描述
+	Description string `json:"description"`
+	// 记录创建时间
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 记录最后更新时间
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 习惯日志表
+type HabitLog struct {
+	// 习惯日志的唯一标识符
+	ID int64 `json:"id"`
+	// 习惯的唯一标识符
+	HabitID int64 `json:"habit_id"`
+	// 发生时间
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
+}
+
 // 用于存储即使信息，包括文本内容和附件
 type Moment struct {
 	// 备忘录的唯一标识符
