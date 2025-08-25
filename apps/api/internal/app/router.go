@@ -1,10 +1,9 @@
-package internal
+package app
 
 import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/zeroicey/lifetrack-api/internal/app"
 	"github.com/zeroicey/lifetrack-api/internal/modules/event"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment"
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage"
@@ -20,7 +19,7 @@ func NotFoundHandler() http.HandlerFunc {
 	}
 }
 
-func RegisterRoutes(r chi.Router, app *app.App) {
+func RegisterRoutes(r chi.Router, app *App) {
 	r.NotFound(NotFoundHandler())
 	r.Route("/api", func(api chi.Router) {
 		api.Mount("/moments", moment.MomentRouter(app.MomentService))

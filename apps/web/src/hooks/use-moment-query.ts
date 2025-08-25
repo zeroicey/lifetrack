@@ -41,27 +41,37 @@ export const useMomentCreateMutation = () => {
             // 1. 上传所有附件
             const uploadedAttachments = [];
 
+            // 检查所有附件是否都有文件
             for (const attachment of attachments) {
                 if (!attachment.file) {
                     throw new Error(
                         `File not found for attachment: ${attachment.name}`
                     );
                 }
+            }
 
-                // 获取预签名 URL
-                const presignedData = await apiGetPresignedURL(attachment.file);
-                if (!presignedData) {
-                    throw new Error(
-                        `Failed to get presigned URL for attachment: ${attachment.name}`
-                    );
-                }
+            // 批量获取预签名 URL
+            const files = attachments.map((attachment) => attachment.file!);
+            const presignedDataList = await apiGetPresignedURL(files);
+            if (
+                !presignedDataList ||
+                presignedDataList.length !== files.length
+            ) {
+                throw new Error("Failed to get presigned URLs for attachments");
+            }
+            console.log("presignedDataList", presignedDataList);
+
+            // 处理每个附件的上传
+            for (let i = 0; i < attachments.length; i++) {
+                const attachment = attachments[i];
+                const presignedData = presignedDataList[i];
 
                 // 如果不是秒传，则上传文件到预签名 URL
-                if (!presignedData.isDuplicate) {
+                if (!presignedData.is_duplicate) {
                     try {
                         await apiUploadAttachment({
-                            url: presignedData.uploadUrl,
-                            file: attachment.file,
+                            url: presignedData.upload_url!,
+                            file: attachment.file!,
                         });
                     } catch (error) {
                         throw new Error(
@@ -71,7 +81,7 @@ export const useMomentCreateMutation = () => {
 
                     // 通知后端上传完成
                     try {
-                        await apiCompleteUpload(presignedData.attachmentId);
+                        await apiCompleteUpload(presignedData.attachment_id);
                     } catch (error) {
                         throw new Error(
                             `Failed to complete upload for attachment ${attachment.name}: ${error}`
@@ -80,7 +90,7 @@ export const useMomentCreateMutation = () => {
                 }
 
                 uploadedAttachments.push({
-                    attachmentId: presignedData.attachmentId,
+                    attachment_id: presignedData.attachment_id,
                     position: uploadedAttachments.length,
                 });
             }
@@ -89,7 +99,7 @@ export const useMomentCreateMutation = () => {
             const moment = await apiCreateMoment({
                 content,
                 attachments: uploadedAttachments.map((attachment) => ({
-                    attachment_id: attachment.attachmentId,
+                    attachment_id: attachment.attachment_id,
                     position: attachment.position,
                 })),
             });

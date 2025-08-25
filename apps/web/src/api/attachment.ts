@@ -17,15 +17,17 @@ export const apiUploadAttachment = async ({
         .json();
 };
 
-export const apiGetPresignedURL = async (file: File) => {
+export const apiGetPresignedURL = async (files: File[]) => {
     const res = await http
-        .post<Response<PresignedUploadResponse>>("storage/presigned/upload", {
-            json: {
-                fileName: file.name,
-                fileSize: file.size,
-                contentType: file.type,
-                md5: await calculateMD5(file),
-            },
+        .post<Response<PresignedUploadResponse[]>>("storage/presigned/upload", {
+            json: await Promise.all(
+                files.map(async (file) => ({
+                    file_name: file.name,
+                    file_size: file.size,
+                    content_type: file.type,
+                    md5: await calculateMD5(file),
+                }))
+            ),
         })
         .json();
     return res.data;

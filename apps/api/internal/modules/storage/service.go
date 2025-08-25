@@ -4,11 +4,13 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
 	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage/types"
@@ -18,16 +20,18 @@ import (
 )
 
 type Service struct {
-	q      *repository.Queries
+	Q      *repository.Queries
+	DB     *pgxpool.Pool
 	logger *zap.Logger
 	client *minio.Client
 	config *config.Config
 }
 
-func NewService(q *repository.Queries, client *minio.Client, logger *zap.Logger, config *config.Config) *Service {
+func NewService(db *pgxpool.Pool, q *repository.Queries, client *minio.Client, logger *zap.Logger, config *config.Config) *Service {
 
 	return &Service{
-		q:      q,
+		DB:     db,
+		Q:      q,
 		client: client,
 		logger: logger,
 		config: config,
@@ -49,54 +53,66 @@ func (s *Service) EnsureBucketExists(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) CreateUploadRequest(ctx context.Context, req *types.PresignedUploadRequest) (*types.PresignedUploadResponse, error) {
-	existingAttachment, err := s.q.FindCompletedAttachmentByMD5(ctx, req.MD5)
-	if err == nil && existingAttachment.ID.Valid {
-		s.logger.Sugar().Logf(zap.InfoLevel, "Found existing attachment with name %s", existingAttachment.OriginalName)
-		standardUUID := uuid.UUID(existingAttachment.ID.Bytes)
-		s.logger.Info("Instant upload detected", zap.String("attachmentId", standardUUID.String()))
-
-		return &types.PresignedUploadResponse{
-			AttachmentID: existingAttachment.ID.String(),
-			UploadURL:    "",
-			ObjectKey:    existingAttachment.ObjectKey,
-			IsDuplicate:  true,
-		}, nil
-	}
-
-	ext := filepath.Ext(req.FileName)
-	objectKey := uuid.NewString() + ext
-
-	dbParams := repository.CreateAttachmentParams{
-		ObjectKey:    objectKey,
-		OriginalName: req.FileName,
-		MimeType:     req.ContentType,
-		Md5:          req.MD5,
-		FileSize:     req.FileSize,
-	}
-	attachment, err := s.q.CreateAttachment(ctx, dbParams)
+func (s *Service) CreateUploadRequest(ctx context.Context, bodies *[]types.PresignedUploadRequest) ([]types.PresignedUploadResponse, error) {
+	tx, err := s.DB.Begin(ctx)
 	if err != nil {
-		s.logger.Error("Failed to create attachment in DB", zap.Error(err))
-		return nil, fmt.Errorf("failed to create attachment record: %w", err)
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.Q.WithTx(tx)
+
+	responses := make([]types.PresignedUploadResponse, 0, len(*bodies))
+
+	for _, body := range *bodies {
+		// Check if attachment already exists
+		existingAttachment, err := qtx.FindCompletedAttachmentByMD5(ctx, body.MD5)
+		if err == nil && existingAttachment.ID.Valid {
+			responses = append(responses, types.PresignedUploadResponse{
+				AttachmentID: existingAttachment.ID.String(),
+				ObjectKey:    existingAttachment.ObjectKey,
+				IsDuplicate:  true,
+			})
+			continue
+		}
+
+		ext := filepath.Ext(body.FileName)
+		objectKey := uuid.NewString() + ext
+
+		attachment, err := qtx.CreateAttachment(ctx, repository.CreateAttachmentParams{
+			ObjectKey:    objectKey,
+			OriginalName: body.FileName,
+			MimeType:     body.ContentType,
+			Md5:          body.MD5,
+			FileSize:     body.FileSize,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create attachment record: %w", err)
+		}
+
+		expiry := time.Duration(s.config.Storage.PresignedExpiry) * time.Minute
+		presignedURL, err := s.client.PresignedPutObject(ctx, s.config.Storage.BucketName, objectKey, expiry)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate presigned URL: %w", err)
+		}
+
+		responses = append(responses, types.PresignedUploadResponse{
+			AttachmentID: attachment.ID.String(),
+			UploadURL:    presignedURL.String(),
+			ObjectKey:    attachment.ObjectKey,
+			IsDuplicate:  false,
+		})
 	}
 
-	expiry := time.Duration(s.config.Storage.PresignedExpiry) * time.Minute
-	presignedURL, err := s.client.PresignedPutObject(ctx, s.config.Storage.BucketName, objectKey, expiry)
-	if err != nil {
-		s.logger.Error("Failed to generate presigned URL", zap.Error(err))
-		return nil, fmt.Errorf("failed to generate presigned URL: %w", err)
+	if err := tx.Commit(ctx); err != nil {
+		return nil, errors.New("failed to commit transaction")
 	}
 
-	return &types.PresignedUploadResponse{
-		AttachmentID: attachment.ID.String(),
-		UploadURL:    presignedURL.String(),
-		ObjectKey:    attachment.ObjectKey,
-		IsDuplicate:  false,
-	}, nil
+	return responses, nil
 }
 
 func (s *Service) CompleteUpload(ctx context.Context, attachmentID uuid.UUID) error {
-	err := s.q.UpdateAttachmentStatus(ctx, repository.UpdateAttachmentStatusParams{
+	err := s.Q.UpdateAttachmentStatus(ctx, repository.UpdateAttachmentStatusParams{
 		ID:     pkg.UUIDToPgUUID(attachmentID),
 		Status: "completed",
 	})
@@ -108,12 +124,11 @@ func (s *Service) CompleteUpload(ctx context.Context, attachmentID uuid.UUID) er
 		return fmt.Errorf("could not update attachment status for ID %s: %w", attachmentID.String(), err)
 	}
 
-	s.logger.Info("Successfully marked attachment as completed", zap.String("attachmentId", attachmentID.String()))
 	return nil
 }
 
 func (s *Service) GeneratePresignedGetURL(ctx context.Context, attachmentID uuid.UUID) (string, error) {
-	objectKey, err := s.q.GetCompletedAttachmentObjectKey(ctx, pkg.UUIDToPgUUID(attachmentID))
+	objectKey, err := s.Q.GetCompletedAttachmentObjectKey(ctx, pkg.UUIDToPgUUID(attachmentID))
 	if err != nil {
 		s.logger.Warn("Failed to get completed attachment object key",
 			zap.String("attachmentId", attachmentID.String()),

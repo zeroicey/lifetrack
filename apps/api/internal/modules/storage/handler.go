@@ -30,16 +30,12 @@ func StorageRouter(s *Service, v *validator.Validate) chi.Router {
 }
 
 func (h *Handler) GetPresignedUploadURL(w http.ResponseWriter, r *http.Request) {
-	var req types.PresignedUploadRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var bodies []types.PresignedUploadRequest
+	if err := json.NewDecoder(r.Body).Decode(&bodies); err != nil {
 		response.Error("Invalid request body").SetStatusCode(http.StatusBadRequest).Build(w)
 		return
 	}
-	if err := h.Validate.Struct(req); err != nil {
-		response.Error("Validation failed: " + err.Error()).SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-	result, err := h.S.CreateUploadRequest(r.Context(), &req)
+	result, err := h.S.CreateUploadRequest(r.Context(), &bodies)
 	if err != nil {
 		response.Error("Failed to create upload request: " + err.Error()).SetStatusCode(http.StatusInternalServerError).Build(w)
 		return

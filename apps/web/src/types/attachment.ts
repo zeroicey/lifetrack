@@ -1,6 +1,6 @@
 export type PresignedUploadResponse = {
-    attachmentId: string;
-    uploadUrl: string;
-    objectKey: string;
-    isDuplicate: boolean;
+    attachment_id: string;
+    upload_url?: string;
+    object_key: string;
+    is_duplicate: boolean;
 };

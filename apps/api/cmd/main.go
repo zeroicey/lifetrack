@@ -11,20 +11,19 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/zeroicey/lifetrack-api/internal"
 	"github.com/zeroicey/lifetrack-api/internal/app"
 	"github.com/zeroicey/lifetrack-api/internal/middleware"
 )
 
 func main() {
-	app, err := app.NewApp(context.Background())
+	APP, err := app.NewApp(context.Background())
 
 	if err != nil {
 		log.Fatalf("Failed to initialize app: %v", err)
 	}
 
-	logger := app.Logger
-	defer app.Close()
+	logger := APP.Logger
+	defer APP.Close()
 
 	// Initialize router
 	r := chi.NewRouter()
@@ -34,22 +33,22 @@ func main() {
 	r.Use(middleware.Cors())
 
 	// Register routes
-	internal.RegisterRoutes(r, app)
+	app.RegisterRoutes(r, APP)
 
 	// Start event reminder scheduler
-	if err = app.StartSchedulers(); err != nil {
+	if err = APP.StartSchedulers(); err != nil {
 		logger.Sugar().Fatalf("Failed to start scheduler: %v", err)
 	}
 
 	// Create HTTP server
 	server := &http.Server{
-		Addr:    fmt.Sprintf("0.0.0.0:%s", app.Config.Port),
+		Addr:    fmt.Sprintf("0.0.0.0:%s", APP.Config.Port),
 		Handler: r,
 	}
 
 	// Start server in a goroutine
 	go func() {
-		logger.Sugar().Infof("Server started at :%s", app.Config.Port)
+		logger.Sugar().Infof("Server started at :%s", APP.Config.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Sugar().Fatalf("Failed to start server: %v", err)
 		}
@@ -62,7 +61,7 @@ func main() {
 	logger.Sugar().Info("Shutting down server...")
 
 	// Stop the scheduler
-	app.StopSchedulers()
+	APP.StopSchedulers()
 
 	// Shutdown the server with a timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
