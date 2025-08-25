@@ -28,34 +28,16 @@ export const useMomentInfiniteQuery = () => {
     });
 };
 
-export const useMomentCreateMutation = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: apiCreateMoment,
-        onSuccess: () => {
-            toast.success("Create moment successfully!");
-        },
-        onError: () => {
-            queryClient.invalidateQueries({ queryKey });
-            toast.error("Create moment failed!");
-        },
-
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey });
-        },
-    });
-};
-
 export interface CreateMomentBody {
     content: string;
-    attachments: MediaFile[];
+    attachments?: MediaFile[];
 }
 
-export const useMomentCreateWithAttachmentsMutation = () => {
+export const useMomentCreateMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ content, attachments }: CreateMomentBody) => {
+        mutationFn: async ({ content, attachments = [] }: CreateMomentBody) => {
             // 1. 上传所有附件
             const uploadedAttachments = [];
 

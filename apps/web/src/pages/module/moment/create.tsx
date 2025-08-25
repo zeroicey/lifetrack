@@ -1,8 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-    useMomentCreateMutation,
-    useMomentCreateWithAttachmentsMutation,
-} from "@/hooks/use-moment-query";
+import { useMomentCreateMutation } from "@/hooks/use-moment-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import MomentCreateNineGrid from "@/components/moment/moment-create-attachment";
@@ -13,11 +10,8 @@ export default function MomentCreatePage() {
     const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
     const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const { mutate: createMoment } = useMomentCreateMutation();
-    const {
-        mutate: createMomentWithAttachments,
-        isPending: isCreatingWithAttachments,
-    } = useMomentCreateWithAttachmentsMutation();
+    const { mutate: createMoment, isPending: isCreating } =
+        useMomentCreateMutation();
 
     const handleSuccess = () => {
         setTextareaValue("");
@@ -27,8 +21,8 @@ export default function MomentCreatePage() {
     useEffect(() => {
         const textarea = textareaRef.current;
         if (textarea) {
-            textarea.style.height = "auto"; // 先重置高度
-            textarea.style.height = `${Math.max(textarea.scrollHeight, 150)}px`; // 设置为内容高度
+            textarea.style.height = "auto";
+            textarea.style.height = `${Math.max(textarea.scrollHeight, 150)}px`;
         }
     }, [textareaValue]);
     useEffect(() => {
@@ -58,7 +52,7 @@ export default function MomentCreatePage() {
                 <div className="w-full flex justify-around gap-5 border-t p-4">
                     <Button
                         variant="default"
-                        disabled={isCreatingWithAttachments}
+                        disabled={isCreating || !textareaValue?.trim()}
                         className="cursor-pointer"
                         onClick={() => {
                             if (textareaValue?.trim() === "") {
@@ -66,28 +60,18 @@ export default function MomentCreatePage() {
                             }
 
                             // 如果有附件，使用带附件的创建方法
-                            if (mediaFiles.length > 0) {
-                                createMomentWithAttachments(
-                                    {
-                                        content: textareaValue,
-                                        attachments: mediaFiles,
-                                    },
-                                    {
-                                        onSuccess: handleSuccess,
-                                    }
-                                );
-                            } else {
-                                // 没有附件，使用普通的创建方法
-                                createMoment(
-                                    { content: textareaValue },
-                                    {
-                                        onSuccess: handleSuccess,
-                                    }
-                                );
-                            }
+                            createMoment(
+                                {
+                                    content: textareaValue,
+                                    attachments: mediaFiles,
+                                },
+                                {
+                                    onSuccess: handleSuccess,
+                                }
+                            );
                         }}
                     >
-                        {isCreatingWithAttachments ? "Creating..." : "Create"}
+                        {isCreating ? "Creating..." : "Create"}
                     </Button>
                     <Button
                         variant="secondary"

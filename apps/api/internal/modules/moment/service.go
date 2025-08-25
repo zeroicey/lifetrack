@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
 	"github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
@@ -12,17 +13,19 @@ import (
 
 type Service struct {
 	Q         *repository.Queries
+	DB        *pgxpool.Pool
 	logger    *zap.Logger
 	converter *Converter
 }
 
 var ErrMomentNotFound = errors.New("moment not found")
 
-func NewService(q *repository.Queries, logger *zap.Logger) *Service {
+func NewService(db *pgxpool.Pool, q *repository.Queries, logger *zap.Logger) *Service {
 	return &Service{
 		Q:         q,
 		logger:    logger,
 		converter: NewConverter(q),
+		DB:        db,
 	}
 }
 
@@ -75,38 +78,40 @@ func (s *Service) ListMomentsPaginated(ctx context.Context, cursor int64, limit 
 }
 
 func (s *Service) CreateMoment(ctx context.Context, body types.CreateMomentBody) (types.MomentResponse, error) {
-	moment, err := s.Q.CreateMoment(ctx, body.Content)
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return types.MomentResponse{}, err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.Q.WithTx(tx)
+	moment, err := qtx.CreateMoment(ctx, body.Content)
 	if err != nil {
 		return types.MomentResponse{}, errors.New("failed to create moment")
 	}
 
-	var addAttachmentErr error
-
 	for _, attachment := range body.Attachments {
 		attachmentID, err := pkg.StringToPgUUID(attachment.AttachmentID)
 		if err != nil {
-			addAttachmentErr = errors.New("invalid attachment ID format")
-			break
+			return types.MomentResponse{}, errors.New("invalid attachment ID format")
 		}
 
 		if attachment.Position < 0 || attachment.Position > 9 {
-			addAttachmentErr = errors.New("invalid attachment position")
-			break
+			return types.MomentResponse{}, errors.New("invalid attachment position")
 		}
 
-		err = s.Q.AddAttachmentToMoment(ctx, repository.AddAttachmentToMomentParams{
+		err = qtx.AddAttachmentToMoment(ctx, repository.AddAttachmentToMomentParams{
 			MomentID:     moment.ID,
 			AttachmentID: attachmentID,
 			Position:     attachment.Position,
 		})
 		if err != nil {
-			addAttachmentErr = errors.New("failed to add attachment to moment")
-			break
+			return types.MomentResponse{}, errors.New("failed to add attachment to moment")
 		}
 	}
-	if addAttachmentErr != nil {
-		s.Q.DeleteMomentByID(ctx, moment.ID)
-		return types.MomentResponse{}, addAttachmentErr
+
+	if err := tx.Commit(ctx); err != nil {
+		return types.MomentResponse{}, errors.New("failed to commit transaction")
 	}
 
 	return s.converter.ToMomentResponse(ctx, moment)

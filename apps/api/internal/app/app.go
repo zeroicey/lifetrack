@@ -91,7 +91,7 @@ func NewApp(ctx context.Context) (*App, error) {
 
 	// Initialize services
 	eventService := event.NewService(queries, logger, cfg, notificationService)
-	momentService := moment.NewService(queries, logger)
+	momentService := moment.NewService(dbConn, queries, logger)
 	taskGroupService := taskgroup.NewService(queries)
 	taskService := task.NewService(queries)
 	storageService := storage.NewService(queries, minioClient, logger, cfg)

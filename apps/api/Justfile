@@ -36,7 +36,7 @@ pg-create:
         -p {{env('DB_PORT')}}:5432 \
         -v lifetrack-pgdata:/var/lib/postgresql/data \
         -v {{justfile_directory()}}/db/init:/docker-entrypoint-initdb.d \
-        postgres:15-alpine
+        postgres:17
 
 
     @echo "Postgres container started."
