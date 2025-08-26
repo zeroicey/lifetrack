@@ -115,7 +115,7 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	params := repository.CreateTaskGroupParams{
 		Name:        body.Name,
-		Description: body.Description,
+		Description: body.Description.String,
 		Type:        groupType,
 	}
 
@@ -180,7 +180,7 @@ func (h *Handler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	params := repository.UpdateTaskGroupByIdParams{
 		ID:          id,
 		Name:        body.Name,
-		Description: body.Description,
+		Description: body.Description.String,
 		Type:        repository.TaskGroupType(body.Type),
 	}
 

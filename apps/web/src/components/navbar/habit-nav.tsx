@@ -6,15 +6,15 @@ export default function EventNav() {
     const navigate = useNavigate();
     return (
         <div className="w-full flex justify-between items-center">
-            <span className="text-xl">Event</span>
+            <span className="text-xl">Habit</span>
             <Button
                 className="text-md cursor-pointer"
                 onClick={() => {
-                    navigate("event/create");
+                    navigate("habit/create");
                 }}
             >
                 <Plus />
-                New Event
+                New Habit
             </Button>
         </div>
     );

@@ -12,7 +12,6 @@ export default function TaskNav() {
             <span className="text-xl">Task</span>
             <Button
                 disabled={!isPhone}
-                variant="outline"
                 className="text-md cursor-pointer"
                 onClick={() => {
                     navigate("task/group");

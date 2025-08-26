@@ -42,7 +42,7 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	newTask, err := h.S.CreateTask(r.Context(), repository.CreateTaskParams{
 		GroupID:     body.GroupID,
 		Content:     body.Content,
-		Description: body.Description,
+		Description: body.Description.String,
 		Deadline:    body.Deadline,
 	})
 
@@ -96,7 +96,7 @@ func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	updatedTask, err := h.S.UpdateTask(r.Context(), repository.UpdateTaskByIdParams{
 		ID:          id,
 		Content:     body.Content,
-		Description: body.Description,
+		Description: body.Description.String,
 		Deadline:    body.Deadline,
 		Status:      repository.TaskStatus(body.Status),
 	})

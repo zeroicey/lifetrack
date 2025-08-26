@@ -82,23 +82,13 @@ func (s *Service) checkTaskExists(ctx context.Context, id int64) error {
 }
 
 func (s *Service) convertToTaskResponse(task repository.Task) types.TaskResponse {
-	var description string
-	if task.Description.Valid {
-		description = task.Description.String
-	}
-
-	var deadline string
-	if task.Deadline.Valid {
-		deadline = task.Deadline.Time.Format(time.RFC3339)
-	}
-
 	return types.TaskResponse{
 		ID:          task.ID,
 		GroupID:     task.GroupID,
 		Content:     task.Content,
-		Description: description,
+		Description: task.Description,
 		Status:      string(task.Status),
-		Deadline:    deadline,
+		Deadline:    task.Deadline.Time.Format(time.RFC3339),
 		CreatedAt:   task.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt:   task.UpdatedAt.Time.Format(time.RFC3339),
 	}

@@ -7,7 +7,7 @@ CREATE TABLE
         content TEXT NOT NULL,
         description TEXT NOT NULL,
         status task_status NOT NULL DEFAULT 'todo',
-        deadline TIMESTAMPTZ,
+        deadline TIMESTAMPTZ NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
     );

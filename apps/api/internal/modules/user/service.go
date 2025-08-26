@@ -76,23 +76,14 @@ func (s *Service) HashPassword(password string) (string, error) {
 // convertToUserResponse 将数据库模型转换为响应模型
 func (s *Service) convertToUserResponse(user repository.User) types.UserResponse {
 	response := types.UserResponse{
-		ID:        user.ID,
-		Email:     user.Email,
-		Name:      user.Name,
-		CreatedAt: user.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt: user.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
+		ID:           user.ID,
+		Email:        user.Email,
+		Name:         user.Name,
+		Birthday:     user.Birthday.Time.Format("2006-01-02"),
+		Bio:          user.Bio,
+		AvatarBase64: user.AvatarBase64,
+		CreatedAt:    user.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:    user.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
 	}
-
-	// 处理可选字段
-	if user.Birthday.Valid {
-		response.Birthday = user.Birthday.Time.Format("2006-01-02")
-	}
-	if user.AvatarBase64.Valid {
-		response.AvatarBase64 = user.AvatarBase64.String
-	}
-	if user.Bio.Valid {
-		response.Bio = user.Bio.String
-	}
-
 	return response
 }

@@ -243,7 +243,7 @@ func (s *Service) convertToTaskGroupResponse(g repository.TaskGroup) types.TaskG
 	return types.TaskGroupResponse{
 		ID:          g.ID,
 		Name:        g.Name,
-		Description: s.pgTextToString(g.Description),
+		Description: g.Description,
 		Type:        string(g.Type),
 		CreatedAt:   s.pgTimestampToString(g.CreatedAt),
 		UpdatedAt:   s.pgTimestampToString(g.UpdatedAt),
@@ -256,7 +256,7 @@ func (s *Service) convertToTaskResponse(t repository.Task) types.TaskResponse {
 		ID:          t.ID,
 		GroupID:     t.GroupID,
 		Content:     t.Content,
-		Description: s.pgTextToString(t.Description),
+		Description: t.Description,
 		Status:      string(t.Status),
 		Deadline:    s.pgTimestampToString(t.Deadline),
 		CreatedAt:   s.pgTimestampToString(t.CreatedAt),

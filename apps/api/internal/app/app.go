@@ -13,6 +13,8 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/config"
 	"github.com/zeroicey/lifetrack-api/internal/middleware"
 	"github.com/zeroicey/lifetrack-api/internal/modules/event"
+	"github.com/zeroicey/lifetrack-api/internal/modules/habit"
+	"github.com/zeroicey/lifetrack-api/internal/modules/habitlog"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment"
 	"github.com/zeroicey/lifetrack-api/internal/modules/notification"
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage"
@@ -38,6 +40,8 @@ type App struct {
 	TaskGroupService    *taskgroup.Service
 	TaskService         *task.Service
 	EventService        *event.Service
+	HabitService        *habit.Service
+	HabitLogService     *habitlog.Service
 	StorageService      *storage.Service
 	NotificationService *notification.Service
 	UserService         *user.Service
@@ -96,7 +100,9 @@ func NewApp(ctx context.Context) (*App, error) {
 	taskService := task.NewService(queries)
 	storageService := storage.NewService(dbConn, queries, minioClient, logger, cfg)
 	userService := user.NewService(queries)
+	habitLogService := habitlog.NewService(queries)
 	eventScheduler := event.NewScheduler(eventService, logger)
+	habitService := habit.NewService(queries)
 
 	app := &App{
 		Logger:    logger,
@@ -110,6 +116,8 @@ func NewApp(ctx context.Context) (*App, error) {
 		TaskGroupService:    taskGroupService,
 		TaskService:         taskService,
 		EventService:        eventService,
+		HabitService:        habitService,
+		HabitLogService:     habitLogService,
 		StorageService:      storageService,
 		NotificationService: notificationService,
 		UserService:         userService,

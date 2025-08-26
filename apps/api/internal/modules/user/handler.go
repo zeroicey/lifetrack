@@ -68,8 +68,8 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Name:         body.Name,
 		PasswordHash: hashedPassword,
 		Birthday:     body.Birthday,
-		AvatarBase64: body.AvatarBase64,
-		Bio:          body.Bio,
+		AvatarBase64: body.AvatarBase64.String,
+		Bio:          body.Bio.String,
 	})
 
 	if err != nil {

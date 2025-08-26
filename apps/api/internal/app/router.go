@@ -5,6 +5,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/zeroicey/lifetrack-api/internal/modules/event"
+	"github.com/zeroicey/lifetrack-api/internal/modules/habit"
+	"github.com/zeroicey/lifetrack-api/internal/modules/habitlog"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment"
 	"github.com/zeroicey/lifetrack-api/internal/modules/storage"
 	"github.com/zeroicey/lifetrack-api/internal/modules/task"
@@ -26,6 +28,8 @@ func RegisterRoutes(r chi.Router, app *App) {
 		api.Mount("/task-groups", taskgroup.TaskGroupRouter(app.TaskGroupService))
 		api.Mount("/tasks", task.TaskRouter(app.TaskService))
 		api.Mount("/events", event.EventRouter(app.EventService, app.Validator))
+		api.Mount("/habits", habit.HabitRouter(app.HabitService))
+		api.Mount("/habit-logs", habitlog.HabitLogRouter(app.HabitLogService))
 		api.Mount("/storage", storage.StorageRouter(app.StorageService, app.Validator))
 		api.Mount("/users", user.UserRouter(app.UserService))
 	})

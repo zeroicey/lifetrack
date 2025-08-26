@@ -13,6 +13,7 @@ import EventPage from "./pages/module/event";
 import TaskGroupPage from "./pages/module/task/group";
 import EventCreatePage from "./pages/module/event/create";
 import RegisterPage from "./pages/register";
+import HabitCreatePage from "./pages/module/habit/create";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -45,7 +46,10 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "habit",
-                        children: [{ index: true, Component: HabitPage }],
+                        children: [
+                            { index: true, Component: HabitPage },
+                            { path: "create", Component: HabitCreatePage },
+                        ],
                     },
                     {
                         path: "event",

@@ -8,7 +8,6 @@ export default function MomentNav() {
         <div className="w-full flex justify-between items-center">
             <span className="text-xl">Moment</span>
             <Button
-                variant="outline"
                 className="text-md cursor-pointer"
                 onClick={() => {
                     navigate("moment/create");
