@@ -5,7 +5,7 @@ CREATE TABLE
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         group_id BIGINT NOT NULL REFERENCES task_groups (id) ON DELETE CASCADE,
         content TEXT NOT NULL,
-        description TEXT,
+        description TEXT NOT NULL,
         status task_status NOT NULL DEFAULT 'todo',
         deadline TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),

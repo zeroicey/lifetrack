@@ -24,7 +24,7 @@ export const apiGetPresignedURL = async (files: File[]) => {
                 files.map(async (file) => ({
                     file_name: file.name,
                     file_size: file.size,
-                    content_type: file.type,
+                    mime_type: file.type,
                     md5: await calculateMD5(file),
                 }))
             ),

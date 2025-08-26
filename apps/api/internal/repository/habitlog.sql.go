@@ -345,3 +345,22 @@ func (q *Queries) HabitLogExists(ctx context.Context, id int64) (bool, error) {
 	err := row.Scan(&exists)
 	return exists, err
 }
+
+const updateHabitLogById = `-- name: UpdateHabitLogById :one
+UPDATE habit_logs
+SET happened_at = $2
+WHERE id = $1
+RETURNING id, habit_id, happened_at
+`
+
+type UpdateHabitLogByIdParams struct {
+	ID         int64              `json:"id"`
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
+}
+
+func (q *Queries) UpdateHabitLogById(ctx context.Context, arg UpdateHabitLogByIdParams) (HabitLog, error) {
+	row := q.db.QueryRow(ctx, updateHabitLogById, arg.ID, arg.HappenedAt)
+	var i HabitLog
+	err := row.Scan(&i.ID, &i.HabitID, &i.HappenedAt)
+	return i, err
+}

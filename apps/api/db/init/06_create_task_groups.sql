@@ -4,7 +4,7 @@ CREATE TABLE
     IF NOT EXISTS task_groups (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         name TEXT NOT NULL,
-        description TEXT,
+        description TEXT NOT NULL,
         type task_group_type NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),

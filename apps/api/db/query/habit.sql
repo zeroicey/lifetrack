@@ -38,7 +38,7 @@ SELECT
     h.created_at,
     h.updated_at,
     COUNT(hl.id) as total_logs,
-    MAX(hl.happened_at) as last_log_time
+    MAX(hl.happened_at)::timestamptz as last_log_time
 FROM habits h
 LEFT JOIN habit_logs hl ON h.id = hl.habit_id
 WHERE h.id = $1

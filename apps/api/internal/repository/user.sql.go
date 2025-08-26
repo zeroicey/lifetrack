@@ -33,8 +33,8 @@ type CreateUserParams struct {
 	Name         string      `json:"name"`
 	PasswordHash string      `json:"password_hash"`
 	Birthday     pgtype.Date `json:"birthday"`
-	AvatarBase64 pgtype.Text `json:"avatar_base64"`
-	Bio          pgtype.Text `json:"bio"`
+	AvatarBase64 string      `json:"avatar_base64"`
+	Bio          string      `json:"bio"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -141,8 +141,8 @@ type UpdateUserParams struct {
 	Email        string      `json:"email"`
 	Name         string      `json:"name"`
 	Birthday     pgtype.Date `json:"birthday"`
-	AvatarBase64 pgtype.Text `json:"avatar_base64"`
-	Bio          pgtype.Text `json:"bio"`
+	AvatarBase64 string      `json:"avatar_base64"`
+	Bio          string      `json:"bio"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {

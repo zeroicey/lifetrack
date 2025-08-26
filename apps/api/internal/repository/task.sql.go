@@ -20,7 +20,7 @@ RETURNING id, group_id, content, description, status, deadline, created_at, upda
 type CreateTaskParams struct {
 	GroupID     int64              `json:"group_id"`
 	Content     string             `json:"content"`
-	Description pgtype.Text        `json:"description"`
+	Description string             `json:"description"`
 	Deadline    pgtype.Timestamptz `json:"deadline"`
 }
 
@@ -141,7 +141,7 @@ RETURNING id, group_id, content, description, status, deadline, created_at, upda
 type UpdateTaskByIdParams struct {
 	ID          int64              `json:"id"`
 	Content     string             `json:"content"`
-	Description pgtype.Text        `json:"description"`
+	Description string             `json:"description"`
 	Deadline    pgtype.Timestamptz `json:"deadline"`
 	Status      TaskStatus         `json:"status"`
 }

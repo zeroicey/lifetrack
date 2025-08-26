@@ -1,5 +1,3 @@
-// internal/modules/storage/service.go
-
 package storage
 
 import (
@@ -82,7 +80,7 @@ func (s *Service) CreateUploadRequest(ctx context.Context, bodies *[]types.Presi
 		attachment, err := qtx.CreateAttachment(ctx, repository.CreateAttachmentParams{
 			ObjectKey:    objectKey,
 			OriginalName: body.FileName,
-			MimeType:     body.ContentType,
+			MimeType:     body.MimeType,
 			Md5:          body.MD5,
 			FileSize:     body.FileSize,
 		})

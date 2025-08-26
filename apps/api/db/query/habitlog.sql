@@ -43,6 +43,12 @@ WHERE id = $1;
 DELETE FROM habit_logs
 WHERE habit_id = $1;
 
+-- name: UpdateHabitLogById :one
+UPDATE habit_logs
+SET happened_at = $2
+WHERE id = $1
+RETURNING *;
+
 -- name: HabitLogExists :one
 SELECT EXISTS(
     SELECT 1 FROM habit_logs WHERE id = $1

@@ -117,7 +117,7 @@ SELECT
     h.created_at,
     h.updated_at,
     COUNT(hl.id) as total_logs,
-    MAX(hl.happened_at) as last_log_time
+    MAX(hl.happened_at)::timestamptz as last_log_time
 FROM habits h
 LEFT JOIN habit_logs hl ON h.id = hl.habit_id
 WHERE h.id = $1
@@ -131,7 +131,7 @@ type GetHabitStatsRow struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 	TotalLogs   int64              `json:"total_logs"`
-	LastLogTime interface{}        `json:"last_log_time"`
+	LastLogTime pgtype.Timestamptz `json:"last_log_time"`
 }
 
 func (q *Queries) GetHabitStats(ctx context.Context, id int64) (GetHabitStatsRow, error) {

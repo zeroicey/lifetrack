@@ -211,7 +211,7 @@ type Task struct {
 	// 任务内容
 	Content string `json:"content"`
 	// 任务描述
-	Description pgtype.Text `json:"description"`
+	Description string `json:"description"`
 	// 任务状态：todo(待办), done(完成), abandon(放弃)
 	Status TaskStatus `json:"status"`
 	// 任务截止时间
@@ -229,7 +229,7 @@ type TaskGroup struct {
 	// 任务分组名称
 	Name string `json:"name"`
 	// 任务分组描述
-	Description pgtype.Text `json:"description"`
+	Description string `json:"description"`
 	// 任务分组类型：day(日), week(周), month(月), year(年), custom(自定义)
 	Type TaskGroupType `json:"type"`
 	// 创建时间
@@ -251,9 +251,9 @@ type User struct {
 	// 用户生日
 	Birthday pgtype.Date `json:"birthday"`
 	// 头像Base64编码数据
-	AvatarBase64 pgtype.Text `json:"avatar_base64"`
+	AvatarBase64 string `json:"avatar_base64"`
 	// 用户简介
-	Bio pgtype.Text `json:"bio"`
+	Bio string `json:"bio"`
 	// 创建时间
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	// 更新时间

@@ -4,9 +4,9 @@ CREATE TABLE
         email TEXT NOT NULL UNIQUE,
         name TEXT NOT NULL,
         password_hash TEXT NOT NULL,
-        birthday DATE,
-        avatar_base64 TEXT,
-        bio TEXT,
+        birthday DATE NOT NULL,
+        avatar_base64 TEXT NOT NULL,
+        bio TEXT NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
     );

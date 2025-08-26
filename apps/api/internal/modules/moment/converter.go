@@ -6,7 +6,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/zeroicey/lifetrack-api/internal/modules/moment/types"
-	"github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 )
 
@@ -60,7 +59,7 @@ func (c *Converter) getMomentAttachments(ctx context.Context, momentID int64) ([
 	var attachments []types.Attachment
 	for _, row := range attachmentRows {
 		// 将 pgtype.UUID 转换为字符串
-		idStr := pkg.PgUUIDToStringOrEmpty(row.ID)
+		idStr := row.ID.String()
 
 		attachments = append(attachments, types.Attachment{
 			ID:           idStr,

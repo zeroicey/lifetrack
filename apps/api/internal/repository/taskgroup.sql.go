@@ -7,8 +7,6 @@ package repository
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createTaskGroup = `-- name: CreateTaskGroup :one
@@ -19,7 +17,7 @@ RETURNING id, name, description, type, created_at, updated_at
 
 type CreateTaskGroupParams struct {
 	Name        string        `json:"name"`
-	Description pgtype.Text   `json:"description"`
+	Description string        `json:"description"`
 	Type        TaskGroupType `json:"type"`
 }
 
@@ -171,7 +169,7 @@ RETURNING id, name, description, type, created_at, updated_at
 
 type UpdateTaskGroupByIdParams struct {
 	Name        string        `json:"name"`
-	Description pgtype.Text   `json:"description"`
+	Description string        `json:"description"`
 	Type        TaskGroupType `json:"type"`
 	ID          int64         `json:"id"`
 }
