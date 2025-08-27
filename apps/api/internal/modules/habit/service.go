@@ -43,36 +43,50 @@ func (s *Service) CreateHabit(ctx context.Context, body types.CreateHabitBody) (
 	}, nil
 }
 
-func (s *Service) GetHabitById(ctx context.Context, id int64) (*types.HabitResponse, error) {
+func (s *Service) GetHabitById(ctx context.Context, id int64) (*types.HabitStatsResponse, error) {
 	habit, err := s.Q.GetHabitById(ctx, id)
 	if err != nil {
 		return nil, ErrHabitNotFound
 	}
 
-	return &types.HabitResponse{
+	response := &types.HabitStatsResponse{
 		ID:          habit.ID,
 		Name:        habit.Name,
 		Description: habit.Description,
 		CreatedAt:   habit.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt:   habit.UpdatedAt.Time.Format(time.RFC3339),
-	}, nil
+		TotalLogs:   habit.TotalLogs,
+	}
+
+	if habit.LastLogTime.Valid {
+		response.LastLogTime = habit.LastLogTime.Time.Format(time.RFC3339)
+	}
+
+	return response, nil
 }
 
-func (s *Service) GetAllHabits(ctx context.Context) ([]*types.HabitResponse, error) {
+func (s *Service) GetAllHabits(ctx context.Context) ([]*types.HabitStatsResponse, error) {
 	habits, err := s.Q.GetAllHabits(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var response []*types.HabitResponse
+	var response []*types.HabitStatsResponse
 	for _, habit := range habits {
-		response = append(response, &types.HabitResponse{
+		habitStats := &types.HabitStatsResponse{
 			ID:          habit.ID,
 			Name:        habit.Name,
 			Description: habit.Description,
 			CreatedAt:   habit.CreatedAt.Time.Format(time.RFC3339),
 			UpdatedAt:   habit.UpdatedAt.Time.Format(time.RFC3339),
-		})
+			TotalLogs:   habit.TotalLogs,
+		}
+
+		if habit.LastLogTime.Valid {
+			habitStats.LastLogTime = habit.LastLogTime.Time.Format(time.RFC3339)
+		}
+
+		response = append(response, habitStats)
 	}
 
 	return response, nil
@@ -125,25 +139,4 @@ func (s *Service) DeleteHabitById(ctx context.Context, id int64) error {
 	}
 
 	return s.Q.DeleteHabitById(ctx, id)
-}
-
-func (s *Service) GetHabitStats(ctx context.Context, id int64) (*types.HabitStatsResponse, error) {
-	stats, err := s.Q.GetHabitStats(ctx, id)
-	if err != nil {
-		return nil, ErrHabitNotFound
-	}
-
-	response := &types.HabitStatsResponse{
-		ID:          stats.ID,
-		Name:        stats.Name,
-		Description: stats.Description,
-		CreatedAt:   stats.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   stats.UpdatedAt.Time.Format(time.RFC3339),
-		TotalLogs:   stats.TotalLogs,
-	}
-
-	if stats.LastLogTime.Valid {
-		response.LastLogTime = stats.LastLogTime.Time.Format(time.RFC3339)
-	}
-	return response, nil
 }

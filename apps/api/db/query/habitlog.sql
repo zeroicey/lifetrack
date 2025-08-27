@@ -9,12 +9,17 @@ VALUES ($1)
 RETURNING *;
 
 -- name: GetHabitLogById :one
-SELECT * FROM habit_logs WHERE id = $1;
+SELECT hl.*, h.name as habit_name 
+FROM habit_logs hl
+JOIN habits h ON hl.habit_id = h.id
+WHERE hl.id = $1;
 
 -- name: GetHabitLogsByHabitId :many
-SELECT * FROM habit_logs
-WHERE habit_id = $1
-ORDER BY happened_at DESC;
+SELECT hl.*, h.name as habit_name 
+FROM habit_logs hl
+JOIN habits h ON hl.habit_id = h.id
+WHERE hl.habit_id = $1
+ORDER BY hl.happened_at DESC;
 
 -- name: GetHabitLogsByHabitIdWithLimit :many
 SELECT * FROM habit_logs
@@ -33,7 +38,10 @@ WHERE habit_id = $1
   AND happened_at <= $3;
 
 -- name: GetAllHabitLogs :many
-SELECT * FROM habit_logs ORDER BY happened_at DESC;
+SELECT hl.*, h.name as habit_name 
+FROM habit_logs hl
+JOIN habits h ON hl.habit_id = h.id
+ORDER BY hl.happened_at DESC;
 
 -- name: DeleteHabitLogById :exec
 DELETE FROM habit_logs

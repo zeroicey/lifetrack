@@ -4,7 +4,7 @@ import "github.com/jackc/pgx/v5/pgtype"
 
 type CreateHabitLogBody struct {
 	HabitID    int64              `json:"habit_id"`
-	HappenedAt pgtype.Timestamptz `json:"happened_at,omitempty"`
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
 }
 
 type UpdateHabitLogBody struct {

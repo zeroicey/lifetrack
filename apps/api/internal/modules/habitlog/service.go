@@ -24,12 +24,9 @@ func NewService(repo *repository.Queries) *Service {
 }
 
 func (s *Service) CreateHabitLog(ctx context.Context, body types.CreateHabitLogBody) (*types.HabitLogResponse, error) {
-	// 检查习惯是否存在
-	exists, err := s.Q.HabitExists(ctx, body.HabitID)
+	// 检查习惯是否存在并获取习惯信息
+	habit, err := s.Q.GetHabitById(ctx, body.HabitID)
 	if err != nil {
-		return nil, err
-	}
-	if !exists {
 		return nil, ErrHabitNotFound
 	}
 
@@ -44,17 +41,15 @@ func (s *Service) CreateHabitLog(ctx context.Context, body types.CreateHabitLogB
 	return &types.HabitLogResponse{
 		ID:         habitLog.ID,
 		HabitID:    habitLog.HabitID,
+		HabitName:  habit.Name,
 		HappenedAt: habitLog.HappenedAt.Time.Format(time.RFC3339),
 	}, nil
 }
 
 func (s *Service) CreateHabitLogNow(ctx context.Context, habitID int64) (*types.HabitLogResponse, error) {
-	// 检查习惯是否存在
-	exists, err := s.Q.HabitExists(ctx, habitID)
+	// 检查习惯是否存在并获取习惯信息
+	habit, err := s.Q.GetHabitById(ctx, habitID)
 	if err != nil {
-		return nil, err
-	}
-	if !exists {
 		return nil, ErrHabitNotFound
 	}
 
@@ -66,6 +61,7 @@ func (s *Service) CreateHabitLogNow(ctx context.Context, habitID int64) (*types.
 	return &types.HabitLogResponse{
 		ID:         habitLog.ID,
 		HabitID:    habitLog.HabitID,
+		HabitName:  habit.Name,
 		HappenedAt: habitLog.HappenedAt.Time.Format(time.RFC3339),
 	}, nil
 }
@@ -79,6 +75,7 @@ func (s *Service) GetHabitLogById(ctx context.Context, id int64) (*types.HabitLo
 	return &types.HabitLogResponse{
 		ID:         habitLog.ID,
 		HabitID:    habitLog.HabitID,
+		HabitName:  habitLog.HabitName,
 		HappenedAt: habitLog.HappenedAt.Time.Format(time.RFC3339),
 	}, nil
 }
@@ -94,6 +91,7 @@ func (s *Service) GetAllHabitLogs(ctx context.Context) ([]*types.HabitLogRespons
 		response = append(response, &types.HabitLogResponse{
 			ID:         habitLog.ID,
 			HabitID:    habitLog.HabitID,
+			HabitName:  habitLog.HabitName,
 			HappenedAt: habitLog.HappenedAt.Time.Format(time.RFC3339),
 		})
 	}
@@ -121,6 +119,7 @@ func (s *Service) GetHabitLogsByHabitId(ctx context.Context, habitID int64) ([]*
 		response = append(response, &types.HabitLogResponse{
 			ID:         habitLog.ID,
 			HabitID:    habitLog.HabitID,
+			HabitName:  habitLog.HabitName,
 			HappenedAt: habitLog.HappenedAt.Time.Format(time.RFC3339),
 		})
 	}

@@ -4,7 +4,7 @@ export interface HabitCreate {
 }
 
 export interface Habit {
-    id: string;
+    id: number;
     name: string;
     description: string;
     created_at: string;
@@ -14,4 +14,16 @@ export interface Habit {
 export interface HabitStats extends Habit {
     total_logs: number;
     last_log_time?: string;
+}
+
+export interface HabitLogCreate {
+    habit_id: number;
+    happened_at: string;
+}
+
+export interface HabitLog {
+    id: number;
+    habit_id: number;
+    habit_name: string;
+    happened_at: string;
 }

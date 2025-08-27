@@ -46,24 +46,47 @@ func (q *Queries) DeleteHabitById(ctx context.Context, id int64) error {
 }
 
 const getAllHabits = `-- name: GetAllHabits :many
-SELECT id, name, description, created_at, updated_at FROM habits ORDER BY updated_at DESC
+SELECT 
+    h.id,
+    h.name,
+    h.description,
+    h.created_at,
+    h.updated_at,
+    COUNT(hl.id) as total_logs,
+    MAX(hl.happened_at)::timestamptz as last_log_time
+FROM habits h
+LEFT JOIN habit_logs hl ON h.id = hl.habit_id
+GROUP BY h.id, h.name, h.description, h.created_at, h.updated_at
+ORDER BY h.updated_at DESC
 `
 
-func (q *Queries) GetAllHabits(ctx context.Context) ([]Habit, error) {
+type GetAllHabitsRow struct {
+	ID          int64              `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	TotalLogs   int64              `json:"total_logs"`
+	LastLogTime pgtype.Timestamptz `json:"last_log_time"`
+}
+
+func (q *Queries) GetAllHabits(ctx context.Context) ([]GetAllHabitsRow, error) {
 	rows, err := q.db.Query(ctx, getAllHabits)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Habit
+	var items []GetAllHabitsRow
 	for rows.Next() {
-		var i Habit
+		var i GetAllHabitsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Description,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.TotalLogs,
+			&i.LastLogTime,
 		); err != nil {
 			return nil, err
 		}
@@ -76,18 +99,41 @@ func (q *Queries) GetAllHabits(ctx context.Context) ([]Habit, error) {
 }
 
 const getHabitById = `-- name: GetHabitById :one
-SELECT id, name, description, created_at, updated_at FROM habits WHERE id = $1
+SELECT 
+    h.id,
+    h.name,
+    h.description,
+    h.created_at,
+    h.updated_at,
+    COUNT(hl.id) as total_logs,
+    MAX(hl.happened_at)::timestamptz as last_log_time
+FROM habits h
+LEFT JOIN habit_logs hl ON h.id = hl.habit_id
+WHERE h.id = $1
+GROUP BY h.id, h.name, h.description, h.created_at, h.updated_at
 `
 
-func (q *Queries) GetHabitById(ctx context.Context, id int64) (Habit, error) {
+type GetHabitByIdRow struct {
+	ID          int64              `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	TotalLogs   int64              `json:"total_logs"`
+	LastLogTime pgtype.Timestamptz `json:"last_log_time"`
+}
+
+func (q *Queries) GetHabitById(ctx context.Context, id int64) (GetHabitByIdRow, error) {
 	row := q.db.QueryRow(ctx, getHabitById, id)
-	var i Habit
+	var i GetHabitByIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.TotalLogs,
+		&i.LastLogTime,
 	)
 	return i, err
 }
@@ -105,46 +151,6 @@ func (q *Queries) GetHabitByName(ctx context.Context, name string) (Habit, error
 		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const getHabitStats = `-- name: GetHabitStats :one
-SELECT 
-    h.id,
-    h.name,
-    h.description,
-    h.created_at,
-    h.updated_at,
-    COUNT(hl.id) as total_logs,
-    MAX(hl.happened_at)::timestamptz as last_log_time
-FROM habits h
-LEFT JOIN habit_logs hl ON h.id = hl.habit_id
-WHERE h.id = $1
-GROUP BY h.id, h.name, h.description, h.created_at, h.updated_at
-`
-
-type GetHabitStatsRow struct {
-	ID          int64              `json:"id"`
-	Name        string             `json:"name"`
-	Description string             `json:"description"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
-	TotalLogs   int64              `json:"total_logs"`
-	LastLogTime pgtype.Timestamptz `json:"last_log_time"`
-}
-
-func (q *Queries) GetHabitStats(ctx context.Context, id int64) (GetHabitStatsRow, error) {
-	row := q.db.QueryRow(ctx, getHabitStats, id)
-	var i GetHabitStatsRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Description,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.TotalLogs,
-		&i.LastLogTime,
 	)
 	return i, err
 }

@@ -27,7 +27,6 @@ func HabitRouter(s *Service) chi.Router {
 	r.Get("/{id}", h.GetHabitById)
 	r.Put("/{id}", h.UpdateHabit)
 	r.Delete("/{id}", h.DeleteHabit)
-	r.Get("/{id}/stats", h.GetHabitStats)
 
 	return r
 }
@@ -125,25 +124,4 @@ func (h *Handler) DeleteHabit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success("Habit deleted successfully").SetStatusCode(http.StatusOK).Build(w)
-}
-
-func (h *Handler) GetHabitStats(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		response.Error("Invalid habit ID").SetStatusCode(http.StatusBadRequest).Build(w)
-		return
-	}
-
-	stats, err := h.S.GetHabitStats(r.Context(), id)
-	if err != nil {
-		if errors.Is(err, ErrHabitNotFound) {
-			response.Error("Habit not found").SetStatusCode(http.StatusNotFound).Build(w)
-			return
-		}
-		response.Error("Failed to get habit stats").SetStatusCode(http.StatusInternalServerError).Build(w)
-		return
-	}
-
-	response.Success("Habit stats retrieved successfully").SetStatusCode(http.StatusOK).SetData(stats).Build(w)
 }

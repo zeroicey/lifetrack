@@ -63,19 +63,34 @@ func (q *Queries) DeleteHabitLogsByHabitId(ctx context.Context, habitID int64) e
 }
 
 const getAllHabitLogs = `-- name: GetAllHabitLogs :many
-SELECT id, habit_id, happened_at FROM habit_logs ORDER BY happened_at DESC
+SELECT hl.id, hl.habit_id, hl.happened_at, h.name as habit_name 
+FROM habit_logs hl
+JOIN habits h ON hl.habit_id = h.id
+ORDER BY hl.happened_at DESC
 `
 
-func (q *Queries) GetAllHabitLogs(ctx context.Context) ([]HabitLog, error) {
+type GetAllHabitLogsRow struct {
+	ID         int64              `json:"id"`
+	HabitID    int64              `json:"habit_id"`
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
+	HabitName  string             `json:"habit_name"`
+}
+
+func (q *Queries) GetAllHabitLogs(ctx context.Context) ([]GetAllHabitLogsRow, error) {
 	rows, err := q.db.Query(ctx, getAllHabitLogs)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HabitLog
+	var items []GetAllHabitLogsRow
 	for rows.Next() {
-		var i HabitLog
-		if err := rows.Scan(&i.ID, &i.HabitID, &i.HappenedAt); err != nil {
+		var i GetAllHabitLogsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.HabitID,
+			&i.HappenedAt,
+			&i.HabitName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -87,13 +102,28 @@ func (q *Queries) GetAllHabitLogs(ctx context.Context) ([]HabitLog, error) {
 }
 
 const getHabitLogById = `-- name: GetHabitLogById :one
-SELECT id, habit_id, happened_at FROM habit_logs WHERE id = $1
+SELECT hl.id, hl.habit_id, hl.happened_at, h.name as habit_name 
+FROM habit_logs hl
+JOIN habits h ON hl.habit_id = h.id
+WHERE hl.id = $1
 `
 
-func (q *Queries) GetHabitLogById(ctx context.Context, id int64) (HabitLog, error) {
+type GetHabitLogByIdRow struct {
+	ID         int64              `json:"id"`
+	HabitID    int64              `json:"habit_id"`
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
+	HabitName  string             `json:"habit_name"`
+}
+
+func (q *Queries) GetHabitLogById(ctx context.Context, id int64) (GetHabitLogByIdRow, error) {
 	row := q.db.QueryRow(ctx, getHabitLogById, id)
-	var i HabitLog
-	err := row.Scan(&i.ID, &i.HabitID, &i.HappenedAt)
+	var i GetHabitLogByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.HabitID,
+		&i.HappenedAt,
+		&i.HabitName,
+	)
 	return i, err
 }
 
@@ -125,21 +155,35 @@ func (q *Queries) GetHabitLogsByDate(ctx context.Context, happenedAt pgtype.Time
 }
 
 const getHabitLogsByHabitId = `-- name: GetHabitLogsByHabitId :many
-SELECT id, habit_id, happened_at FROM habit_logs
-WHERE habit_id = $1
-ORDER BY happened_at DESC
+SELECT hl.id, hl.habit_id, hl.happened_at, h.name as habit_name 
+FROM habit_logs hl
+JOIN habits h ON hl.habit_id = h.id
+WHERE hl.habit_id = $1
+ORDER BY hl.happened_at DESC
 `
 
-func (q *Queries) GetHabitLogsByHabitId(ctx context.Context, habitID int64) ([]HabitLog, error) {
+type GetHabitLogsByHabitIdRow struct {
+	ID         int64              `json:"id"`
+	HabitID    int64              `json:"habit_id"`
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
+	HabitName  string             `json:"habit_name"`
+}
+
+func (q *Queries) GetHabitLogsByHabitId(ctx context.Context, habitID int64) ([]GetHabitLogsByHabitIdRow, error) {
 	rows, err := q.db.Query(ctx, getHabitLogsByHabitId, habitID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HabitLog
+	var items []GetHabitLogsByHabitIdRow
 	for rows.Next() {
-		var i HabitLog
-		if err := rows.Scan(&i.ID, &i.HabitID, &i.HappenedAt); err != nil {
+		var i GetHabitLogsByHabitIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.HabitID,
+			&i.HappenedAt,
+			&i.HabitName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
