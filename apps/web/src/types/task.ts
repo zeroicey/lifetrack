@@ -40,7 +40,7 @@ export type TaskCreate = {
     group_id: number;
     content: string;
     description?: string;
-    deadline?: string;
+    deadline: string;
 };
 
 export type TaskUpdate = {

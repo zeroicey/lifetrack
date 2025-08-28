@@ -6,12 +6,25 @@ import {
 } from "@/hooks/use-task-query";
 import { CalendarDays, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
     task: Task;
 }
 
 export default function TaskItem({ task }: Props) {
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const { mutate: updateTask } = useTaskUpdateMutation();
     const { mutate: deleteTask } = useTaskDeleteMutation();
 
@@ -48,12 +61,34 @@ export default function TaskItem({ task }: Props) {
                 {task.content}
             </span>
 
-            <CalendarDays size={12} className="cursor-pointer" />
-            <Trash2
-                size={12}
-                className="cursor-pointer"
-                onClick={() => deleteTask(task.id)}
-            />
+            <CalendarDays size={16} className="cursor-pointer" />
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogTrigger asChild>
+                    <Trash2
+                        size={16}
+                        className="cursor-pointer"
+                    />
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>确认删除任务</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            您确定要删除这个任务吗？此操作无法撤销。
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                deleteTask(task.id);
+                                setDeleteDialogOpen(false);
+                            }}
+                        >
+                            删除
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
