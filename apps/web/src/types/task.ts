@@ -13,7 +13,6 @@ export type Task = {
     id: number;
     group_id: number;
     content: string;
-    description: string;
     status: string;
     deadline: string;
     created_at: string;
@@ -39,7 +38,6 @@ export type TaskGroupUpdate = {
 export type TaskCreate = {
     group_id: number;
     content: string;
-    description?: string;
     deadline: string;
 };
 
@@ -47,6 +45,5 @@ export type TaskUpdate = {
     id: number;
     status?: string;
     content?: string;
-    description?: string;
     deadline?: string;
 };

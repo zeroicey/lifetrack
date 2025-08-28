@@ -40,10 +40,9 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newTask, err := h.S.CreateTask(r.Context(), repository.CreateTaskParams{
-		GroupID:     body.GroupID,
-		Content:     body.Content,
-		Description: body.Description.String,
-		Deadline:    body.Deadline,
+		GroupID:  body.GroupID,
+		Content:  body.Content,
+		Deadline: body.Deadline,
 	})
 
 	if err != nil {
@@ -94,11 +93,10 @@ func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedTask, err := h.S.UpdateTask(r.Context(), repository.UpdateTaskByIdParams{
-		ID:          id,
-		Content:     body.Content,
-		Description: body.Description.String,
-		Deadline:    body.Deadline,
-		Status:      repository.TaskStatus(body.Status),
+		ID:       id,
+		Content:  body.Content,
+		Deadline: body.Deadline,
+		Status:   repository.TaskStatus(body.Status),
 	})
 
 	if err != nil {

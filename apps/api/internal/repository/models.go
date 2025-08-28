@@ -210,8 +210,6 @@ type Task struct {
 	GroupID int64 `json:"group_id"`
 	// 任务内容
 	Content string `json:"content"`
-	// 任务描述
-	Description string `json:"description"`
 	// 任务状态：todo(待办), done(完成), abandon(放弃)
 	Status TaskStatus `json:"status"`
 	// 任务截止时间

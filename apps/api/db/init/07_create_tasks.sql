@@ -5,7 +5,6 @@ CREATE TABLE
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         group_id BIGINT NOT NULL REFERENCES task_groups (id) ON DELETE CASCADE,
         content TEXT NOT NULL,
-        description TEXT NOT NULL,
         status task_status NOT NULL DEFAULT 'todo',
         deadline TIMESTAMPTZ NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW (),
@@ -36,7 +35,6 @@ COMMENT ON TABLE tasks IS '任务表，存储具体的任务信息';
 COMMENT ON COLUMN tasks.id IS '主键，自增ID';
 COMMENT ON COLUMN tasks.group_id IS '所属任务组ID，外键关联task_groups表';
 COMMENT ON COLUMN tasks.content IS '任务内容';
-COMMENT ON COLUMN tasks.description IS '任务描述';
 COMMENT ON COLUMN tasks.status IS '任务状态：todo(待办), done(完成), abandon(放弃)';
 COMMENT ON COLUMN tasks.deadline IS '任务截止时间';
 COMMENT ON COLUMN tasks.created_at IS '创建时间';

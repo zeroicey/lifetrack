@@ -253,23 +253,14 @@ func (s *Service) convertToTaskGroupResponse(g repository.TaskGroup) types.TaskG
 // convertToTaskResponse 将单个数据库模型转换为API响应模型
 func (s *Service) convertToTaskResponse(t repository.Task) types.TaskResponse {
 	return types.TaskResponse{
-		ID:          t.ID,
-		GroupID:     t.GroupID,
-		Content:     t.Content,
-		Description: t.Description,
-		Status:      string(t.Status),
-		Deadline:    s.pgTimestampToString(t.Deadline),
-		CreatedAt:   s.pgTimestampToString(t.CreatedAt),
-		UpdatedAt:   s.pgTimestampToString(t.UpdatedAt),
+		ID:        t.ID,
+		GroupID:   t.GroupID,
+		Content:   t.Content,
+		Status:    string(t.Status),
+		Deadline:  s.pgTimestampToString(t.Deadline),
+		CreatedAt: s.pgTimestampToString(t.CreatedAt),
+		UpdatedAt: s.pgTimestampToString(t.UpdatedAt),
 	}
-}
-
-// pgTextToString 是一个更通用的转换器
-func (s *Service) pgTextToString(pt pgtype.Text) string {
-	if !pt.Valid {
-		return ""
-	}
-	return pt.String
 }
 
 // pgTimestampToString 是一个更通用的转换器

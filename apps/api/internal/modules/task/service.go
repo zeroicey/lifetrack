@@ -83,13 +83,12 @@ func (s *Service) checkTaskExists(ctx context.Context, id int64) error {
 
 func (s *Service) convertToTaskResponse(task repository.Task) types.TaskResponse {
 	return types.TaskResponse{
-		ID:          task.ID,
-		GroupID:     task.GroupID,
-		Content:     task.Content,
-		Description: task.Description,
-		Status:      string(task.Status),
-		Deadline:    task.Deadline.Time.Format(time.RFC3339),
-		CreatedAt:   task.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:   task.UpdatedAt.Time.Format(time.RFC3339),
+		ID:        task.ID,
+		GroupID:   task.GroupID,
+		Content:   task.Content,
+		Status:    string(task.Status),
+		Deadline:  task.Deadline.Time.Format(time.RFC3339),
+		CreatedAt: task.CreatedAt.Time.Format(time.RFC3339),
+		UpdatedAt: task.UpdatedAt.Time.Format(time.RFC3339),
 	}
 }
