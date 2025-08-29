@@ -10,20 +10,26 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 
 	user "github.com/zeroicey/lifetrack-api/internal/modules/user/types"
+	"github.com/zeroicey/lifetrack-api/internal/pkg"
 )
 
 type Handler struct {
-	S *Service
+	S          *Service
+	JWTManager *pkg.JWTManager
 }
 
-func NewHandler(s *Service) *Handler {
-	return &Handler{S: s}
+func NewHandler(s *Service, jwtManager *pkg.JWTManager) *Handler {
+	return &Handler{
+		S:          s,
+		JWTManager: jwtManager,
+	}
 }
 
-func UserRouter(s *Service) chi.Router {
-	h := NewHandler(s)
+func UserRouter(s *Service, jwtManager *pkg.JWTManager) chi.Router {
+	h := NewHandler(s, jwtManager)
 	r := chi.NewRouter()
 	r.Post("/register", h.RegisterUser)
+	r.Post("/login", h.LoginUser)
 	r.Get("/exists", h.CheckUserExists)
 	r.Get("/profile", h.GetUser)
 
@@ -110,4 +116,53 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success("User information retrieved successfully").SetData(userInfo).Build(w)
+}
+
+// LoginUser 用户登录接口
+func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	var body user.LoginUserBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error("Failed to decode request body").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+
+	// 验证必填字段
+	if body.Email == "" {
+		response.Error("Email is required").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+	if body.Password == "" {
+		response.Error("Password is required").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+
+	// 验证用户登录
+	userInfo, err := h.S.LoginUser(r.Context(), body.Email, body.Password)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			response.Error("Invalid email or password").SetStatusCode(http.StatusUnauthorized).Build(w)
+			return
+		}
+		if errors.Is(err, ErrInvalidPassword) {
+			response.Error("Invalid email or password").SetStatusCode(http.StatusUnauthorized).Build(w)
+			return
+		}
+		response.Error("Login failed").SetStatusCode(http.StatusInternalServerError).Build(w)
+		return
+	}
+
+	// 生成JWT token
+	token, err := h.JWTManager.GenerateToken(userInfo.ID, userInfo.Email)
+	if err != nil {
+		response.Error("Failed to generate token").SetStatusCode(http.StatusInternalServerError).Build(w)
+		return
+	}
+
+	// 返回登录响应
+	loginResponse := user.LoginResponse{
+		Token: token,
+		User:  userInfo,
+	}
+
+	response.Success("Login successful").SetData(loginResponse).Build(w)
 }

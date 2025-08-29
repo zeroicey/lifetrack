@@ -10,3 +10,8 @@ type RegisterUserBody struct {
 	AvatarBase64 pgtype.Text `json:"avatar_base64"`
 	Bio          pgtype.Text `json:"bio"`
 }
+
+type LoginUserBody struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}

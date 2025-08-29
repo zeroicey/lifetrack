@@ -4,24 +4,50 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
+import { useUserLoginMutation } from "@/hooks/use-user-query";
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const loginMutation = useUserLoginMutation();
+
+    const validateForm = () => {
+        const newErrors: { [key: string]: string } = {};
+
+        if (!email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            newErrors.email = "Please enter a valid email address";
+        }
+
+        if (!password) {
+            newErrors.password = "Password is required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
         
-        // TODO: Implement login logic
-        console.log("Login attempt:", { email, password });
+        if (!validateForm()) {
+            return;
+        }
         
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 2000);
+        loginMutation.mutate({ email, password });
+    };
+
+    const handleInputChange = (field: string, value: string) => {
+        if (field === 'email') setEmail(value);
+        if (field === 'password') setPassword(value);
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
     };
 
     return (
@@ -70,11 +96,16 @@ export default function LoginPage() {
                                     type="email"
                                     placeholder="Enter your email"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-10"
+                                    onChange={(e) => handleInputChange('email', e.target.value)}
+                                    className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                                     required
                                 />
                             </div>
+                            {errors.email && (
+                                <p className="text-red-500 text-xs mt-1">
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
                         
                         <div className="space-y-2">
@@ -88,8 +119,8 @@ export default function LoginPage() {
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Enter your password"
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-10 pr-10"
+                                    onChange={(e) => handleInputChange('password', e.target.value)}
+                                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                                     required
                                 />
                                 <button
@@ -104,6 +135,11 @@ export default function LoginPage() {
                                     )}
                                 </button>
                             </div>
+                            {errors.password && (
+                                <p className="text-red-500 text-xs mt-1">
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
                         
                         <div className="flex items-center text-sm">
@@ -116,9 +152,9 @@ export default function LoginPage() {
                         <Button 
                             type="submit" 
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5"
-                            disabled={isLoading}
+                            disabled={loginMutation.isPending}
                         >
-                            {isLoading ? (
+                            {loginMutation.isPending ? (
                                 <div className="flex items-center space-x-2">
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                     <span>Signing in...</span>

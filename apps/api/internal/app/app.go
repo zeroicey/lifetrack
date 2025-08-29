@@ -21,16 +21,18 @@ import (
 	"github.com/zeroicey/lifetrack-api/internal/modules/task"
 	"github.com/zeroicey/lifetrack-api/internal/modules/taskgroup"
 	"github.com/zeroicey/lifetrack-api/internal/modules/user"
+	"github.com/zeroicey/lifetrack-api/internal/pkg"
 	"github.com/zeroicey/lifetrack-api/internal/repository"
 	"go.uber.org/zap"
 )
 
 type App struct {
 	// Basic dependencies
-	Logger    *zap.Logger
-	Validator *validator.Validate
-	DB        *pgxpool.Pool
-	Config    *config.Config
+	Logger     *zap.Logger
+	Validator  *validator.Validate
+	DB         *pgxpool.Pool
+	Config     *config.Config
+	JWTManager *pkg.JWTManager
 
 	// Scheduled tasks
 	EventScheduler *event.Scheduler
@@ -90,6 +92,9 @@ func NewApp(ctx context.Context) (*App, error) {
 	// Initialize validator
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
+	// Initialize JWT manager
+	jwtManager := pkg.NewJWTManager(cfg.JWT.JWTSecret)
+
 	// Initialize repositories
 	queries := repository.New(dbConn)
 
@@ -105,10 +110,11 @@ func NewApp(ctx context.Context) (*App, error) {
 	habitService := habit.NewService(queries)
 
 	app := &App{
-		Logger:    logger,
-		Validator: validate,
-		DB:        dbConn,
-		Config:    cfg,
+		Logger:     logger,
+		Validator:  validate,
+		DB:         dbConn,
+		Config:     cfg,
+		JWTManager: jwtManager,
 
 		EventScheduler: eventScheduler,
 

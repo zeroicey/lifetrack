@@ -10,7 +10,8 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
 // Removed Checkbox import as it's no longer needed
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Upload } from "lucide-react";
+import { useUserRegisterMutation } from "@/hooks/use-user-query";
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -19,12 +20,14 @@ export default function RegisterPage() {
         password: "",
         confirmPassword: "",
         birthday: "",
+        avatar: null as File | null,
         bio: "This is this guy's bio"
     });
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     // Removed agreeToTerms state
-    const [isLoading, setIsLoading] = useState(false);
+    const registerMutation = useUserRegisterMutation();
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     const validateForm = () => {
@@ -58,8 +61,8 @@ export default function RegisterPage() {
             newErrors.birthday = "Birthday is required";
         }
 
-        if (!formData.bio.trim()) {
-            newErrors.bio = "Bio is required";
+        if (!formData.avatar) {
+            newErrors.avatar = "Please upload an avatar";
         }
 
         setErrors(newErrors);
@@ -75,6 +78,50 @@ export default function RegisterPage() {
         }
     };
 
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                setErrors(prev => ({ ...prev, avatar: "Please select an image file" }));
+                return;
+            }
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                setErrors(prev => ({ ...prev, avatar: "File size must be less than 5MB" }));
+                return;
+            }
+            
+            setFormData(prev => ({ ...prev, avatar: file }));
+            
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setAvatarPreview(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+            
+            // Clear error
+            if (errors.avatar) {
+                setErrors(prev => ({ ...prev, avatar: "" }));
+            }
+        }
+    };
+
+    const convertFileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result as string;
+                // Remove the data:image/...;base64, prefix
+                const base64 = result.split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -82,21 +129,24 @@ export default function RegisterPage() {
             return;
         }
 
-        setIsLoading(true);
-
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            let avatarBase64 = "";
+            if (formData.avatar) {
+                avatarBase64 = await convertFileToBase64(formData.avatar);
+            }
 
-            // Handle successful registration
-            console.log("Registration successful:", formData);
+            const registerData = {
+                name: formData.username,
+                email: formData.email,
+                password: formData.password,
+                birthday: formData.birthday,
+                avatar_base64: avatarBase64,
+                bio: formData.bio,
+            };
 
-            // Redirect to login or dashboard
-            // window.location.href = '/login';
+            registerMutation.mutate(registerData);
         } catch (error) {
-            console.error("Registration failed:", error);
-        } finally {
-            setIsLoading(false);
+            console.error("Error preparing registration data:", error);
         }
     };
 
@@ -116,23 +166,67 @@ export default function RegisterPage() {
             </div>
             
             <Card className="w-full max-w-md shadow-lg">
-                <CardHeader className="space-y-1 text-center">
-                    <div className="flex justify-center mb-4">
+                <CardHeader className="space-y-3 text-center">
+                    <div className="flex items-center justify-center space-x-3">
                         <img
                             src="/logo.png"
                             alt="LifeTrack Logo"
-                            className="h-16 w-16"
+                            className="h-12 w-12"
                         />
+                        <CardTitle className="text-2xl font-bold">
+                            Create Account
+                        </CardTitle>
                     </div>
-                    <CardTitle className="text-2xl font-bold">
-                        Create Account
-                    </CardTitle>
                     <CardDescription>
                         Join LifeTrack to start organizing your life
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Avatar Upload */}
+                        <div className="space-y-2">
+                            <Label htmlFor="avatar">Upload Avatar</Label>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex-shrink-0">
+                                    <div className="w-20 h-20 rounded-full border-2 border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                                        {avatarPreview ? (
+                                            <img
+                                                src={avatarPreview}
+                                                alt="Avatar preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <User className="w-8 h-8 text-gray-400" />
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex-1">
+                                    <label
+                                        htmlFor="avatar-upload"
+                                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                                    >
+                                        <Upload className="w-4 h-4 mr-2" />
+                                        Choose File
+                                        <input
+                                            id="avatar-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleAvatarChange}
+                                            className="sr-only"
+                                        />
+                                    </label>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        PNG, JPG, GIF up to 5MB
+                                    </p>
+                                </div>
+                            </div>
+                            {errors.avatar && (
+                                <p className="text-sm text-red-500">
+                                    {errors.avatar}
+                                </p>
+                            )}
+                        </div>
+
                         {/* Username Field */}
                         <div className="space-y-2">
                             <Label htmlFor="username">Username</Label>
@@ -288,33 +382,13 @@ export default function RegisterPage() {
                             )}
                         </div>
 
-                        {/* Bio Field */}
-                        <div className="space-y-2">
-                            <Label htmlFor="bio">Bio</Label>
-                            <Input
-                                id="bio"
-                                name="bio"
-                                type="text"
-                                placeholder="Tell us about yourself"
-                                value={formData.bio}
-                                onChange={handleInputChange}
-                                className={errors.bio ? "border-red-500" : ""}
-                                required
-                            />
-                            {errors.bio && (
-                                <p className="text-sm text-red-500">
-                                    {errors.bio}
-                                </p>
-                            )}
-                        </div>
-
                         {/* Submit Button */}
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={isLoading}
+                            disabled={registerMutation.isPending}
                         >
-                            {isLoading ? (
+                            {registerMutation.isPending ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                                     Creating Account...

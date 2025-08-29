@@ -73,6 +73,27 @@ func (s *Service) HashPassword(password string) (string, error) {
 	return string(hashed), nil
 }
 
+// VerifyPassword 验证密码
+func (s *Service) VerifyPassword(hashedPassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
+// LoginUser 用户登录验证
+func (s *Service) LoginUser(ctx context.Context, email, password string) (types.UserResponse, error) {
+	// 根据邮箱获取用户
+	user, err := s.Q.GetUserByEmail(ctx, email)
+	if err != nil {
+		return types.UserResponse{}, ErrUserNotFound
+	}
+
+	// 验证密码
+	if err := s.VerifyPassword(user.PasswordHash, password); err != nil {
+		return types.UserResponse{}, ErrInvalidPassword
+	}
+
+	return s.convertToUserResponse(user), nil
+}
+
 // convertToUserResponse 将数据库模型转换为响应模型
 func (s *Service) convertToUserResponse(user repository.User) types.UserResponse {
 	response := types.UserResponse{
