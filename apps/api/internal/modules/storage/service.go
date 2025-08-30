@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -75,14 +76,18 @@ func (s *Service) CreateUploadRequest(ctx context.Context, bodies *[]types.Presi
 		}
 
 		ext := filepath.Ext(body.FileName)
-		objectKey := uuid.NewString() + ext
+		objectKey := uuid.NewString()
+		coverObjectKey := objectKey + "." + body.CoverExt
+		objectKey = objectKey + ext
 
 		attachment, err := qtx.CreateAttachment(ctx, repository.CreateAttachmentParams{
-			ObjectKey:    objectKey,
-			OriginalName: body.FileName,
-			MimeType:     body.MimeType,
-			Md5:          body.MD5,
-			FileSize:     body.FileSize,
+			ObjectKey:      objectKey,
+			CoverObjectKey: coverObjectKey,
+			OriginalName:   body.FileName,
+			MimeType:       body.MimeType,
+			Md5:            body.MD5,
+			CoverMd5:       body.CoverMD5,
+			FileSize:       body.FileSize,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create attachment record: %w", err)
@@ -94,11 +99,17 @@ func (s *Service) CreateUploadRequest(ctx context.Context, bodies *[]types.Presi
 			return nil, fmt.Errorf("failed to generate presigned URL: %w", err)
 		}
 
+		coverPresignedURL, err := s.client.PresignedPutObject(ctx, s.config.Storage.BucketName, coverObjectKey, expiry)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate presigned URL: %w", err)
+		}
+
 		responses = append(responses, types.PresignedUploadResponse{
-			AttachmentID: attachment.ID.String(),
-			UploadURL:    presignedURL.String(),
-			ObjectKey:    attachment.ObjectKey,
-			IsDuplicate:  false,
+			AttachmentID:   attachment.ID.String(),
+			UploadURL:      presignedURL.String(),
+			CoverUploadUrl: coverPresignedURL.String(),
+			ObjectKey:      attachment.ObjectKey,
+			IsDuplicate:    false,
 		})
 	}
 
@@ -110,7 +121,58 @@ func (s *Service) CreateUploadRequest(ctx context.Context, bodies *[]types.Presi
 }
 
 func (s *Service) CompleteUpload(ctx context.Context, attachmentID uuid.UUID) error {
-	err := s.Q.UpdateAttachmentStatus(ctx, repository.UpdateAttachmentStatusParams{
+	// 首先获取数据库中的attachment记录
+	attachment, err := s.Q.GetAttachmentById(ctx, pkg.UUIDToPgUUID(attachmentID))
+	if err != nil {
+		s.logger.Error("Failed to get attachment from DB",
+			zap.String("attachmentId", attachmentID.String()),
+			zap.Error(err),
+		)
+		return fmt.Errorf("could not get attachment for ID %s: %w", attachmentID.String(), err)
+	}
+
+	// 验证主文件的MD5
+	fileMD5, err := s.getObjectETag(ctx, attachment.ObjectKey)
+	if err != nil {
+		s.logger.Error("Failed to get file ETag from MinIO",
+			zap.String("attachmentId", attachmentID.String()),
+			zap.String("objectKey", attachment.ObjectKey),
+			zap.Error(err),
+		)
+		return fmt.Errorf("could not get file ETag for attachment %s: %w", attachmentID.String(), err)
+	}
+
+	if fileMD5 != attachment.Md5 {
+		s.logger.Error("File MD5 mismatch",
+			zap.String("attachmentId", attachmentID.String()),
+			zap.String("expectedMD5", attachment.Md5),
+			zap.String("actualMD5", fileMD5),
+		)
+		return fmt.Errorf("file MD5 mismatch for attachment %s: expected %s, got %s", attachmentID.String(), attachment.Md5, fileMD5)
+	}
+
+	// 验证封面文件的MD5
+	coverMD5, err := s.getObjectETag(ctx, attachment.CoverObjectKey)
+	if err != nil {
+		s.logger.Error("Failed to get cover ETag from MinIO",
+			zap.String("attachmentId", attachmentID.String()),
+			zap.String("coverObjectKey", attachment.CoverObjectKey),
+			zap.Error(err),
+		)
+		return fmt.Errorf("could not get cover ETag for attachment %s: %w", attachmentID.String(), err)
+	}
+
+	if coverMD5 != attachment.CoverMd5 {
+		s.logger.Error("Cover MD5 mismatch",
+			zap.String("attachmentId", attachmentID.String()),
+			zap.String("expectedCoverMD5", attachment.CoverMd5),
+			zap.String("actualCoverMD5", coverMD5),
+		)
+		return fmt.Errorf("cover MD5 mismatch for attachment %s: expected %s, got %s", attachmentID.String(), attachment.CoverMd5, coverMD5)
+	}
+
+	// MD5验证通过，更新状态为completed
+	err = s.Q.UpdateAttachmentStatus(ctx, repository.UpdateAttachmentStatusParams{
 		ID:     pkg.UUIDToPgUUID(attachmentID),
 		Status: "completed",
 	})
@@ -122,7 +184,27 @@ func (s *Service) CompleteUpload(ctx context.Context, attachmentID uuid.UUID) er
 		return fmt.Errorf("could not update attachment status for ID %s: %w", attachmentID.String(), err)
 	}
 
+	s.logger.Info("Upload completed successfully",
+		zap.String("attachmentId", attachmentID.String()),
+		zap.String("objectKey", attachment.ObjectKey),
+		zap.String("coverObjectKey", attachment.CoverObjectKey),
+	)
+
 	return nil
+}
+
+// getObjectETag 从MinIO获取对象的ETag（通常是MD5哈希值）
+func (s *Service) getObjectETag(ctx context.Context, objectKey string) (string, error) {
+	// 使用StatObject获取对象信息，包括ETag
+	objectInfo, err := s.client.StatObject(ctx, s.config.Storage.BucketName, objectKey, minio.StatObjectOptions{})
+	if err != nil {
+		return "", fmt.Errorf("failed to get object info from MinIO: %w", err)
+	}
+
+	// 移除ETag中的引号（如果存在）
+	etag := strings.Trim(objectInfo.ETag, `"`)
+
+	return etag, nil
 }
 
 func (s *Service) GeneratePresignedGetURL(ctx context.Context, attachmentID uuid.UUID) (string, error) {
@@ -143,6 +225,28 @@ func (s *Service) GeneratePresignedGetURL(ctx context.Context, attachmentID uuid
 			zap.Error(err),
 		)
 		return "", fmt.Errorf("could not generate access URL")
+	}
+	return presignedURL.String(), nil
+}
+
+func (s *Service) GeneratePresignedGetCoverURL(ctx context.Context, attachmentID uuid.UUID) (string, error) {
+	objectKey, err := s.Q.GetCompletedAttachmentCoverObjectKey(ctx, pkg.UUIDToPgUUID(attachmentID))
+	if err != nil {
+		s.logger.Warn("Failed to get completed attachment object key",
+			zap.String("attachmentId", attachmentID.String()),
+			zap.Error(err),
+		)
+		return "", fmt.Errorf("attachment not found or not completed")
+	}
+
+	expiry := time.Duration(s.config.Storage.PresignedExpiry) * time.Minute
+	presignedURL, err := s.client.PresignedGetObject(ctx, s.config.Storage.BucketName, objectKey, expiry, nil)
+	if err != nil {
+		s.logger.Error("Failed to generate presigned GET Cover URL",
+			zap.String("objectKey", objectKey),
+			zap.Error(err),
+		)
+		return "", fmt.Errorf("could not generate access cover URL")
 	}
 	return presignedURL.String(), nil
 }

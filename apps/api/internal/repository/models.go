@@ -106,11 +106,13 @@ type Attachment struct {
 	// 文件在 MinIO 中的唯一存储键 (路径/名称)
 	ObjectKey string `json:"object_key"`
 	// 文件的原始名称
-	OriginalName string `json:"original_name"`
+	OriginalName   string `json:"original_name"`
+	CoverObjectKey string `json:"cover_object_key"`
 	// 文件的媒体类型 (e.g., image/jpeg)
 	MimeType string `json:"mime_type"`
 	// 文件内容的 MD5 哈希值，用于验证文件完整性
-	Md5 string `json:"md5"`
+	Md5      string `json:"md5"`
+	CoverMd5 string `json:"cover_md5"`
 	// 文件大小（字节）
 	FileSize int64 `json:"file_size"`
 	// 文件上传状态 (e.g., uploading, completed, failed)

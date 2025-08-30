@@ -26,6 +26,7 @@ func StorageRouter(s *Service, v *validator.Validate) chi.Router {
 	r.Post("/{attachmentID}/completed", h.CompleteUpload)
 	r.Post("/presigned/upload", h.GetPresignedUploadURL)
 	r.Get("/{attachmentID}/url", h.GetTemporaryAccessURL)
+	r.Get("/{attachmentID}/cover-url", h.GetTemporaryAccessCoverURL)
 	return r
 }
 
@@ -72,6 +73,33 @@ func (h *Handler) GetTemporaryAccessURL(w http.ResponseWriter, r *http.Request) 
 	}
 	// 2. 调用Service层获取URL
 	url, err := h.S.GeneratePresignedGetURL(r.Context(), attachmentID)
+	if err != nil {
+		// 这里可以根据 service 层返回的错误类型来设置更精确的状态码
+		// 例如，如果是 "not found"，则返回 404
+		if err.Error() == "attachment not found or not completed" {
+			response.Error(err.Error()).SetStatusCode(http.StatusNotFound).Build(w)
+		} else {
+			response.Error("Failed to generate access URL: " + err.Error()).SetStatusCode(http.StatusInternalServerError).Build(w)
+		}
+		return
+	}
+	// 3. 将URL包装在JSON对象中返回给客户端
+	responseData := map[string]string{
+		"url": url,
+	}
+	response.Success("Temporary access URL generated successfully").SetData(responseData).Build(w)
+}
+
+func (h *Handler) GetTemporaryAccessCoverURL(w http.ResponseWriter, r *http.Request) {
+	// 1. 从路径参数中解析附件ID
+	attachmentIDStr := chi.URLParam(r, "attachmentID")
+	attachmentID, err := uuid.Parse(attachmentIDStr)
+	if err != nil {
+		response.Error("Invalid attachment ID format").SetStatusCode(http.StatusBadRequest).Build(w)
+		return
+	}
+	// 2. 调用Service层获取URL
+	url, err := h.S.GeneratePresignedGetCoverURL(r.Context(), attachmentID)
 	if err != nil {
 		// 这里可以根据 service 层返回的错误类型来设置更精确的状态码
 		// 例如，如果是 "not found"，则返回 404

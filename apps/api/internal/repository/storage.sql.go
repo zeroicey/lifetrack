@@ -14,31 +14,36 @@ import (
 const createAttachment = `-- name: CreateAttachment :one
 INSERT INTO attachments (
     object_key,
+    cover_object_key,
     original_name,
     mime_type,
     md5,
+    cover_md5,
     file_size,
     status
 ) VALUES (
-    $1, $2, $3, $4, $5, 'uploading'
-) RETURNING id, object_key, original_name, mime_type, md5, file_size, status, created_at, updated_at
+    $1, $2, $3, $4, $5, $6, $7, 'uploading'
+) RETURNING id, object_key, original_name, cover_object_key, mime_type, md5, cover_md5, file_size, status, created_at, updated_at
 `
 
 type CreateAttachmentParams struct {
-	ObjectKey    string `json:"object_key"`
-	OriginalName string `json:"original_name"`
-	MimeType     string `json:"mime_type"`
-	Md5          string `json:"md5"`
-	FileSize     int64  `json:"file_size"`
+	ObjectKey      string `json:"object_key"`
+	CoverObjectKey string `json:"cover_object_key"`
+	OriginalName   string `json:"original_name"`
+	MimeType       string `json:"mime_type"`
+	Md5            string `json:"md5"`
+	CoverMd5       string `json:"cover_md5"`
+	FileSize       int64  `json:"file_size"`
 }
 
-// 创建一个新的附件记录，并返回新创建的完整记录
 func (q *Queries) CreateAttachment(ctx context.Context, arg CreateAttachmentParams) (Attachment, error) {
 	row := q.db.QueryRow(ctx, createAttachment,
 		arg.ObjectKey,
+		arg.CoverObjectKey,
 		arg.OriginalName,
 		arg.MimeType,
 		arg.Md5,
+		arg.CoverMd5,
 		arg.FileSize,
 	)
 	var i Attachment
@@ -46,8 +51,10 @@ func (q *Queries) CreateAttachment(ctx context.Context, arg CreateAttachmentPara
 		&i.ID,
 		&i.ObjectKey,
 		&i.OriginalName,
+		&i.CoverObjectKey,
 		&i.MimeType,
 		&i.Md5,
+		&i.CoverMd5,
 		&i.FileSize,
 		&i.Status,
 		&i.CreatedAt,
@@ -57,7 +64,7 @@ func (q *Queries) CreateAttachment(ctx context.Context, arg CreateAttachmentPara
 }
 
 const findCompletedAttachmentByMD5 = `-- name: FindCompletedAttachmentByMD5 :one
-SELECT id, object_key, original_name, mime_type, md5, file_size, status, created_at, updated_at FROM attachments
+SELECT id, object_key, original_name, cover_object_key, mime_type, md5, cover_md5, file_size, status, created_at, updated_at FROM attachments
 WHERE md5 = $1 AND status = 'completed'
 LIMIT 1
 `
@@ -69,14 +76,52 @@ func (q *Queries) FindCompletedAttachmentByMD5(ctx context.Context, md5 string) 
 		&i.ID,
 		&i.ObjectKey,
 		&i.OriginalName,
+		&i.CoverObjectKey,
 		&i.MimeType,
 		&i.Md5,
+		&i.CoverMd5,
 		&i.FileSize,
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getAttachmentById = `-- name: GetAttachmentById :one
+SELECT id, object_key, original_name, cover_object_key, mime_type, md5, cover_md5, file_size, status, created_at, updated_at FROM attachments
+WHERE id = $1
+`
+
+func (q *Queries) GetAttachmentById(ctx context.Context, id pgtype.UUID) (Attachment, error) {
+	row := q.db.QueryRow(ctx, getAttachmentById, id)
+	var i Attachment
+	err := row.Scan(
+		&i.ID,
+		&i.ObjectKey,
+		&i.OriginalName,
+		&i.CoverObjectKey,
+		&i.MimeType,
+		&i.Md5,
+		&i.CoverMd5,
+		&i.FileSize,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCompletedAttachmentCoverObjectKey = `-- name: GetCompletedAttachmentCoverObjectKey :one
+SELECT cover_object_key FROM attachments
+WHERE id = $1 AND status = 'completed'
+`
+
+func (q *Queries) GetCompletedAttachmentCoverObjectKey(ctx context.Context, id pgtype.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getCompletedAttachmentCoverObjectKey, id)
+	var cover_object_key string
+	err := row.Scan(&cover_object_key)
+	return cover_object_key, err
 }
 
 const getCompletedAttachmentObjectKey = `-- name: GetCompletedAttachmentObjectKey :one

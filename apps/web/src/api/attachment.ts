@@ -1,6 +1,8 @@
 import http from "@/lib/http";
-import type { PresignedUploadResponse } from "@/types/attachment";
-import { calculateMD5 } from "@/utils/common";
+import type {
+    PresignedUploadBody,
+    PresignedUploadResponse,
+} from "@/types/attachment";
 import type { Response } from "@/lib/http";
 import ky from "ky";
 export const apiUploadAttachment = async ({
@@ -17,17 +19,10 @@ export const apiUploadAttachment = async ({
         .json();
 };
 
-export const apiGetPresignedURL = async (files: File[]) => {
+export const apiGetPresignedURL = async (bodies: PresignedUploadBody[]) => {
     const res = await http
         .post<Response<PresignedUploadResponse[]>>("storage/presigned/upload", {
-            json: await Promise.all(
-                files.map(async (file) => ({
-                    file_name: file.name,
-                    file_size: file.size,
-                    mime_type: file.type,
-                    md5: await calculateMD5(file),
-                }))
-            ),
+            json: bodies,
         })
         .json();
     return res.data;
@@ -41,6 +36,13 @@ export const apiCompleteUpload = async (attachmentId: string) => {
 export const apiGetAttachmentUrl = async (attachmentId: string) => {
     const res = await http
         .get<Response<{ url: string }>>(`storage/${attachmentId}/url`)
+        .json();
+    return res.data;
+};
+
+export const apiGetAttachmentCoverUrl = async (attachmentId: string) => {
+    const res = await http
+        .get<Response<{ url: string }>>(`storage/${attachmentId}/cover-url`)
         .json();
     return res.data;
 };

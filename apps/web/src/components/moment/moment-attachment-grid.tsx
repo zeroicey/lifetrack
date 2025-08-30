@@ -1,9 +1,12 @@
-import { useAttachmentUrl } from "@/hooks/use-moment-query";
+import {
+    useAttachmentCoverUrl,
+    useAttachmentUrl,
+} from "@/hooks/use-moment-query";
 import type { MomentAttachment } from "@/types/moment";
 import { useState } from "react";
 import { MediaPreviewModal } from "./media-preview-modal";
 import type { MediaFile } from "./media-preview-modal";
-import { Play, Volume2, Image, Loader2 } from "lucide-react";
+import { Play, Image, Loader2 } from "lucide-react";
 
 type Props = {
     attachments: MomentAttachment[];
@@ -15,8 +18,22 @@ type AttachmentItemProps = {
 };
 
 function AttachmentItem({ attachment, onPreview }: AttachmentItemProps) {
-    const { data: urlData, isPending, error } = useAttachmentUrl(attachment.id);
+    const {
+        data: coverUrlData,
+        isPending: coverPending,
+        error: coverError,
+    } = useAttachmentCoverUrl(attachment.id);
+    const {
+        data: attachmentUrlData,
+        isPending: attachmentPending,
+        error: attachmentError,
+    } = useAttachmentUrl(attachment.id);
     const [imageLoaded, setImageLoaded] = useState(false);
+
+    const isPending = coverPending || attachmentPending;
+    const error = coverError || attachmentError;
+    const urlData = coverUrlData; // 显示用封面
+    const previewUrlData = attachmentUrlData; // 预览用原文件
 
     if (isPending) {
         return (
@@ -35,11 +52,12 @@ function AttachmentItem({ attachment, onPreview }: AttachmentItemProps) {
     }
 
     const handleClick = () => {
+        // 预览时使用原文件URL而不是封面URL
         const mediaFile: MediaFile = {
             id: attachment.id,
             name: attachment.original_name,
             type: attachment.mime_type,
-            url: urlData.url,
+            url: previewUrlData?.url || urlData?.url || "",
         };
         onPreview(mediaFile);
     };
@@ -73,10 +91,19 @@ function AttachmentItem({ attachment, onPreview }: AttachmentItemProps) {
             )}
             {isVideo && (
                 <div className="relative w-full h-full group">
-                    <video
+                    {!imageLoaded && (
+                        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Image className="w-6 h-6 text-gray-400 animate-pulse" />
+                        </div>
+                    )}
+                    <img
                         src={urlData.url}
-                        className="w-full h-full object-cover"
-                        muted
+                        alt={attachment.original_name}
+                        className={`w-full h-full object-cover transition-opacity duration-200 ${
+                            imageLoaded ? "opacity-100" : "opacity-0"
+                        }`}
+                        onLoad={() => setImageLoaded(true)}
+                        onError={() => setImageLoaded(true)}
                     />
                     <div
                         className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:bg-black group-hover:bg-opacity-50"
@@ -92,13 +119,32 @@ function AttachmentItem({ attachment, onPreview }: AttachmentItemProps) {
                 </div>
             )}
             {isAudio && (
-                <div className="w-full h-full flex flex-col items-center justify-center p-2">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mb-2">
-                        <Volume2 className="w-4 h-4 text-white" />
+                <div className="relative w-full h-full group">
+                    {!imageLoaded && (
+                        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Image className="w-6 h-6 text-gray-400 animate-pulse" />
+                        </div>
+                    )}
+                    <img
+                        src={urlData.url}
+                        alt={attachment.original_name}
+                        className={`w-full h-full object-cover transition-opacity duration-200 ${
+                            imageLoaded ? "opacity-100" : "opacity-0"
+                        }`}
+                        onLoad={() => setImageLoaded(true)}
+                        onError={() => setImageLoaded(true)}
+                    />
+                    <div
+                        className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:bg-black group-hover:bg-opacity-50"
+                        style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+                    >
+                        <div className="w-8 h-8 bg-white bg-opacity-80 rounded-full flex items-center justify-center transition-all duration-200 group-hover:bg-opacity-100 group-hover:scale-110 group-hover:shadow-lg">
+                            <Play
+                                className="w-4 h-4 text-gray-800 ml-0.5 transition-colors duration-200 group-hover:text-black"
+                                fill="currentColor"
+                            />
+                        </div>
                     </div>
-                    <span className="text-xs text-gray-600 text-center truncate w-full">
-                        {attachment.original_name}
-                    </span>
                 </div>
             )}
         </div>

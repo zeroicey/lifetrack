@@ -4,6 +4,7 @@ import {
     apiGetPresignedURL,
     apiUploadAttachment,
     apiCompleteUpload,
+    apiGetAttachmentCoverUrl,
 } from "@/api/attachment";
 import type { Moment } from "@/types/moment";
 import type { MediaFile } from "@/components/moment/media-preview-modal";
@@ -16,6 +17,9 @@ import {
     type QueryKey,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { generateFileCover } from "@/utils/attachment";
+import { calculateMD5 } from "@/utils/common";
+import type { PresignedUploadBody } from "@/types/attachment";
 
 const queryKey: QueryKey = ["list-moments"];
 
@@ -52,7 +56,28 @@ export const useMomentCreateMutation = () => {
 
             // 批量获取预签名 URL
             const files = attachments.map((attachment) => attachment.file!);
-            const presignedDataList = await apiGetPresignedURL(files);
+            const cover_files: File[] = [];
+            for (const file of files) {
+                cover_files.push(await generateFileCover(file, file.type));
+            }
+            const presignedUploadBodies: PresignedUploadBody[] = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const md5 = await calculateMD5(file);
+                const coverExt = cover_files[i].name.split(".").pop()!;
+                presignedUploadBodies.push({
+                    file_name: file.name,
+                    mime_type: file.type,
+                    file_size: file.size,
+                    md5: md5,
+                    cover_ext: coverExt,
+                    cover_md5: await calculateMD5(cover_files[i]),
+                });
+            }
+            console.log(presignedUploadBodies);
+            const presignedDataList = await apiGetPresignedURL(
+                presignedUploadBodies
+            );
             if (
                 !presignedDataList ||
                 presignedDataList.length !== files.length
@@ -68,6 +93,7 @@ export const useMomentCreateMutation = () => {
 
                 // 如果不是秒传，则上传文件到预签名 URL
                 if (!presignedData.is_duplicate) {
+                    // 上传文件到预签名 URL
                     try {
                         await apiUploadAttachment({
                             url: presignedData.upload_url!,
@@ -76,6 +102,18 @@ export const useMomentCreateMutation = () => {
                     } catch (error) {
                         throw new Error(
                             `Failed to upload attachment ${attachment.name}: ${error}`
+                        );
+                    }
+
+                    // 上传文件封面到预签名 URL
+                    try {
+                        await apiUploadAttachment({
+                            url: presignedData.cover_upload_url!,
+                            file: cover_files[i],
+                        });
+                    } catch (error) {
+                        throw new Error(
+                            `Failed to upload attachment cover ${attachment.name}: ${error}`
                         );
                     }
 
@@ -128,6 +166,17 @@ export const useAttachmentUrl = (attachmentId: string) => {
         queryKey: ["attachment-url", attachmentId],
         queryFn: () => {
             return apiGetAttachmentUrl(attachmentId);
+        },
+        staleTime: 5 * 60 * 1000, // 5分钟缓存
+        enabled: !!attachmentId,
+    });
+};
+
+export const useAttachmentCoverUrl = (attachmentId: string) => {
+    return useQuery({
+        queryKey: ["attachment-cover-url", attachmentId],
+        queryFn: () => {
+            return apiGetAttachmentCoverUrl(attachmentId);
         },
         staleTime: 5 * 60 * 1000, // 5分钟缓存
         enabled: !!attachmentId,

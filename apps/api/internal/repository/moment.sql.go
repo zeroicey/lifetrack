@@ -58,7 +58,7 @@ func (q *Queries) DeleteMomentByID(ctx context.Context, id int64) error {
 
 const getMomentAttachmentsByID = `-- name: GetMomentAttachmentsByID :many
 SELECT 
-    a.id, a.object_key, a.original_name, a.mime_type, a.md5, a.file_size, a.status, a.created_at, a.updated_at,
+    a.id, a.object_key, a.original_name, a.cover_object_key, a.mime_type, a.md5, a.cover_md5, a.file_size, a.status, a.created_at, a.updated_at,
     ma.position
 FROM attachments a
 INNER JOIN moment_attachments ma ON a.id = ma.attachment_id
@@ -67,16 +67,18 @@ ORDER BY ma.position
 `
 
 type GetMomentAttachmentsByIDRow struct {
-	ID           pgtype.UUID        `json:"id"`
-	ObjectKey    string             `json:"object_key"`
-	OriginalName string             `json:"original_name"`
-	MimeType     string             `json:"mime_type"`
-	Md5          string             `json:"md5"`
-	FileSize     int64              `json:"file_size"`
-	Status       string             `json:"status"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	Position     int16              `json:"position"`
+	ID             pgtype.UUID        `json:"id"`
+	ObjectKey      string             `json:"object_key"`
+	OriginalName   string             `json:"original_name"`
+	CoverObjectKey string             `json:"cover_object_key"`
+	MimeType       string             `json:"mime_type"`
+	Md5            string             `json:"md5"`
+	CoverMd5       string             `json:"cover_md5"`
+	FileSize       int64              `json:"file_size"`
+	Status         string             `json:"status"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	Position       int16              `json:"position"`
 }
 
 func (q *Queries) GetMomentAttachmentsByID(ctx context.Context, momentID int64) ([]GetMomentAttachmentsByIDRow, error) {
@@ -92,8 +94,10 @@ func (q *Queries) GetMomentAttachmentsByID(ctx context.Context, momentID int64) 
 			&i.ID,
 			&i.ObjectKey,
 			&i.OriginalName,
+			&i.CoverObjectKey,
 			&i.MimeType,
 			&i.Md5,
+			&i.CoverMd5,
 			&i.FileSize,
 			&i.Status,
 			&i.CreatedAt,
