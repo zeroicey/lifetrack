@@ -1,0 +1,11 @@
+.env
+.env.local
+.env.*.local
+*.log
+.git
+.gitignore
+README.md
+Dockerfile
+docker-compose*.yaml
+.air.toml
+Justfile

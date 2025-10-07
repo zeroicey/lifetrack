@@ -1,39 +1,39 @@
 services:
   lifetrack-db:
     image: postgres:17
-    ports:
-      - "${DB_PORT:-5432}:5432"
+    # 生产环境不暴露数据库端口到主机
+    # ports:
+    #   - "${DB_PORT:-5432}:5432"
     environment:
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-lifetrack}
-      - POSTGRES_USER=${DB_USER:-zeroicey}
-      - POSTGRES_DB=${DB_NAME:-lifetrack}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - lifetrack-pgdata:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-zeroicey} -d ${DB_NAME:-lifetrack}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 60s
+    restart: always
     networks:
       - lifetrack-network
 
   lifetrack-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: zeroicey/lifetrack-api:v0.0.1
     ports:
       - "${PORT:-5000}:5000"
     environment:
       - PORT=${PORT:-5000}
       - DB_HOST=lifetrack-db
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER:-zeroicey}
-      - DB_PASSWORD=${DB_PASSWORD:-lifetrack}
-      - DB_NAME=${DB_NAME:-lifetrack}
-      - JWT_SECRET=${JWT_SECRET:-secret}
-      - APPMODE=${APPMODE:-dev}
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - APPMODE=prod
       - STORAGE_PROVIDER=${STORAGE_PROVIDER}
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT}
       - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
@@ -51,9 +51,18 @@ services:
     depends_on:
       lifetrack-db:
         condition: service_healthy
-    restart: unless-stopped
+    restart: always
     networks:
       - lifetrack-network
+    # 生产环境资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
 
 volumes:
   lifetrack-pgdata:
