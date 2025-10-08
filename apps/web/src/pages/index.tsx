@@ -17,9 +17,6 @@ export default function IndexPage() {
                 <p className="text-gray-600">
                     Track your life, help your life and achieve your goals
                 </p>
-                <p className="text-gray-600">
-                    Current API URL: {import.meta.env.VITE_API_URL}
-                </p>
                 <Button onClick={() => navigate("/login")}>Get Started</Button>
             </div>
         </div>
