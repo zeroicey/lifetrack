@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/:path*",
-            "destination": "${VITE_API_URL}/:path*"
+            "destination": "${BACKEND_API_URL}/:path*"
         }
     ]
 }
