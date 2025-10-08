@@ -7,6 +7,7 @@ export type Response<T> = {
 };
 
 export const http = ky.extend({
+    prefixUrl: "api",
     timeout: 10000,
     hooks: {
         beforeRequest: [
