@@ -28,7 +28,7 @@ func NewConfig() (*Config, error) {
 
 	viper.SetDefault("PORT", "8080")
 	viper.SetDefault("APPMODE", "dev")
-	config.Port = viper.GetString("PORT")
+	config.Port = viper.GetString("APPPORT")
 	config.APPMODE = viper.GetString("APPMODE")
 
 	config.DB = NewDBConfig()
