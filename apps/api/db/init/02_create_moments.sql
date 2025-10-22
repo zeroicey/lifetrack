@@ -1,10 +1,11 @@
-CREATE TABLE
-    IF NOT EXISTS moments (
-        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        content TEXT NOT NULL,
-        created_at timestamptz DEFAULT NOW () NOT NULL,
-        updated_at timestamptz DEFAULT NOW () NOT NULL
-    );
+CREATE TABLE IF NOT EXISTS moments (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content TEXT,
+    created_at timestamptz DEFAULT NOW() NOT NULL,
+    updated_at timestamptz DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX idx_moments_created_at_desc ON moments (created_at DESC);
 
 COMMENT ON TABLE moments IS '用于存储即使信息，包括文本内容和附件';
 
