@@ -28,7 +28,7 @@ func NewConfig() (*Config, error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	viper.SetDefault("APPMODE", "dev")
-	config.Port = "5000"
+	config.Port = viper.GetString("APPPORT")
 	config.APPMODE = viper.GetString("APPMODE")
 
 	config.DB = NewDBConfig()
