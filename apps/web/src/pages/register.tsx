@@ -151,29 +151,38 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Decorative background elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-1/2 -right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+            </div>
+            
             {/* Back to Home Button */}
-            <div className="absolute top-6 left-6">
+            <div className="absolute top-6 left-6 z-10">
                 <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => window.location.href = '/'}
-                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+                    className="flex items-center space-x-2 hover:bg-background/80 backdrop-blur-sm transition-all duration-300 hover:scale-105"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back to Home</span>
                 </Button>
             </div>
             
-            <Card className="w-full max-w-md shadow-lg">
+            <Card className="w-full max-w-md shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 animate-in zoom-in duration-500 relative z-10">
                 <CardHeader className="space-y-3 text-center">
                     <div className="flex items-center justify-center space-x-3">
-                        <img
-                            src="/logo.png"
-                            alt="LifeTrack Logo"
-                            className="h-12 w-12"
-                        />
-                        <CardTitle className="text-2xl font-bold">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
+                            <img
+                                src="/logo.png"
+                                alt="LifeTrack Logo"
+                                className="h-12 w-12 relative"
+                            />
+                        </div>
+                        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                             Create Account
                         </CardTitle>
                     </div>
@@ -188,7 +197,7 @@ export default function RegisterPage() {
                             <Label htmlFor="avatar">Upload Avatar</Label>
                             <div className="flex items-center space-x-4">
                                 <div className="flex-shrink-0">
-                                    <div className="w-20 h-20 rounded-full border-2 border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                                    <div className="w-20 h-20 rounded-full border-2 border-border flex items-center justify-center overflow-hidden bg-muted/50 shadow-inner transition-all duration-300 hover:shadow-md">
                                         {avatarPreview ? (
                                             <img
                                                 src={avatarPreview}
@@ -196,14 +205,14 @@ export default function RegisterPage() {
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <User className="w-8 h-8 text-gray-400" />
+                                            <User className="w-8 h-8 text-muted-foreground" />
                                         )}
                                     </div>
                                 </div>
                                 <div className="flex-1">
                                     <label
                                         htmlFor="avatar-upload"
-                                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md shadow-sm text-sm font-medium bg-background hover:bg-accent transition-all duration-300 hover:scale-105 hover:shadow-md"
                                     >
                                         <Upload className="w-4 h-4 mr-2" />
                                         Choose File
@@ -215,13 +224,13 @@ export default function RegisterPage() {
                                             className="sr-only"
                                         />
                                     </label>
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                         PNG, JPG, GIF up to 5MB
                                     </p>
                                 </div>
                             </div>
                             {errors.avatar && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-destructive animate-in slide-in-from-top duration-300">
                                     {errors.avatar}
                                 </p>
                             )}
@@ -230,8 +239,8 @@ export default function RegisterPage() {
                         {/* Username Field */}
                         <div className="space-y-2">
                             <Label htmlFor="username">Username</Label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <div className="relative group">
+                                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                                 <Input
                                     id="username"
                                     name="username"
@@ -239,14 +248,14 @@ export default function RegisterPage() {
                                     placeholder="Enter your username"
                                     value={formData.username}
                                     onChange={handleInputChange}
-                                    className={`pl-10 ${
-                                        errors.username ? "border-red-500" : ""
+                                    className={`pl-10 transition-all duration-300 ${
+                                        errors.username ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
                                     }`}
                                     required
                                 />
                             </div>
                             {errors.username && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-destructive animate-in slide-in-from-top duration-300">
                                     {errors.username}
                                 </p>
                             )}
@@ -255,8 +264,8 @@ export default function RegisterPage() {
                         {/* Email Field */}
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <div className="relative group">
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                                 <Input
                                     id="email"
                                     name="email"
@@ -264,14 +273,14 @@ export default function RegisterPage() {
                                     placeholder="Enter your email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    className={`pl-10 ${
-                                        errors.email ? "border-red-500" : ""
+                                    className={`pl-10 transition-all duration-300 ${
+                                        errors.email ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
                                     }`}
                                     required
                                 />
                             </div>
                             {errors.email && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-destructive animate-in slide-in-from-top duration-300">
                                     {errors.email}
                                 </p>
                             )}
@@ -280,8 +289,8 @@ export default function RegisterPage() {
                         {/* Password Field */}
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <div className="relative group">
+                                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                                 <Input
                                     id="password"
                                     name="password"
@@ -289,8 +298,8 @@ export default function RegisterPage() {
                                     placeholder="Enter your password"
                                     value={formData.password}
                                     onChange={handleInputChange}
-                                    className={`pl-10 pr-10 ${
-                                        errors.password ? "border-red-500" : ""
+                                    className={`pl-10 pr-10 transition-all duration-300 ${
+                                        errors.password ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
                                     }`}
                                     required
                                 />
@@ -299,7 +308,7 @@ export default function RegisterPage() {
                                     onClick={() =>
                                         setShowPassword(!showPassword)
                                     }
-                                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors duration-200"
                                 >
                                     {showPassword ? (
                                         <EyeOff className="h-4 w-4" />
@@ -309,7 +318,7 @@ export default function RegisterPage() {
                                 </button>
                             </div>
                             {errors.password && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-destructive animate-in slide-in-from-top duration-300">
                                     {errors.password}
                                 </p>
                             )}
@@ -320,8 +329,8 @@ export default function RegisterPage() {
                             <Label htmlFor="confirmPassword">
                                 Confirm Password
                             </Label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <div className="relative group">
+                                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                                 <Input
                                     id="confirmPassword"
                                     name="confirmPassword"
@@ -333,10 +342,10 @@ export default function RegisterPage() {
                                     placeholder="Confirm your password"
                                     value={formData.confirmPassword}
                                     onChange={handleInputChange}
-                                    className={`pl-10 pr-10 ${
+                                    className={`pl-10 pr-10 transition-all duration-300 ${
                                         errors.confirmPassword
-                                            ? "border-red-500"
-                                            : ""
+                                            ? "border-destructive focus-visible:ring-destructive"
+                                            : "focus-visible:ring-primary"
                                     }`}
                                     required
                                 />
@@ -347,7 +356,7 @@ export default function RegisterPage() {
                                             !showConfirmPassword
                                         )
                                     }
-                                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors duration-200"
                                 >
                                     {showConfirmPassword ? (
                                         <EyeOff className="h-4 w-4" />
@@ -357,7 +366,7 @@ export default function RegisterPage() {
                                 </button>
                             </div>
                             {errors.confirmPassword && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-destructive animate-in slide-in-from-top duration-300">
                                     {errors.confirmPassword}
                                 </p>
                             )}
@@ -372,11 +381,11 @@ export default function RegisterPage() {
                                 type="date"
                                 value={formData.birthday}
                                 onChange={handleInputChange}
-                                className={errors.birthday ? "border-red-500" : ""}
+                                className={`transition-all duration-300 ${errors.birthday ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"}`}
                                 required
                             />
                             {errors.birthday && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-destructive animate-in slide-in-from-top duration-300">
                                     {errors.birthday}
                                 </p>
                             )}
@@ -385,12 +394,12 @@ export default function RegisterPage() {
                         {/* Submit Button */}
                         <Button
                             type="submit"
-                            className="w-full"
+                            className="w-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
                             disabled={registerMutation.isPending}
                         >
                             {registerMutation.isPending ? (
                                 <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
                                     Creating Account...
                                 </>
                             ) : (
@@ -399,11 +408,11 @@ export default function RegisterPage() {
                         </Button>
 
                         {/* Login Link */}
-                        <div className="text-center text-sm text-gray-600">
+                        <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{" "}
                             <a
                                 href="/login"
-                                className="text-blue-600 hover:underline font-medium"
+                                className="text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
                             >
                                 Sign in
                             </a>
