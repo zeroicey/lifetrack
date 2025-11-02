@@ -5,7 +5,7 @@ sql:
     schema: "db/init"
     gen:
       go:
-        package: "repository"
-        out: "internal/repository"
+        package: "dao"
+        out: "db/dao"
         sql_package: "pgx/v5"
         emit_json_tags: true
