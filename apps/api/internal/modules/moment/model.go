@@ -8,7 +8,8 @@ type Moment struct {
 }
 
 type CreateMomentRequest struct {
-	Content string `json:"content"`
+	Content     string                          `json:"content"`
+	Attachments []CreateMomentAttachmentRequest `json:"attachments"`
 }
 
 type CreateMomentAttachmentRequest struct {
@@ -16,4 +17,10 @@ type CreateMomentAttachmentRequest struct {
 	MimeType     string `json:"mime_type"`
 	FileSize     int64  `json:"file_size"`
 	Md5          string `json:"md5"`
+}
+
+type PresignedUploadResponse struct {
+	ObjectKey   string `json:"object_key,omitempty"`
+	UploadUrl   string `json:"upload_url,omitempty"`
+	IsDuplicate bool   `json:"is_duplicate"`
 }

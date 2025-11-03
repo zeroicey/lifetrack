@@ -2,11 +2,17 @@ package moment
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
 	"time"
+
+	"github.com/gofiber/fiber/v2/log"
+	"github.com/google/uuid"
+	"github.com/zeroicey/lifetrack-api/db/dao"
 )
 
 type Service interface {
-	Create(ctx context.Context, body CreateMomentRequest) (Moment, error)
+	Create(ctx context.Context, body CreateMomentRequest) ([]PresignedUploadResponse, error)
 	GetById(ctx context.Context, id int64) (Moment, error)
 	List(ctx context.Context, cursor int64, limit int) ([]Moment, *int64, error)
 }
@@ -20,33 +26,48 @@ func NewService(R Repository) Service {
 	return &serviceImpl{R: R, converter: NewConverter()}
 }
 
-func (s *serviceImpl) Create(ctx context.Context, momentBody CreateMomentRequest, attachmentsBodies []CreateMomentAttachmentRequest) (Moment, error) {
-	moment, err := s.R.Create(ctx, momentBody.Content)
-	// for _, body := range attachmentsBodies {
-	// 	ext := filepath.Ext(body.OriginalName)
-	// 	objectKey := uuid.NewString() + ext
-	// 	attachment, err := s.R.CreateAttachment(ctx, dao.CreateMomentAttachmentParams{
-	// 		ObjectKey:    objectKey,
-	// 		OriginalName: body.OriginalName,
-	// 		MimeType:     body.MimeType,
-	// 		FileSize:     body.FileSize,
-	// 		Md5:          body.Md5,
-	// 	})
-	// 	if err != nil {
-	// 		log.Fatalf("Something error")
-	// 	}
-	// }
+func (s *serviceImpl) Create(ctx context.Context, body CreateMomentRequest) ([]PresignedUploadResponse, error) {
+	fmt.Printf("body.Content: %v\n", body.Content)
+	fmt.Printf("body.Attachments: %v\n", body.Attachments)
+	moment, err := s.R.Create(ctx, body.Content)
+	fmt.Printf("moment: %v\n", moment)
 
 	if err != nil {
-		return Moment{}, err
+		return nil, err
 	}
 
-	return Moment{
-		ID:        moment.ID,
-		Content:   moment.Content,
-		CreatedAt: moment.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt: moment.UpdatedAt.Time.Format(time.RFC3339),
-	}, nil
+	responses := make([]PresignedUploadResponse, 0, len(body.Attachments))
+
+	for _, attachmentBody := range body.Attachments {
+		ext := filepath.Ext(attachmentBody.OriginalName)
+		objectKey := uuid.NewString() + ext
+		attachment, err := s.R.CreateAttachment(ctx, dao.CreateMomentAttachmentParams{
+			ObjectKey:    objectKey,
+			OriginalName: attachmentBody.OriginalName,
+			MimeType:     attachmentBody.MimeType,
+			FileSize:     attachmentBody.FileSize,
+			Md5:          attachmentBody.Md5,
+		})
+		if err != nil {
+			log.Fatalf("Something error")
+		}
+
+		append(responses, PresignedUploadResponse{
+			ObjectKey:   objectKey,
+			UploadUrl:   "sdfasd",
+			IsDuplicate: false,
+		})
+		fmt.Printf("attachment: %v\n", attachment)
+	}
+
+	// return Moment{
+	// 	ID:        moment.ID,
+	// 	Content:   moment.Content,
+	// 	CreatedAt: moment.CreatedAt.Time.Format(time.RFC3339),
+	// 	UpdatedAt: moment.UpdatedAt.Time.Format(time.RFC3339),
+	// }, nil
+
+	return responses, nil
 }
 
 func (s *serviceImpl) GetById(ctx context.Context, id int64) (Moment, error) {
