@@ -11,12 +11,14 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/zeroicey/lifetrack-api/db/dao"
 	"github.com/zeroicey/lifetrack-api/internal/config"
+	"github.com/zeroicey/lifetrack-api/internal/pkg"
 )
 
 type Service interface {
 	Create(ctx context.Context, body *CreateMomentRequest) ([]PresignedUploadResponse, error)
 	GetById(ctx context.Context, id int64) (Moment, error)
 	List(ctx context.Context, cursor int64, limit int) ([]Moment, *int64, error)
+	MarkAttachmentUploaded(ctx context.Context, attachmentId string) error
 }
 
 type serviceImpl struct {
@@ -42,6 +44,15 @@ func (s *serviceImpl) Create(ctx context.Context, body *CreateMomentRequest) ([]
 	responses := make([]PresignedUploadResponse, 0, len(body.Attachments))
 
 	for _, attachmentBody := range body.Attachments {
+		existingAttachment, err := s.R.MomentHasCompletedAttachment(ctx, attachmentBody.Md5)
+		if err != nil {
+			log.Fatalf("Something error")
+		}
+		if existingAttachment {
+			responses = append(responses, PresignedUploadResponse{
+				IsDuplicate: true,
+			})
+		}
 		ext := filepath.Ext(attachmentBody.OriginalName)
 		objectKey := uuid.NewString() + ext
 		attachment, err := s.R.CreateAttachment(ctx, dao.CreateMomentAttachmentParams{
@@ -127,3 +138,39 @@ func (s *serviceImpl) List(ctx context.Context, cursor int64, limit int) ([]Mome
 	moments, err := ToMomentResponses(ctx, items)
 	return moments, nextCursor, nil
 }
+
+func (s *serviceImpl) MarkAttachmentUploaded(ctx context.Context, attachmentIdStr string) error {
+	attachmentId, err := pkg.StringToPgUUID(attachmentIdStr)
+	if err != nil {
+		log.Fatalf("Something error")
+	}
+	momentAttachment, err := s.R.MarkMomentAttachmentCompleted(ctx, attachmentId)
+	if err != nil {
+		log.Fatalf("Something error")
+	}
+
+	go pkg.ProcessThumbnail(s.Minio, momentAttachment.ObjectKey, s.Config.Storage.BucketName)
+	return nil
+}
+
+// func (s *Service) GeneratePresignedGetURL(ctx context.Context, attachmentID uuid.UUID) (string, error) {
+// 	objectKey, err := s.Q.GetCompletedAttachmentObjectKey(ctx, pkg.UUIDToPgUUID(attachmentID))
+// 	if err != nil {
+// 		s.logger.Warn("Failed to get completed attachment object key",
+// 			zap.String("attachmentId", attachmentID.String()),
+// 			zap.Error(err),
+// 		)
+// 		return "", fmt.Errorf("attachment not found or not completed")
+// 	}
+//
+// 	expiry := time.Duration(s.config.Storage.PresignedExpiry) * time.Minute
+// 	presignedURL, err := s.client.PresignedGetObject(ctx, s.config.Storage.BucketName, objectKey, expiry, nil)
+// 	if err != nil {
+// 		s.logger.Error("Failed to generate presigned GET URL",
+// 			zap.String("objectKey", objectKey),
+// 			zap.Error(err),
+// 		)
+// 		return "", fmt.Errorf("could not generate access URL")
+// 	}
+// 	return presignedURL.String(), nil
+// }

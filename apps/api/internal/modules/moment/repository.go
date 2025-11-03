@@ -3,6 +3,7 @@ package moment
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/zeroicey/lifetrack-api/db/dao"
 )
 
@@ -12,6 +13,8 @@ type Repository interface {
 	CreateAttachment(ctx context.Context, params dao.CreateMomentAttachmentParams) (dao.MomentAttachment, error)
 	GetById(ctx context.Context, id int64) (dao.Moment, error)
 	DeleteById(ctx context.Context, id int64) error
+	MomentHasCompletedAttachment(ctx context.Context, md5 string) (bool, error)
+	MarkMomentAttachmentCompleted(ctx context.Context, id pgtype.UUID) (dao.MomentAttachment, error)
 }
 
 type repoImpl struct {
@@ -40,4 +43,12 @@ func (r *repoImpl) DeleteById(ctx context.Context, id int64) error {
 
 func (r *repoImpl) CreateAttachment(ctx context.Context, params dao.CreateMomentAttachmentParams) (dao.MomentAttachment, error) {
 	return r.Q.CreateMomentAttachment(ctx, params)
+}
+
+func (r *repoImpl) MomentHasCompletedAttachment(ctx context.Context, md5 string) (bool, error) {
+	return r.Q.MomentHasCompletedAttachment(ctx, md5)
+}
+
+func (r *repoImpl) MarkMomentAttachmentCompleted(ctx context.Context, id pgtype.UUID) (dao.MomentAttachment, error) {
+	return r.Q.MarkMomentAttachmentCompleted(ctx, id)
 }

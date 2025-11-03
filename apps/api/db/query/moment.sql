@@ -34,3 +34,15 @@ INSERT INTO moment_attachments
 )
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+
+-- name: MomentHasCompletedAttachment :one
+SELECT EXISTS(
+    SELECT 1 FROM moment_attachments
+    WHERE md5 = $1 AND completed = true
+) AS has_completed;
+
+-- name: MarkMomentAttachmentCompleted :one
+UPDATE moment_attachments
+SET completed = true
+WHERE id = $1
+RETURNING *;

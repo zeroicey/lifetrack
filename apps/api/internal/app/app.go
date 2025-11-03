@@ -56,6 +56,7 @@ func (a *App) registerModules() {
 	momentService := moment.NewService(momentRepo, a.Minio, a.Cfg)
 	momentHandler := moment.NewHandler(momentService)
 	momentHandler.RegisterRoutes(api.Group("/moments"))
+	momentHandler.RegisterAttachmentRoutes(api.Group("/moment-attachments"))
 }
 
 func (a *App) Run() {

@@ -16,6 +16,10 @@ func NewHandler(S Service) *Handler {
 	return &Handler{S: S}
 }
 
+func (h *Handler) RegisterAttachmentRoutes(r fiber.Router) {
+	r.Post("/:attachmentId/completed", h.MarkAttachmentUploaded)
+}
+
 func (h *Handler) RegisterRoutes(r fiber.Router) {
 	r.Get("/", h.List)
 	r.Post("/", h.Create)
@@ -82,4 +86,14 @@ func (h *Handler) GetByID(c *fiber.Ctx) error {
 	}
 
 	return response.OK().SetData(moment).Build(c)
+}
+
+func (h *Handler) MarkAttachmentUploaded(c *fiber.Ctx) error {
+	attachmentId := c.Params("attachmentId")
+	ctx := c.Context()
+	err := h.S.MarkAttachmentUploaded(ctx, attachmentId)
+	if err != nil {
+		return response.Error(err.Error()).SetStatusCode(fiber.StatusNotFound).Build(c)
+	}
+	return response.OK().Build(c)
 }

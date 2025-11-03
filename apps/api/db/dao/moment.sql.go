@@ -138,6 +138,30 @@ func (q *Queries) ListMoments(ctx context.Context, arg ListMomentsParams) ([]Mom
 	return items, nil
 }
 
+const markMomentAttachmentCompleted = `-- name: MarkMomentAttachmentCompleted :one
+UPDATE moment_attachments
+SET completed = true
+WHERE id = $1
+RETURNING id, object_key, cover_object_key, original_name, mime_type, file_size, md5, completed, created_at
+`
+
+func (q *Queries) MarkMomentAttachmentCompleted(ctx context.Context, id pgtype.UUID) (MomentAttachment, error) {
+	row := q.db.QueryRow(ctx, markMomentAttachmentCompleted, id)
+	var i MomentAttachment
+	err := row.Scan(
+		&i.ID,
+		&i.ObjectKey,
+		&i.CoverObjectKey,
+		&i.OriginalName,
+		&i.MimeType,
+		&i.FileSize,
+		&i.Md5,
+		&i.Completed,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const momentExists = `-- name: MomentExists :one
 SELECT EXISTS(
     SELECT 1 FROM moments WHERE id = $1
@@ -149,4 +173,18 @@ func (q *Queries) MomentExists(ctx context.Context, id int64) (bool, error) {
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const momentHasCompletedAttachment = `-- name: MomentHasCompletedAttachment :one
+SELECT EXISTS(
+    SELECT 1 FROM moment_attachments
+    WHERE md5 = $1 AND completed = true
+) AS has_completed
+`
+
+func (q *Queries) MomentHasCompletedAttachment(ctx context.Context, md5 string) (bool, error) {
+	row := q.db.QueryRow(ctx, momentHasCompletedAttachment, md5)
+	var has_completed bool
+	err := row.Scan(&has_completed)
+	return has_completed, err
 }
