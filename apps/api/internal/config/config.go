@@ -13,6 +13,7 @@ type Config struct {
 	APP_MODE string
 	DB       *DBConfig
 	JWT      *JWTConfig
+	Storage  *StorageConfig
 }
 
 func MustLoad() *Config {
@@ -29,6 +30,7 @@ func MustLoad() *Config {
 
 	config.DB = NewDBConfig()
 	config.JWT = NewJWTConfig()
+	config.Storage = NewStorageConfig()
 
 	log.Info("✅ Loaded .env config")
 	return config

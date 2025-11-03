@@ -8,25 +8,28 @@ import (
 
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 	"github.com/zeroicey/lifetrack-api/db/dao"
+	"github.com/zeroicey/lifetrack-api/internal/config"
 )
 
 type Service interface {
-	Create(ctx context.Context, body CreateMomentRequest) ([]PresignedUploadResponse, error)
+	Create(ctx context.Context, body *CreateMomentRequest) ([]PresignedUploadResponse, error)
 	GetById(ctx context.Context, id int64) (Moment, error)
 	List(ctx context.Context, cursor int64, limit int) ([]Moment, *int64, error)
 }
 
 type serviceImpl struct {
-	R         Repository
-	converter *Converter
+	R      Repository
+	Minio  *minio.Client
+	Config *config.Config
 }
 
-func NewService(R Repository) Service {
-	return &serviceImpl{R: R, converter: NewConverter()}
+func NewService(R Repository, Minio *minio.Client, Config *config.Config) Service {
+	return &serviceImpl{R: R, Minio: Minio, Config: Config}
 }
 
-func (s *serviceImpl) Create(ctx context.Context, body CreateMomentRequest) ([]PresignedUploadResponse, error) {
+func (s *serviceImpl) Create(ctx context.Context, body *CreateMomentRequest) ([]PresignedUploadResponse, error) {
 	fmt.Printf("body.Content: %v\n", body.Content)
 	fmt.Printf("body.Attachments: %v\n", body.Attachments)
 	moment, err := s.R.Create(ctx, body.Content)
@@ -52,20 +55,20 @@ func (s *serviceImpl) Create(ctx context.Context, body CreateMomentRequest) ([]P
 			log.Fatalf("Something error")
 		}
 
-		append(responses, PresignedUploadResponse{
+		expiry := time.Duration(s.Config.Storage.PresignedExpiry) * time.Minute
+		presignedUrl, err := s.Minio.PresignedPutObject(ctx, s.Config.Storage.BucketName, objectKey, expiry)
+
+		if err != nil {
+			return nil, nil
+		}
+
+		responses = append(responses, PresignedUploadResponse{
 			ObjectKey:   objectKey,
-			UploadUrl:   "sdfasd",
+			UploadUrl:   presignedUrl.String(),
 			IsDuplicate: false,
 		})
 		fmt.Printf("attachment: %v\n", attachment)
 	}
-
-	// return Moment{
-	// 	ID:        moment.ID,
-	// 	Content:   moment.Content,
-	// 	CreatedAt: moment.CreatedAt.Time.Format(time.RFC3339),
-	// 	UpdatedAt: moment.UpdatedAt.Time.Format(time.RFC3339),
-	// }, nil
 
 	return responses, nil
 }
@@ -97,7 +100,7 @@ func (s *serviceImpl) List(ctx context.Context, cursor int64, limit int) ([]Mome
 	}()
 
 	_moments, err := s.R.List(ctx, dao.ListMomentsParams{
-		Column1: s.converter.CursorToTimestamp(cursor),
+		Column1: CursorToTimestamp(cursor),
 		Limit:   int32(limit + 1),
 	})
 
@@ -121,6 +124,6 @@ func (s *serviceImpl) List(ctx context.Context, cursor int64, limit int) ([]Mome
 		nextCursor = &ts
 	}
 
-	moments, err := s.converter.ToMomentResponses(ctx, items)
+	moments, err := ToMomentResponses(ctx, items)
 	return moments, nextCursor, nil
 }

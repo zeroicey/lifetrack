@@ -62,7 +62,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 		return response.Error("invaild request").SetStatusCode(fiber.StatusBadRequest).Build(c)
 	}
 	ctx := c.Context()
-	moment, err := h.S.Create(ctx, body)
+	moment, err := h.S.Create(ctx, &body)
 
 	if err != nil {
 		return response.Error(err.Error()).SetStatusCode(fiber.StatusBadRequest).Build(c)

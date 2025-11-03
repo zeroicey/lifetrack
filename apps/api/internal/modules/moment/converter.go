@@ -8,13 +8,7 @@ import (
 	"github.com/zeroicey/lifetrack-api/db/dao"
 )
 
-type Converter struct{}
-
-func NewConverter() *Converter {
-	return &Converter{}
-}
-
-func (c *Converter) CursorToTimestamp(cursor int64) pgtype.Timestamp {
+func CursorToTimestamp(cursor int64) pgtype.Timestamp {
 	var cursorTs pgtype.Timestamp
 	if cursor > 0 {
 		t := time.UnixMilli(cursor).UTC()
@@ -25,7 +19,7 @@ func (c *Converter) CursorToTimestamp(cursor int64) pgtype.Timestamp {
 	return cursorTs
 }
 
-func (c *Converter) ToMomentResponse(ctx context.Context, moment dao.Moment) (Moment, error) {
+func ToMomentResponse(ctx context.Context, moment *dao.Moment) (Moment, error) {
 	return Moment{
 		ID:        moment.ID,
 		Content:   moment.Content,
@@ -35,10 +29,10 @@ func (c *Converter) ToMomentResponse(ctx context.Context, moment dao.Moment) (Mo
 }
 
 // ToMomentResponses 批量转换数据库模型为响应模型
-func (c *Converter) ToMomentResponses(ctx context.Context, moments []dao.Moment) ([]Moment, error) {
+func ToMomentResponses(ctx context.Context, moments []dao.Moment) ([]Moment, error) {
 	var responses []Moment
 	for _, m := range moments {
-		resp, err := c.ToMomentResponse(ctx, m)
+		resp, err := ToMomentResponse(ctx, &m)
 		if err != nil {
 			return nil, err
 		}
